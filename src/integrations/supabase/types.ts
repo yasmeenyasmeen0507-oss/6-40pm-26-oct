@@ -14,7 +14,209 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      brands: {
+        Row: {
+          category: Database["public"]["Enums"]["device_category"]
+          created_at: string | null
+          id: string
+          logo_url: string | null
+          name: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["device_category"]
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["device_category"]
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      cities: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      devices: {
+        Row: {
+          brand_id: string
+          created_at: string | null
+          id: string
+          model_name: string
+          release_date: string | null
+          series: string | null
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string | null
+          id?: string
+          model_name: string
+          release_date?: string | null
+          series?: string | null
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string | null
+          id?: string
+          model_name?: string
+          release_date?: string | null
+          series?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devices_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pickup_requests: {
+        Row: {
+          address: string
+          age_group: Database["public"]["Enums"]["age_group"]
+          body_condition: Database["public"]["Enums"]["device_condition"]
+          city_id: string
+          condition: Database["public"]["Enums"]["device_condition"]
+          created_at: string | null
+          customer_name: string
+          device_id: string
+          device_powers_on: boolean | null
+          display_condition: Database["public"]["Enums"]["device_condition"]
+          final_price: number
+          has_bill: boolean | null
+          has_box: boolean | null
+          has_charger: boolean | null
+          id: string
+          pickup_date: string
+          pickup_time: string
+          pincode: string
+          status: string | null
+          user_phone: string
+          variant_id: string
+        }
+        Insert: {
+          address: string
+          age_group: Database["public"]["Enums"]["age_group"]
+          body_condition: Database["public"]["Enums"]["device_condition"]
+          city_id: string
+          condition: Database["public"]["Enums"]["device_condition"]
+          created_at?: string | null
+          customer_name: string
+          device_id: string
+          device_powers_on?: boolean | null
+          display_condition: Database["public"]["Enums"]["device_condition"]
+          final_price: number
+          has_bill?: boolean | null
+          has_box?: boolean | null
+          has_charger?: boolean | null
+          id?: string
+          pickup_date: string
+          pickup_time: string
+          pincode: string
+          status?: string | null
+          user_phone: string
+          variant_id: string
+        }
+        Update: {
+          address?: string
+          age_group?: Database["public"]["Enums"]["age_group"]
+          body_condition?: Database["public"]["Enums"]["device_condition"]
+          city_id?: string
+          condition?: Database["public"]["Enums"]["device_condition"]
+          created_at?: string | null
+          customer_name?: string
+          device_id?: string
+          device_powers_on?: boolean | null
+          display_condition?: Database["public"]["Enums"]["device_condition"]
+          final_price?: number
+          has_bill?: boolean | null
+          has_box?: boolean | null
+          has_charger?: boolean | null
+          id?: string
+          pickup_date?: string
+          pickup_time?: string
+          pincode?: string
+          status?: string | null
+          user_phone?: string
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pickup_requests_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pickup_requests_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pickup_requests_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      variants: {
+        Row: {
+          base_price: number
+          created_at: string | null
+          device_id: string
+          id: string
+          storage_gb: number
+        }
+        Insert: {
+          base_price: number
+          created_at?: string | null
+          device_id: string
+          id?: string
+          storage_gb: number
+        }
+        Update: {
+          base_price?: number
+          created_at?: string | null
+          device_id?: string
+          id?: string
+          storage_gb?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variants_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +225,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      age_group: "0-3" | "3-6" | "6-11" | "12+"
+      device_category: "phone" | "laptop" | "ipad"
+      device_condition: "excellent" | "good" | "fair" | "poor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +354,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      age_group: ["0-3", "3-6", "6-11", "12+"],
+      device_category: ["phone", "laptop", "ipad"],
+      device_condition: ["excellent", "good", "fair", "poor"],
+    },
   },
 } as const
