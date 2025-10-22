@@ -1,7 +1,7 @@
 // @ts-nocheck - Temporary: Supabase types are regenerating after migration
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Loader2, HardDrive } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, HardDrive, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,12 +19,12 @@ interface Variant {
 const VariantSelection = ({ deviceId, onSelect }: Props) => {
   const [variants, setVariants] = useState<Variant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
 
   useEffect(() => {
     const fetchVariants = async () => {
       setLoading(true);
       const { data, error } = await supabase
-        // @ts-expect-error - Supabase types are regenerating after migration
         .from("variants")
         .select("*")
         .eq("device_id", deviceId)
@@ -41,6 +41,11 @@ const VariantSelection = ({ deviceId, onSelect }: Props) => {
     fetchVariants();
   }, [deviceId]);
 
+  const handleSelect = (variant: Variant) => {
+    setSelectedVariant(variant);
+    onSelect(variant.id, variant.storage_gb, variant.base_price);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -56,6 +61,29 @@ const VariantSelection = ({ deviceId, onSelect }: Props) => {
         <p className="text-muted-foreground">Choose your device's storage capacity</p>
       </div>
 
+      <AnimatePresence mode="wait">
+        {selectedVariant && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="mb-8 p-6 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border-2 border-primary/30"
+          >
+            <div className="flex items-center justify-center gap-3">
+              <CheckCircle2 className="w-6 h-6 text-primary" />
+              <div className="text-center">
+                <p className="text-lg font-semibold">
+                  {selectedVariant.storage_gb}GB Selected
+                </p>
+                <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Base Price: ₹{selectedVariant.base_price.toLocaleString("en-IN")}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="grid md:grid-cols-3 gap-6">
         {variants.map((variant, index) => (
           <motion.div
@@ -65,19 +93,38 @@ const VariantSelection = ({ deviceId, onSelect }: Props) => {
             transition={{ delay: index * 0.1 }}
           >
             <Card
-              className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 hover:border-primary/50 overflow-hidden group"
-              onClick={() => onSelect(variant.id, variant.storage_gb, variant.base_price)}
+              className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 overflow-hidden group ${
+                selectedVariant?.id === variant.id
+                  ? "border-primary shadow-lg"
+                  : "hover:border-primary/50"
+              }`}
+              onClick={() => handleSelect(variant)}
             >
-              <div className="h-2 bg-gradient-to-r from-primary to-secondary" />
-              <CardContent className="p-8 text-center">
-                <div className="inline-flex p-4 rounded-full bg-primary/10 mb-4 group-hover:scale-110 transition-transform">
+              <div className={`h-2 ${
+                selectedVariant?.id === variant.id
+                  ? "bg-gradient-to-r from-primary to-secondary"
+                  : "bg-gradient-to-r from-gray-300 to-gray-400"
+              }`} />
+              <CardContent className="p-8 text-center relative">
+                {selectedVariant?.id === variant.id && (
+                  <div className="absolute top-4 right-4">
+                    <CheckCircle2 className="w-6 h-6 text-primary" />
+                  </div>
+                )}
+                <div className={`inline-flex p-4 rounded-full mb-4 transition-all ${
+                  selectedVariant?.id === variant.id
+                    ? "bg-primary/20 scale-110"
+                    : "bg-primary/10 group-hover:scale-110"
+                }`}>
                   <HardDrive className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="text-2xl font-bold mb-2">{variant.storage_gb}GB</h3>
-                <div className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-1">
-                  ₹{variant.base_price.toLocaleString("en-IN")}
-                </div>
-                <p className="text-sm text-muted-foreground">Base Price*</p>
+                <p className="text-sm text-muted-foreground">
+                  {selectedVariant?.id === variant.id 
+                    ? "Selected"
+                    : "Click to select"
+                  }
+                </p>
               </CardContent>
             </Card>
           </motion.div>
