@@ -5,7 +5,6 @@ import { Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface Props {
   brandId: string;
@@ -33,7 +32,6 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
         .from("devices")
         .select("*")
         .eq("brand_id", brandId)
-        .order("series")
         .order("model_name");
 
       if (error) {
@@ -54,22 +52,11 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
     } else {
       setFilteredDevices(
         devices.filter((device) =>
-          device.model_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (device.series && device.series.toLowerCase().includes(searchQuery.toLowerCase()))
+          device.model_name.toLowerCase().includes(searchQuery.toLowerCase())
         )
       );
     }
   }, [searchQuery, devices]);
-
-  // Group devices by series
-  const devicesBySeries = filteredDevices.reduce((acc, device) => {
-    const series = device.series || "Other Models";
-    if (!acc[series]) {
-      acc[series] = [];
-    }
-    acc[series].push(device);
-    return acc;
-  }, {} as Record<string, Device[]>);
 
   if (loading) {
     return (
@@ -99,40 +86,25 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
         </div>
       </div>
 
-      <Accordion type="single" collapsible className="space-y-4">
-        {Object.entries(devicesBySeries).map(([series, seriesDevices], seriesIndex) => (
-          <AccordionItem
-            key={series}
-            value={series}
-            className="border rounded-lg bg-card overflow-hidden"
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredDevices.map((device, index) => (
+          <motion.div
+            key={device.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.03 }}
           >
-            <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50">
-              <span className="text-lg font-semibold">{series}</span>
-            </AccordionTrigger>
-            <AccordionContent className="px-4 pb-4">
-              <div className="grid md:grid-cols-2 gap-3 pt-2">
-                {seriesDevices.map((device, index) => (
-                  <motion.div
-                    key={device.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Card
-                      className="cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-105 border-2 hover:border-primary/50"
-                      onClick={() => onSelect(device.id, device.model_name, device.release_date)}
-                    >
-                      <CardContent className="p-4">
-                        <span className="font-medium">{device.model_name}</span>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
+            <Card
+              className="cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-105 border-2 hover:border-primary/50"
+              onClick={() => onSelect(device.id, device.model_name, device.release_date)}
+            >
+              <CardContent className="p-4">
+                <span className="font-medium">{device.model_name}</span>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
-      </Accordion>
+      </div>
 
       {filteredDevices.length === 0 && (
         <div className="text-center py-12">
