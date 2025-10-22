@@ -9,13 +9,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 
 interface Props {
   brandId: string;
-  onSelect: (deviceId: string, deviceName: string) => void;
+  onSelect: (deviceId: string, deviceName: string, releaseDate: string | null) => void;
 }
 
 interface Device {
   id: string;
   model_name: string;
   series: string | null;
+  release_date: string | null;
 }
 
 const DeviceSelection = ({ brandId, onSelect }: Props) => {
@@ -119,7 +120,7 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
                   >
                     <Card
                       className="cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-105 border-2 hover:border-primary/50"
-                      onClick={() => onSelect(device.id, device.model_name)}
+                      onClick={() => onSelect(device.id, device.model_name, device.release_date)}
                     >
                       <CardContent className="p-4">
                         <span className="font-medium">{device.model_name}</span>

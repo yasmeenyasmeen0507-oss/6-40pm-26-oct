@@ -31,6 +31,7 @@ export interface FlowState {
   brandName: string | null;
   deviceId: string | null;
   deviceName: string | null;
+  releaseDate: string | null;
   cityId: string | null;
   cityName: string | null;
   variantId: string | null;
@@ -57,6 +58,7 @@ const Index = () => {
     brandName: null,
     deviceId: null,
     deviceName: null,
+    releaseDate: null,
     cityId: null,
     cityName: null,
     variantId: null,
@@ -156,8 +158,8 @@ const Index = () => {
             >
               <DeviceSelection
                 brandId={flowState.brandId}
-                onSelect={(deviceId, deviceName) => {
-                  updateFlowState({ deviceId, deviceName });
+                onSelect={(deviceId, deviceName, releaseDate) => {
+                  updateFlowState({ deviceId, deviceName, releaseDate });
                   setCurrentStep("city");
                 }}
               />
@@ -210,6 +212,7 @@ const Index = () => {
               <ConditionQuestions
                 basePrice={flowState.basePrice}
                 deviceName={flowState.deviceName || ""}
+                releaseDate={flowState.releaseDate || ""}
                 onComplete={(condition, finalPrice) => {
                   updateFlowState({ condition, finalPrice });
                   setCurrentStep("otp");

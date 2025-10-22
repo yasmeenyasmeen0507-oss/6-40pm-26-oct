@@ -10,6 +10,7 @@ import { TrendingUp, TrendingDown, Minus, IndianRupee } from "lucide-react";
 interface Props {
   basePrice: number;
   deviceName: string;
+  releaseDate: string;
   onComplete: (
     condition: {
       devicePowersOn: boolean;
@@ -24,26 +25,56 @@ interface Props {
   ) => void;
 }
 
-const ConditionQuestions = ({ basePrice, deviceName, onComplete }: Props) => {
+const ConditionQuestions = ({ basePrice, deviceName, releaseDate, onComplete }: Props) => {
   const [devicePowersOn, setDevicePowersOn] = useState(true);
   const [displayCondition, setDisplayCondition] = useState("excellent");
   const [bodyCondition, setBodyCondition] = useState("excellent");
-  const [ageGroup, setAgeGroup] = useState("0-3");
   const [hasCharger, setHasCharger] = useState(false);
   const [hasBill, setHasBill] = useState(false);
   const [hasBox, setHasBox] = useState(false);
   const [calculatedPrice, setCalculatedPrice] = useState(basePrice);
+  const [priceBreakdown, setPriceBreakdown] = useState<{
+    base: number;
+    power: number;
+    display: number;
+    body: number;
+    age: number;
+    accessories: number;
+  }>({ base: basePrice, power: 0, display: 0, body: 0, age: 0, accessories: 0 });
+
+  // Calculate months since launch
+  const getMonthsSinceLaunch = () => {
+    if (!releaseDate) return 0;
+    const launch = new Date(releaseDate);
+    const now = new Date();
+    const months = (now.getFullYear() - launch.getFullYear()) * 12 + (now.getMonth() - launch.getMonth());
+    return Math.max(0, months);
+  };
+
+  // Get age group for backward compatibility
+  const getAgeGroup = (months: number): string => {
+    if (months <= 3) return "0-3";
+    if (months <= 6) return "3-6";
+    if (months <= 11) return "6-11";
+    return "12+";
+  };
+
+  const monthsSinceLaunch = getMonthsSinceLaunch();
+  const ageGroup = getAgeGroup(monthsSinceLaunch);
 
   useEffect(() => {
     calculatePrice();
-  }, [devicePowersOn, displayCondition, bodyCondition, ageGroup, hasCharger, hasBill, hasBox]);
+  }, [devicePowersOn, displayCondition, bodyCondition, hasCharger, hasBill, hasBox, releaseDate]);
 
   const calculatePrice = () => {
     let price = basePrice;
+    const breakdown = { base: basePrice, power: 0, display: 0, body: 0, age: 0, accessories: 0 };
 
-    // Power penalty
+    // Power penalty - 50%
     if (!devicePowersOn) {
-      price *= 0.5; // 50% penalty
+      const penalty = price * 0.5;
+      breakdown.power = -penalty;
+      price -= penalty;
     }
 
     // Display condition adjustment
@@ -53,7 +84,9 @@ const ConditionQuestions = ({ basePrice, deviceName, onComplete }: Props) => {
       fair: 0.15,
       poor: 0.3,
     };
-    price -= price * displayPenalty[displayCondition];
+    const displayDeduction = price * displayPenalty[displayCondition];
+    breakdown.display = -displayDeduction;
+    price -= displayDeduction;
 
     // Body condition adjustment
     const bodyPenalty: Record<string, number> = {
@@ -62,25 +95,42 @@ const ConditionQuestions = ({ basePrice, deviceName, onComplete }: Props) => {
       fair: 0.1,
       poor: 0.2,
     };
-    price -= price * bodyPenalty[bodyCondition];
+    const bodyDeduction = price * bodyPenalty[bodyCondition];
+    breakdown.body = -bodyDeduction;
+    price -= bodyDeduction;
 
-    // Age depreciation
-    const ageDepreciation: Record<string, number> = {
-      "0-3": 0,
-      "3-6": 0.08,
-      "6-11": 0.15,
-      "12+": 0.25,
-    };
-    price -= price * ageDepreciation[ageGroup];
+    // Dynamic age depreciation based on months since launch
+    let ageDepreciationRate = 0;
+    const months = monthsSinceLaunch;
+    
+    if (months <= 3) {
+      ageDepreciationRate = 0; // 0-3 months: No depreciation
+    } else if (months <= 6) {
+      ageDepreciationRate = 0.08; // 3-6 months: 8%
+    } else if (months <= 12) {
+      ageDepreciationRate = 0.15; // 6-12 months: 15%
+    } else if (months <= 24) {
+      ageDepreciationRate = 0.25; // 12-24 months: 25%
+    } else if (months <= 36) {
+      ageDepreciationRate = 0.35; // 24-36 months: 35%
+    } else {
+      ageDepreciationRate = 0.45; // 36+ months: 45%
+    }
+    
+    const ageDeduction = price * ageDepreciationRate;
+    breakdown.age = -ageDeduction;
+    price -= ageDeduction;
 
-    // Accessories bonus
-    let accessoryCount = 0;
-    if (hasCharger) accessoryCount++;
-    if (hasBill) accessoryCount++;
-    if (hasBox) accessoryCount++;
-    price += price * (accessoryCount * 0.02); // 2% bonus per accessory
+    // Accessories bonus - 2% each
+    let accessoryBonus = 0;
+    if (hasCharger) accessoryBonus += price * 0.02;
+    if (hasBill) accessoryBonus += price * 0.02;
+    if (hasBox) accessoryBonus += price * 0.02;
+    breakdown.accessories = accessoryBonus;
+    price += accessoryBonus;
 
     setCalculatedPrice(Math.round(price));
+    setPriceBreakdown(breakdown);
   };
 
   const handleComplete = () => {
@@ -110,7 +160,7 @@ const ConditionQuestions = ({ basePrice, deviceName, onComplete }: Props) => {
       {/* Live Price Display */}
       <Card className="mb-8 border-2 border-primary/20 shadow-xl">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-muted-foreground mb-1">Estimated Price</p>
               <div className="flex items-center gap-3">
@@ -126,6 +176,44 @@ const ConditionQuestions = ({ basePrice, deviceName, onComplete }: Props) => {
               </div>
             </div>
             <IndianRupee className="w-16 h-16 text-primary/20" />
+          </div>
+          
+          {/* Price Breakdown */}
+          <div className="border-t pt-4 space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Base Price</span>
+              <span className="font-medium">₹{priceBreakdown.base.toLocaleString("en-IN")}</span>
+            </div>
+            {priceBreakdown.power !== 0 && (
+              <div className="flex justify-between text-red-600">
+                <span>Power Issue</span>
+                <span>{priceBreakdown.power.toLocaleString("en-IN")}</span>
+              </div>
+            )}
+            {priceBreakdown.display !== 0 && (
+              <div className="flex justify-between text-orange-600">
+                <span>Display ({displayCondition})</span>
+                <span>{priceBreakdown.display.toLocaleString("en-IN")}</span>
+              </div>
+            )}
+            {priceBreakdown.body !== 0 && (
+              <div className="flex justify-between text-orange-600">
+                <span>Body ({bodyCondition})</span>
+                <span>{priceBreakdown.body.toLocaleString("en-IN")}</span>
+              </div>
+            )}
+            {priceBreakdown.age !== 0 && (
+              <div className="flex justify-between text-orange-600">
+                <span>Age ({monthsSinceLaunch} months old)</span>
+                <span>{priceBreakdown.age.toLocaleString("en-IN")}</span>
+              </div>
+            )}
+            {priceBreakdown.accessories > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Accessories Bonus</span>
+                <span>+{priceBreakdown.accessories.toLocaleString("en-IN")}</span>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -210,31 +298,26 @@ const ConditionQuestions = ({ basePrice, deviceName, onComplete }: Props) => {
           </Card>
         </motion.div>
 
-        {/* Age Group */}
+        {/* Device Age - Auto Calculated */}
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
-          <Card>
+          <Card className="bg-muted/50">
             <CardHeader>
-              <CardTitle className="text-lg">How old is your device?</CardTitle>
+              <CardTitle className="text-lg">Device Age</CardTitle>
             </CardHeader>
             <CardContent>
-              <RadioGroup value={ageGroup} onValueChange={setAgeGroup}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="0-3" id="age-0-3" />
-                  <Label htmlFor="age-0-3" className="cursor-pointer">0-3 months</Label>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Months since launch:</span>
+                  <span className="font-bold text-lg">{monthsSinceLaunch} months</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="3-6" id="age-3-6" />
-                  <Label htmlFor="age-3-6" className="cursor-pointer">3-6 months</Label>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Age category:</span>
+                  <span className="font-medium">{ageGroup} months</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="6-11" id="age-6-11" />
-                  <Label htmlFor="age-6-11" className="cursor-pointer">6-11 months</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="12+" id="age-12+" />
-                  <Label htmlFor="age-12+" className="cursor-pointer">12+ months</Label>
-                </div>
-              </RadioGroup>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Age is automatically calculated from the device's launch date
+                </p>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
