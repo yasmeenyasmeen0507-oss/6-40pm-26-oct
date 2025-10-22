@@ -1,8 +1,9 @@
 // @ts-nocheck - Temporary: Supabase types are regenerating after migration
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, HardDrive, CheckCircle2 } from "lucide-react";
+import { Loader2, HardDrive, CheckCircle2, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
@@ -43,7 +44,12 @@ const VariantSelection = ({ deviceId, onSelect }: Props) => {
 
   const handleSelect = (variant: Variant) => {
     setSelectedVariant(variant);
-    onSelect(variant.id, variant.storage_gb, variant.base_price);
+  };
+
+  const handleGetExactValue = () => {
+    if (selectedVariant) {
+      onSelect(selectedVariant.id, selectedVariant.storage_gb, selectedVariant.base_price);
+    }
   };
 
   if (loading) {
@@ -67,18 +73,35 @@ const VariantSelection = ({ deviceId, onSelect }: Props) => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="mb-8 p-6 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border-2 border-primary/30"
+            className="mb-8 p-8 bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/10 rounded-2xl border-2 border-primary/30 shadow-lg"
           >
-            <div className="flex items-center justify-center gap-3">
-              <CheckCircle2 className="w-6 h-6 text-primary" />
-              <div className="text-center">
-                <p className="text-lg font-semibold">
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+                <p className="text-sm font-medium text-muted-foreground">
                   {selectedVariant.storage_gb}GB Selected
                 </p>
-                <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Base Price: ₹{selectedVariant.base_price.toLocaleString("en-IN")}
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Base Price</p>
+                <div className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  ₹{selectedVariant.base_price.toLocaleString("en-IN")}
                 </div>
               </div>
+
+              <Button
+                onClick={handleGetExactValue}
+                size="lg"
+                className="w-full max-w-md mx-auto bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity text-lg py-6 shadow-xl"
+              >
+                <TrendingUp className="w-5 h-5 mr-2" />
+                Get Exact Value
+              </Button>
+
+              <p className="text-xs text-muted-foreground">
+                Answer quick questions to get your warranty-based pricing
+              </p>
             </div>
           </motion.div>
         )}
@@ -139,7 +162,7 @@ const VariantSelection = ({ deviceId, onSelect }: Props) => {
 
       <div className="mt-8 text-center">
         <p className="text-sm text-muted-foreground">
-          *Final price will be calculated based on device condition and accessories
+          *Final price will be based on your device's warranty period
         </p>
       </div>
     </div>

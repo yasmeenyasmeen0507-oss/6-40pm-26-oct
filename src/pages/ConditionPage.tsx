@@ -46,6 +46,7 @@ const ConditionPage = () => {
 
   return (
     <ConditionQuestions
+      variantId={variantId}
       basePrice={parseFloat(basePrice)}
       deviceName={deviceName}
       releaseDate={releaseDate || ""}
