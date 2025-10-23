@@ -10,7 +10,6 @@ const ConditionPage = () => {
   const brandName = searchParams.get("brandName");
   const deviceId = searchParams.get("deviceId");
   const deviceName = searchParams.get("deviceName");
-  const releaseDate = searchParams.get("releaseDate");
   const cityId = searchParams.get("cityId");
   const cityName = searchParams.get("cityName");
   const variantId = searchParams.get("variantId");
@@ -40,7 +39,6 @@ const ConditionPage = () => {
       finalPrice: finalPrice.toString(),
       condition: JSON.stringify(condition),
     });
-    if (releaseDate) params.append("releaseDate", releaseDate);
     navigate(`/verify?${params.toString()}`);
   };
 
@@ -49,7 +47,6 @@ const ConditionPage = () => {
       variantId={variantId}
       basePrice={parseFloat(basePrice)}
       deviceName={deviceName}
-      releaseDate={releaseDate || ""}
       onComplete={handleComplete}
     />
   );

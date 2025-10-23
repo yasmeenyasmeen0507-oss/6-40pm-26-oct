@@ -6,14 +6,13 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { IndianRupee, Loader2, Clock } from "lucide-react";
+import { IndianRupee, Loader2, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   variantId: string;
   basePrice: number;
   deviceName: string;
-  releaseDate: string;
   onComplete: (
     condition: {
       devicePowersOn: boolean;
@@ -28,40 +27,29 @@ interface Props {
   ) => void;
 }
 
-const ConditionQuestions = ({ variantId, basePrice, deviceName, releaseDate, onComplete }: Props) => {
+const ConditionQuestions = ({ variantId, basePrice, deviceName, onComplete }: Props) => {
   const [devicePowersOn, setDevicePowersOn] = useState(true);
   const [displayCondition, setDisplayCondition] = useState("excellent");
   const [bodyCondition, setBodyCondition] = useState("excellent");
+  const [ageGroup, setAgeGroup] = useState<string>("");
   const [hasCharger, setHasCharger] = useState(false);
   const [hasBill, setHasBill] = useState(false);
   const [hasBox, setHasBox] = useState(false);
   const [finalPrice, setFinalPrice] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [warrantyStatus, setWarrantyStatus] = useState("");
-
-  const getMonthsSinceLaunch = () => {
-    if (!releaseDate) return 0;
-    const launch = new Date(releaseDate);
-    const now = new Date();
-    const months = (now.getFullYear() - launch.getFullYear()) * 12 + (now.getMonth() - launch.getMonth());
-    return Math.max(0, months);
-  };
-
-  const getAgeGroup = (months: number): string => {
-    if (months <= 3) return "0-3";
-    if (months <= 6) return "3-6";
-    if (months <= 11) return "6-11";
-    return "12+";
-  };
-
-  const monthsSinceLaunch = getMonthsSinceLaunch();
-  const ageGroup = getAgeGroup(monthsSinceLaunch);
+  const [warrantyPrices, setWarrantyPrices] = useState<any>(null);
 
   useEffect(() => {
-    fetchWarrantyPrice();
+    fetchWarrantyPrices();
   }, [variantId]);
 
-  const fetchWarrantyPrice = async () => {
+  useEffect(() => {
+    if (ageGroup && warrantyPrices) {
+      updatePrice();
+    }
+  }, [ageGroup, warrantyPrices]);
+
+  const fetchWarrantyPrices = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -72,48 +60,77 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, releaseDate, onC
 
       if (error) {
         console.error("Error fetching warranty prices:", error);
+        setWarrantyPrices(null);
         setFinalPrice(basePrice);
-        setWarrantyStatus("Unknown");
         return;
       }
 
       if (!data) {
         console.warn("No warranty prices found for variant:", variantId);
+        setWarrantyPrices(null);
         setFinalPrice(basePrice);
-        setWarrantyStatus("Unknown");
         return;
       }
 
-      const months = monthsSinceLaunch;
-      let price = 0;
-      let status = "";
-
-      if (months <= 3) {
-        price = data.price_0_3_months;
-        status = "0-3 months (Like New)";
-      } else if (months <= 6) {
-        price = data.price_3_6_months;
-        status = "3-6 months (Very Good)";
-      } else if (months <= 11) {
-        price = data.price_6_11_months;
-        status = "6-11 months (Under Warranty)";
-      } else {
-        price = data.price_11_plus_months;
-        status = "11+ months (Out of Warranty)";
-      }
-
-      setFinalPrice(price);
-      setWarrantyStatus(status);
+      setWarrantyPrices(data);
     } catch (err) {
-      console.error("Error in fetchWarrantyPrice:", err);
+      console.error("Error in fetchWarrantyPrices:", err);
+      setWarrantyPrices(null);
       setFinalPrice(basePrice);
-      setWarrantyStatus("Unknown");
     } finally {
       setLoading(false);
     }
   };
 
+  const updatePrice = () => {
+    if (!warrantyPrices) {
+      setFinalPrice(basePrice);
+      return;
+    }
+
+    let price = 0;
+
+    switch (ageGroup) {
+      case "0-3":
+        price = warrantyPrices.price_0_3_months;
+        break;
+      case "3-6":
+        price = warrantyPrices.price_3_6_months;
+        break;
+      case "6-11":
+        price = warrantyPrices.price_6_11_months;
+        break;
+      case "12+":
+        price = warrantyPrices.price_11_plus_months;
+        break;
+      default:
+        price = basePrice;
+    }
+
+    setFinalPrice(price);
+  };
+
+  const getWarrantyStatusLabel = (age: string) => {
+    switch (age) {
+      case "0-3":
+        return "0-3 months (Like New)";
+      case "3-6":
+        return "3-6 months (Very Good)";
+      case "6-11":
+        return "6-11 months (Under Warranty)";
+      case "12+":
+        return "12+ months (Out of Warranty)";
+      default:
+        return "Please select device age";
+    }
+  };
+
   const handleComplete = () => {
+    if (!ageGroup) {
+      alert("Please select when you purchased your device");
+      return;
+    }
+
     onComplete(
       {
         devicePowersOn,
@@ -146,35 +163,82 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, releaseDate, onC
       <Card className="mb-8 border-2 border-primary/20 shadow-xl bg-gradient-to-br from-primary/5 to-secondary/5">
         <CardContent className="p-8">
           <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-2 text-muted-foreground">
-              <Clock className="w-5 h-5" />
-              <span className="text-sm">Device Age: {monthsSinceLaunch} months</span>
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Warranty Status</p>
-              <p className="text-lg font-semibold text-primary">{warrantyStatus}</p>
-            </div>
-
-            <div className="pt-4 border-t">
-              <p className="text-sm text-muted-foreground mb-2">Final Offer Price</p>
-              <div className="flex items-center justify-center gap-2">
-                <IndianRupee className="w-8 h-8 text-primary/40" />
-                <div className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  ₹{finalPrice.toLocaleString("en-IN")}
+            {ageGroup && (
+              <>
+                <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                  <Calendar className="w-5 h-5" />
+                  <span className="text-sm">Selected: {getWarrantyStatusLabel(ageGroup)}</span>
                 </div>
-              </div>
-            </div>
 
-            <p className="text-xs text-muted-foreground pt-2">
-              This price is based on your device's warranty period
-            </p>
+                <div className="pt-4 border-t">
+                  <p className="text-sm text-muted-foreground mb-2">Final Offer Price</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <IndianRupee className="w-8 h-8 text-primary/40" />
+                    <div className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                      ₹{finalPrice.toLocaleString("en-IN")}
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs text-muted-foreground pt-2">
+                  This price is based on your device's age and warranty status
+                </p>
+              </>
+            )}
+
+            {!ageGroup && (
+              <div className="text-muted-foreground">
+                <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Select your device age below to see the offer price</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+          <Card className="border-2 border-primary/30">
+            <CardHeader>
+              <CardTitle className="text-lg">When did you purchase this device?</CardTitle>
+              <p className="text-sm text-muted-foreground">This affects your warranty status and offer price</p>
+            </CardHeader>
+            <CardContent>
+              <RadioGroup value={ageGroup} onValueChange={setAgeGroup}>
+                <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <RadioGroupItem value="0-3" id="age-0-3" />
+                  <Label htmlFor="age-0-3" className="cursor-pointer flex-1">
+                    <div className="font-medium">0-3 months ago</div>
+                    <div className="text-xs text-muted-foreground">Like New - Full Warranty</div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <RadioGroupItem value="3-6" id="age-3-6" />
+                  <Label htmlFor="age-3-6" className="cursor-pointer flex-1">
+                    <div className="font-medium">3-6 months ago</div>
+                    <div className="text-xs text-muted-foreground">Very Good - Under Warranty</div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <RadioGroupItem value="6-11" id="age-6-11" />
+                  <Label htmlFor="age-6-11" className="cursor-pointer flex-1">
+                    <div className="font-medium">6-11 months ago</div>
+                    <div className="text-xs text-muted-foreground">Good - Still Under Warranty</div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
+                  <RadioGroupItem value="12+" id="age-12plus" />
+                  <Label htmlFor="age-12plus" className="cursor-pointer flex-1">
+                    <div className="font-medium">12+ months ago</div>
+                    <div className="text-xs text-muted-foreground">Out of Warranty</div>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Does your device power on?</CardTitle>
@@ -195,7 +259,7 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, releaseDate, onC
           </Card>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Display Condition</CardTitle>
@@ -224,7 +288,7 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, releaseDate, onC
           </Card>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Body Condition</CardTitle>
@@ -253,7 +317,7 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, releaseDate, onC
           </Card>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Accessories Available</CardTitle>
@@ -278,7 +342,12 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, releaseDate, onC
       </div>
 
       <div className="mt-8 flex justify-center">
-        <Button size="lg" onClick={handleComplete} className="bg-gradient-to-r from-primary to-secondary text-white px-12 py-6 text-lg">
+        <Button 
+          size="lg" 
+          onClick={handleComplete} 
+          className="bg-gradient-to-r from-primary to-secondary text-white px-12 py-6 text-lg"
+          disabled={!ageGroup}
+        >
           Continue to Verification
         </Button>
       </div>
