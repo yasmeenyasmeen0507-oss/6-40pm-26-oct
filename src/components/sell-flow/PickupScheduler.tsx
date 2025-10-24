@@ -51,7 +51,6 @@ const PickupScheduler = ({ flowState }: Props) => {
     setIsSubmitting(true);
 
     try {
-      // @ts-expect-error - Supabase types are regenerating after migration
       const { error } = await supabase
         .from("pickup_requests")
         .insert({
@@ -59,14 +58,19 @@ const PickupScheduler = ({ flowState }: Props) => {
         device_id: flowState.deviceId!,
         variant_id: flowState.variantId!,
         city_id: flowState.cityId!,
-        condition: flowState.condition!.displayCondition as any,
+        condition: "good" as any,
         age_group: flowState.condition!.ageGroup as any,
-        has_charger: flowState.condition!.hasCharger,
-        has_bill: flowState.condition!.hasBill,
-        has_box: flowState.condition!.hasBox,
-        device_powers_on: flowState.condition!.devicePowersOn,
-        display_condition: flowState.condition!.displayCondition as any,
-        body_condition: flowState.condition!.bodyCondition as any,
+        has_charger: false,
+        has_bill: false,
+        has_box: false,
+        device_powers_on: true,
+        display_condition: "good" as any,
+        body_condition: "good" as any,
+        can_make_calls: flowState.condition!.canMakeCalls,
+        is_touch_working: flowState.condition!.isTouchWorking,
+        is_screen_original: flowState.condition!.isScreenOriginal,
+        is_battery_healthy: flowState.condition!.isBatteryHealthy,
+        overall_condition: flowState.condition!.overallCondition,
         final_price: flowState.finalPrice,
         customer_name: customerName,
         address: address,

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocation, useNavigate } from "react-router-dom";
 import CategorySelection from "@/components/sell-flow/CategorySelection";
 import BrandSelection from "@/components/sell-flow/BrandSelection";
 import DeviceSelection from "@/components/sell-flow/DeviceSelection";
@@ -9,7 +10,7 @@ import ConditionQuestions from "@/components/sell-flow/ConditionQuestions";
 import OTPVerification from "@/components/sell-flow/OTPVerification";
 import FinalValuation from "@/components/sell-flow/FinalValuation";
 import PickupScheduler from "@/components/sell-flow/PickupScheduler";
-import { Smartphone, ArrowLeft } from "lucide-react";
+import { Smartphone, ArrowLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type Step = 
@@ -38,19 +39,20 @@ export interface FlowState {
   storageGb: number | null;
   basePrice: number | null;
   condition: {
-    devicePowersOn: boolean;
-    displayCondition: string;
-    bodyCondition: string;
+    canMakeCalls: boolean;
+    isTouchWorking: boolean;
+    isScreenOriginal: boolean;
+    isBatteryHealthy: boolean;
+    overallCondition: string;
     ageGroup: string;
-    hasCharger: boolean;
-    hasBill: boolean;
-    hasBox: boolean;
   } | null;
   phoneNumber: string | null;
   finalPrice: number;
 }
 
 const Index = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<Step>("category");
   const [flowState, setFlowState] = useState<FlowState>({
     category: null,
@@ -69,6 +71,13 @@ const Index = () => {
     finalPrice: 0,
   });
 
+  useEffect(() => {
+    if (location.state?.category) {
+      setFlowState(prev => ({ ...prev, category: location.state.category }));
+      setCurrentStep("brand");
+    }
+  }, [location.state]);
+
   const updateFlowState = (updates: Partial<FlowState>) => {
     setFlowState(prev => ({ ...prev, ...updates }));
   };
@@ -81,6 +90,10 @@ const Index = () => {
     }
   };
 
+  const goHome = () => {
+    navigate("/");
+  };
+
   const canGoBack = currentStep !== "category" && currentStep !== "valuation" && currentStep !== "pickup";
 
   return (
@@ -88,7 +101,7 @@ const Index = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border/50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={goHome}>
             <div className="bg-gradient-to-br from-primary to-secondary p-2 rounded-xl">
               <Smartphone className="w-6 h-6 text-primary-foreground" />
             </div>
@@ -96,17 +109,30 @@ const Index = () => {
               SellkarIndia
             </span>
           </div>
-          {canGoBack && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goBack}
-              className="gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {currentStep === "category" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goHome}
+                className="gap-2"
+              >
+                <Home className="w-4 h-4" />
+                Home
+              </Button>
+            )}
+            {canGoBack && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goBack}
+                className="gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 

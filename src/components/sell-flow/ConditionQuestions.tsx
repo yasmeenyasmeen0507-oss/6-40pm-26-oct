@@ -9,9 +9,9 @@ import { IndianRupee, Loader2, Calendar, Check, X, Smartphone, Star, AlertCircle
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
-  variantId: string;
   basePrice: number;
   deviceName: string;
+  releaseDate: string;
   onComplete: (
     condition: {
       canMakeCalls: boolean;
@@ -25,25 +25,19 @@ interface Props {
   ) => void;
 }
 
-const ConditionQuestions = ({ variantId, basePrice, deviceName, onComplete }: Props) => {
-  // Step management
+const ConditionQuestions = ({ basePrice, deviceName, releaseDate, onComplete }: Props) => {
   const [currentStep, setCurrentStep] = useState<"yesno" | "condition">("yesno");
-  
-  // Yes/No question states
+
   const [canMakeCalls, setCanMakeCalls] = useState<boolean | null>(null);
   const [isTouchWorking, setIsTouchWorking] = useState<boolean | null>(null);
   const [isScreenOriginal, setIsScreenOriginal] = useState<boolean | null>(null);
   const [isBatteryHealthy, setIsBatteryHealthy] = useState<boolean | null>(null);
-  
-  // Condition and age states
+
   const [overallCondition, setOverallCondition] = useState<string>("");
   const [ageGroup, setAgeGroup] = useState<string>("");
-  
+
   const [finalPrice, setFinalPrice] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [warrantyPrices, setWarrantyPrices] = useState<any>(null);
-  
-  // Refs for auto-scroll
+
   const callsRef = useRef<HTMLDivElement>(null);
   const touchRef = useRef<HTMLDivElement>(null);
   const screenRef = useRef<HTMLDivElement>(null);
@@ -51,14 +45,10 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, onComplete }: Pr
   const ageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchWarrantyPrices();
-  }, [variantId]);
-
-  useEffect(() => {
-    if (ageGroup && warrantyPrices) {
+    if (ageGroup) {
       updatePrice();
     }
-  }, [ageGroup, warrantyPrices]);
+  }, [ageGroup, overallCondition, canMakeCalls, isTouchWorking, isScreenOriginal, isBatteryHealthy]);
 
   // Auto-scroll effects
   useEffect(() => {
@@ -94,65 +84,43 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, onComplete }: Pr
     }
   }, [overallCondition, currentStep]);
 
-  const fetchWarrantyPrices = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("warranty_prices")
-        .select("*")
-        .eq("variant_id", variantId)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error fetching warranty prices:", error);
-        setWarrantyPrices(null);
-        setFinalPrice(basePrice);
-        return;
-      }
-
-      if (!data) {
-        console.warn("No warranty prices found for variant:", variantId);
-        setWarrantyPrices(null);
-        setFinalPrice(basePrice);
-        return;
-      }
-
-      setWarrantyPrices(data);
-    } catch (err) {
-      console.error("Error in fetchWarrantyPrices:", err);
-      setWarrantyPrices(null);
-      setFinalPrice(basePrice);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const updatePrice = () => {
-    if (!warrantyPrices) {
-      setFinalPrice(basePrice);
+    let price = basePrice;
+
+    if (!ageGroup) {
+      setFinalPrice(price);
       return;
     }
 
-    let price = 0;
-
     switch (ageGroup) {
       case "0-3":
-        price = warrantyPrices.price_0_3_months;
+        price = basePrice * 0.95;
         break;
       case "3-6":
-        price = warrantyPrices.price_3_6_months;
+        price = basePrice * 0.90;
         break;
       case "6-11":
-        price = warrantyPrices.price_6_11_months;
+        price = basePrice * 0.85;
         break;
       case "12+":
-        price = warrantyPrices.price_11_plus_months;
+        price = basePrice * 0.75;
         break;
       default:
         price = basePrice;
     }
 
-    setFinalPrice(price);
+    if (overallCondition === "average") {
+      price = price * 0.90;
+    } else if (overallCondition === "below-average") {
+      price = price * 0.75;
+    }
+
+    if (canMakeCalls === false) price = price * 0.85;
+    if (isTouchWorking === false) price = price * 0.80;
+    if (isScreenOriginal === false) price = price * 0.90;
+    if (isBatteryHealthy === false) price = price * 0.95;
+
+    setFinalPrice(Math.round(price));
   };
 
   const getWarrantyStatusLabel = (age: string) => {
@@ -240,14 +208,6 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, onComplete }: Pr
       </Button>
     </div>
   );
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   // Step 1: Yes/No Questions
   if (currentStep === "yesno") {
