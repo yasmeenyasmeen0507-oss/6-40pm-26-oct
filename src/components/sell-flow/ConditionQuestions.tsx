@@ -1,12 +1,11 @@
-// @ts-nocheck - Temporary: Supabase types are regenerating after migration
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+// @ts-nocheck
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { IndianRupee, Loader2, Calendar } from "lucide-react";
+import { IndianRupee, Loader2, Calendar, Check, X, Smartphone, Star, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
@@ -15,29 +14,41 @@ interface Props {
   deviceName: string;
   onComplete: (
     condition: {
-      devicePowersOn: boolean;
-      displayCondition: string;
-      bodyCondition: string;
+      canMakeCalls: boolean;
+      isTouchWorking: boolean;
+      isScreenOriginal: boolean;
+      isBatteryHealthy: boolean;
+      overallCondition: string;
       ageGroup: string;
-      hasCharger: boolean;
-      hasBill: boolean;
-      hasBox: boolean;
     },
     finalPrice: number
   ) => void;
 }
 
 const ConditionQuestions = ({ variantId, basePrice, deviceName, onComplete }: Props) => {
-  const [devicePowersOn, setDevicePowersOn] = useState(true);
-  const [displayCondition, setDisplayCondition] = useState("excellent");
-  const [bodyCondition, setBodyCondition] = useState("excellent");
+  // Step management
+  const [currentStep, setCurrentStep] = useState<"yesno" | "condition">("yesno");
+  
+  // Yes/No question states
+  const [canMakeCalls, setCanMakeCalls] = useState<boolean | null>(null);
+  const [isTouchWorking, setIsTouchWorking] = useState<boolean | null>(null);
+  const [isScreenOriginal, setIsScreenOriginal] = useState<boolean | null>(null);
+  const [isBatteryHealthy, setIsBatteryHealthy] = useState<boolean | null>(null);
+  
+  // Condition and age states
+  const [overallCondition, setOverallCondition] = useState<string>("");
   const [ageGroup, setAgeGroup] = useState<string>("");
-  const [hasCharger, setHasCharger] = useState(false);
-  const [hasBill, setHasBill] = useState(false);
-  const [hasBox, setHasBox] = useState(false);
+  
   const [finalPrice, setFinalPrice] = useState(0);
   const [loading, setLoading] = useState(true);
   const [warrantyPrices, setWarrantyPrices] = useState<any>(null);
+  
+  // Refs for auto-scroll
+  const callsRef = useRef<HTMLDivElement>(null);
+  const touchRef = useRef<HTMLDivElement>(null);
+  const screenRef = useRef<HTMLDivElement>(null);
+  const batteryRef = useRef<HTMLDivElement>(null);
+  const ageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchWarrantyPrices();
@@ -48,6 +59,40 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, onComplete }: Pr
       updatePrice();
     }
   }, [ageGroup, warrantyPrices]);
+
+  // Auto-scroll effects
+  useEffect(() => {
+    if (canMakeCalls !== null && touchRef.current) {
+      setTimeout(() => {
+        touchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    }
+  }, [canMakeCalls]);
+
+  useEffect(() => {
+    if (isTouchWorking !== null && screenRef.current) {
+      setTimeout(() => {
+        screenRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    }
+  }, [isTouchWorking]);
+
+  useEffect(() => {
+    if (isScreenOriginal !== null && batteryRef.current) {
+      setTimeout(() => {
+        batteryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    }
+  }, [isScreenOriginal]);
+
+  // Auto-scroll for condition screen
+  useEffect(() => {
+    if (overallCondition && ageRef.current && currentStep === "condition") {
+      setTimeout(() => {
+        ageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 400);
+    }
+  }, [overallCondition, currentStep]);
 
   const fetchWarrantyPrices = async () => {
     setLoading(true);
@@ -113,19 +158,34 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, onComplete }: Pr
   const getWarrantyStatusLabel = (age: string) => {
     switch (age) {
       case "0-3":
-        return "0-3 months (Like New)";
+        return "0-3 Months - No Physical Damage";
       case "3-6":
-        return "3-6 months (Very Good)";
+        return "3-6 Months - No Physical Damage";
       case "6-11":
-        return "6-11 months (Under Warranty)";
+        return "6-11 Months - No Physical Damage";
       case "12+":
-        return "12+ months (Out of Warranty)";
+        return "11+ Months - Out Of Warranty";
       default:
         return "Please select device age";
     }
   };
 
+  const handleNextToCondition = () => {
+    if (canMakeCalls === null || isTouchWorking === null || 
+        isScreenOriginal === null || isBatteryHealthy === null) {
+      alert("Please answer all device condition questions");
+      return;
+    }
+    setCurrentStep("condition");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleComplete = () => {
+    if (!overallCondition) {
+      alert("Please select the overall condition of your device");
+      return;
+    }
+    
     if (!ageGroup) {
       alert("Please select when you purchased your device");
       return;
@@ -133,17 +193,53 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, onComplete }: Pr
 
     onComplete(
       {
-        devicePowersOn,
-        displayCondition,
-        bodyCondition,
+        canMakeCalls,
+        isTouchWorking,
+        isScreenOriginal,
+        isBatteryHealthy,
+        overallCondition,
         ageGroup,
-        hasCharger,
-        hasBill,
-        hasBox,
       },
       finalPrice
     );
   };
+
+  const YesNoButton = ({ 
+    value, 
+    onChange, 
+    label 
+  }: { 
+    value: boolean | null; 
+    onChange: (val: boolean) => void;
+    label: string;
+  }) => (
+    <div className="flex gap-3 justify-center">
+      <Button
+        onClick={() => onChange(true)}
+        variant={value === true ? "default" : "outline"}
+        className={`flex-1 h-16 text-lg font-medium transition-all ${
+          value === true 
+            ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
+            : "hover:border-green-300"
+        }`}
+      >
+        <Check className="w-5 h-5 mr-2" />
+        Yes
+      </Button>
+      <Button
+        onClick={() => onChange(false)}
+        variant={value === false ? "default" : "outline"}
+        className={`flex-1 h-16 text-lg font-medium transition-all ${
+          value === false 
+            ? "bg-red-500 hover:bg-red-600 text-white border-red-500" 
+            : "hover:border-red-300"
+        }`}
+      >
+        <X className="w-5 h-5 mr-2" />
+        No
+      </Button>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -153,84 +249,195 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, onComplete }: Pr
     );
   }
 
-  return (
-    <div className="max-w-4xl mx-auto animate-fade-in-up">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-4">Tell Us About Your {deviceName}</h2>
-        <p className="text-muted-foreground">Answer these questions for assessment purposes during pickup</p>
-      </div>
+  // Step 1: Yes/No Questions
+  if (currentStep === "yesno") {
+    return (
+      <div className="max-w-4xl mx-auto animate-fade-in-up pb-20">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-4">Tell Us About Your {deviceName}</h2>
+          <p className="text-muted-foreground">Answer these questions for assessment purposes during pickup</p>
+        </div>
 
-      <Card className="mb-8 border-2 border-primary/20 shadow-xl bg-gradient-to-br from-primary/5 to-secondary/5">
-        <CardContent className="p-8">
-          <div className="text-center space-y-4">
-            {ageGroup && (
-              <>
-                <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                  <Calendar className="w-5 h-5" />
-                  <span className="text-sm">Selected: {getWarrantyStatusLabel(ageGroup)}</span>
-                </div>
-
-                <div className="pt-4 border-t">
-                  <p className="text-sm text-muted-foreground mb-2">Final Offer Price</p>
-                  <div className="flex items-center justify-center gap-2">
-                    <IndianRupee className="w-8 h-8 text-primary/40" />
-                    <div className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                      ₹{finalPrice.toLocaleString("en-IN")}
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-xs text-muted-foreground pt-2">
-                  This price is based on your device's age and warranty status
+        <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }} 
+            animate={{ opacity: 1, x: 0 }} 
+            transition={{ delay: 0.1 }}
+            ref={callsRef}
+          >
+            <Card className={canMakeCalls !== null ? "border-2 border-green-200" : ""}>
+              <CardHeader>
+                <CardTitle className="text-lg">Are you able to make and receive calls?</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Check your device for cellular network connectivity issues.
                 </p>
-              </>
-            )}
+              </CardHeader>
+              <CardContent>
+                <YesNoButton 
+                  value={canMakeCalls} 
+                  onChange={setCanMakeCalls}
+                  label="Can make calls"
+                />
+              </CardContent>
+            </Card>
+          </motion.div>
 
-            {!ageGroup && (
-              <div className="text-muted-foreground">
-                <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Select your device age below to see the offer price</p>
-              </div>
+          <AnimatePresence>
+            {canMakeCalls !== null && (
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }} 
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ delay: 0.1 }}
+                ref={touchRef}
+              >
+                <Card className={isTouchWorking !== null ? "border-2 border-green-200" : ""}>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Is your device's touch screen working properly?</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Check the touch screen functionality of your phone.
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <YesNoButton 
+                      value={isTouchWorking} 
+                      onChange={setIsTouchWorking}
+                      label="Touch working"
+                    />
+                  </CardContent>
+                </Card>
+              </motion.div>
             )}
-          </div>
-        </CardContent>
-      </Card>
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {isTouchWorking !== null && (
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }} 
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ delay: 0.1 }}
+                ref={screenRef}
+              >
+                <Card className={isScreenOriginal !== null ? "border-2 border-green-200" : ""}>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Is your phone's screen original?</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Pick 'Yes' if screen was never changed or was changed by Authorized Service Center. 
+                      Pick 'No' if screen was changed at local shop.
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <YesNoButton 
+                      value={isScreenOriginal} 
+                      onChange={setIsScreenOriginal}
+                      label="Original screen"
+                    />
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {isScreenOriginal !== null && (
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }} 
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ delay: 0.1 }}
+                ref={batteryRef}
+              >
+                <Card className={isBatteryHealthy !== null ? "border-2 border-green-200" : ""}>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Battery Health above 80%</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Check if your device's battery health is above 80%.
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <YesNoButton 
+                      value={isBatteryHealthy} 
+                      onChange={setIsBatteryHealthy}
+                      label="Battery healthy"
+                    />
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <div className="mt-8 flex justify-center">
+          <Button 
+            size="lg" 
+            onClick={handleNextToCondition} 
+            className="bg-gradient-to-r from-primary to-secondary text-white px-12 py-6 text-lg"
+            disabled={canMakeCalls === null || isTouchWorking === null || 
+                     isScreenOriginal === null || isBatteryHealthy === null}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 2: Overall Condition and Age
+  return (
+    <div className="max-w-4xl mx-auto animate-fade-in-up pb-20">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold mb-4">Device Condition & Age</h2>
+        <p className="text-muted-foreground">Help us determine the best offer for your {deviceName}</p>
+      </div>
 
       <div className="space-y-6">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-          <Card className="border-2 border-primary/30">
+          <Card className={overallCondition ? "border-2 border-green-200" : ""}>
             <CardHeader>
-              <CardTitle className="text-lg">When did you purchase this device?</CardTitle>
-              <p className="text-sm text-muted-foreground">This affects your warranty status and offer price</p>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Smartphone className="w-5 h-5" />
+                What is the overall condition of your phone?
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <RadioGroup value={ageGroup} onValueChange={setAgeGroup}>
-                <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
-                  <RadioGroupItem value="0-3" id="age-0-3" />
-                  <Label htmlFor="age-0-3" className="cursor-pointer flex-1">
-                    <div className="font-medium">0-3 months ago</div>
-                    <div className="text-xs text-muted-foreground">Like New - Full Warranty</div>
+              <RadioGroup value={overallCondition} onValueChange={setOverallCondition}>
+                <div className="flex items-center space-x-3 p-4 rounded-lg hover:bg-accent transition-colors border-2 border-transparent hover:border-green-200">
+                  <RadioGroupItem value="good" id="condition-good" />
+                  <Label htmlFor="condition-good" className="cursor-pointer flex-1">
+                    <div className="flex items-center gap-2">
+                      <Star className="w-5 h-5 text-green-500" />
+                      <div>
+                        <div className="font-semibold text-base">Good</div>
+                        <div className="text-sm text-muted-foreground">No scratch, No dent, Works perfectly</div>
+                      </div>
+                    </div>
                   </Label>
                 </div>
-                <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
-                  <RadioGroupItem value="3-6" id="age-3-6" />
-                  <Label htmlFor="age-3-6" className="cursor-pointer flex-1">
-                    <div className="font-medium">3-6 months ago</div>
-                    <div className="text-xs text-muted-foreground">Very Good - Under Warranty</div>
+                
+                <div className="flex items-center space-x-3 p-4 rounded-lg hover:bg-accent transition-colors border-2 border-transparent hover:border-yellow-200 mt-3">
+                  <RadioGroupItem value="average" id="condition-average" />
+                  <Label htmlFor="condition-average" className="cursor-pointer flex-1">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5 text-yellow-500" />
+                      <div>
+                        <div className="font-semibold text-base">Average</div>
+                        <div className="text-sm text-muted-foreground">Visible scratches or dents but fully functional</div>
+                      </div>
+                    </div>
                   </Label>
                 </div>
-                <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
-                  <RadioGroupItem value="6-11" id="age-6-11" />
-                  <Label htmlFor="age-6-11" className="cursor-pointer flex-1">
-                    <div className="font-medium">6-11 months ago</div>
-                    <div className="text-xs text-muted-foreground">Good - Still Under Warranty</div>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
-                  <RadioGroupItem value="12+" id="age-12plus" />
-                  <Label htmlFor="age-12plus" className="cursor-pointer flex-1">
-                    <div className="font-medium">12+ months ago</div>
-                    <div className="text-xs text-muted-foreground">Out of Warranty</div>
+
+                <div className="flex items-center space-x-3 p-4 rounded-lg hover:bg-accent transition-colors border-2 border-transparent hover:border-orange-200 mt-3">
+                  <RadioGroupItem value="below-average" id="condition-below" />
+                  <Label htmlFor="condition-below" className="cursor-pointer flex-1">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5 text-orange-500" />
+                      <div>
+                        <div className="font-semibold text-base">Below Average</div>
+                        <div className="text-sm text-muted-foreground">Major Dents & Major Scratches</div>
+                      </div>
+                    </div>
                   </Label>
                 </div>
               </RadioGroup>
@@ -238,115 +445,79 @@ const ConditionQuestions = ({ variantId, basePrice, deviceName, onComplete }: Pr
           </Card>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Does your device power on?</CardTitle>
-              <p className="text-sm text-muted-foreground">For assessment purposes only</p>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup value={devicePowersOn ? "yes" : "no"} onValueChange={(v) => setDevicePowersOn(v === "yes")}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="yes" id="power-yes" />
-                  <Label htmlFor="power-yes" className="cursor-pointer">Yes, it powers on normally</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="no" id="power-no" />
-                  <Label htmlFor="power-no" className="cursor-pointer">No, it doesn't power on</Label>
-                </div>
-              </RadioGroup>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Display Condition</CardTitle>
-              <p className="text-sm text-muted-foreground">For assessment purposes only</p>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup value={displayCondition} onValueChange={setDisplayCondition}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="excellent" id="display-excellent" />
-                  <Label htmlFor="display-excellent" className="cursor-pointer">Excellent - No scratches or marks</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="good" id="display-good" />
-                  <Label htmlFor="display-good" className="cursor-pointer">Good - Minor scratches</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="fair" id="display-fair" />
-                  <Label htmlFor="display-fair" className="cursor-pointer">Fair - Visible scratches</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="poor" id="display-poor" />
-                  <Label htmlFor="display-poor" className="cursor-pointer">Poor - Cracked or damaged</Label>
-                </div>
-              </RadioGroup>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Body Condition</CardTitle>
-              <p className="text-sm text-muted-foreground">For assessment purposes only</p>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup value={bodyCondition} onValueChange={setBodyCondition}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="excellent" id="body-excellent" />
-                  <Label htmlFor="body-excellent" className="cursor-pointer">Excellent - Like new</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="good" id="body-good" />
-                  <Label htmlFor="body-good" className="cursor-pointer">Good - Minor wear</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="fair" id="body-fair" />
-                  <Label htmlFor="body-fair" className="cursor-pointer">Fair - Visible wear</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="poor" id="body-poor" />
-                  <Label htmlFor="body-poor" className="cursor-pointer">Poor - Significant damage</Label>
-                </div>
-              </RadioGroup>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Accessories Available</CardTitle>
-              <p className="text-sm text-muted-foreground">For assessment purposes only</p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="charger" checked={hasCharger} onCheckedChange={(checked) => setHasCharger(checked as boolean)} />
-                <Label htmlFor="charger" className="cursor-pointer">Original Charger</Label>
+        <AnimatePresence mode="wait">
+          {overallCondition && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div ref={ageRef}>
+                <Card className={ageGroup ? "border-2 border-green-200" : "border-2 border-primary/30"}>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Calendar className="w-5 h-5" />
+                      How old is your phone?
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">This affects your warranty status and offer price</p>
+                  </CardHeader>
+                  <CardContent>
+                    <RadioGroup value={ageGroup} onValueChange={setAgeGroup}>
+                      <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
+                        <RadioGroupItem value="0-3" id="age-0-3" />
+                        <Label htmlFor="age-0-3" className="cursor-pointer flex-1">
+                          <div className="font-medium">0-3 Months</div>
+                          <div className="text-xs text-muted-foreground">No Physical Damage</div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
+                        <RadioGroupItem value="3-6" id="age-3-6" />
+                        <Label htmlFor="age-3-6" className="cursor-pointer flex-1">
+                          <div className="font-medium">3-6 Months</div>
+                          <div className="text-xs text-muted-foreground">No Physical Damage</div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
+                        <RadioGroupItem value="6-11" id="age-6-11" />
+                        <Label htmlFor="age-6-11" className="cursor-pointer flex-1">
+                          <div className="font-medium">6-11 Months</div>
+                          <div className="text-xs text-muted-foreground">No Physical Damage</div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
+                        <RadioGroupItem value="12+" id="age-12plus" />
+                        <Label htmlFor="age-12plus" className="cursor-pointer flex-1">
+                          <div className="font-medium">11+ Months</div>
+                          <div className="text-xs text-muted-foreground">Out Of Warranty</div>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </CardContent>
+                </Card>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="bill" checked={hasBill} onCheckedChange={(checked) => setHasBill(checked as boolean)} />
-                <Label htmlFor="bill" className="cursor-pointer">Original Bill</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="box" checked={hasBox} onCheckedChange={(checked) => setHasBox(checked as boolean)} />
-                <Label htmlFor="box" className="cursor-pointer">Original Box</Label>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className="mt-8 flex justify-center">
+      <div className="mt-8 flex justify-center gap-4">
+        <Button 
+          size="lg" 
+          variant="outline"
+          onClick={() => {
+            setCurrentStep("yesno");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="px-8 py-6 text-lg"
+        >
+          Back
+        </Button>
         <Button 
           size="lg" 
           onClick={handleComplete} 
           className="bg-gradient-to-r from-primary to-secondary text-white px-12 py-6 text-lg"
-          disabled={!ageGroup}
+          disabled={!ageGroup || !overallCondition}
         >
           Continue to Verification
         </Button>

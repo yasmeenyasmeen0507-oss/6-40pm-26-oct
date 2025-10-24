@@ -1,13 +1,14 @@
 // @ts-nocheck - Temporary: Supabase types are regenerating after migration
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, HardDrive, CheckCircle2, TrendingUp } from "lucide-react";
+import { Loader2, CheckCircle2, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   deviceId: string;
+  deviceName?: string;
   onSelect: (variantId: string, storageGb: number, basePrice: number) => void;
 }
 
@@ -17,29 +18,53 @@ interface Variant {
   base_price: number;
 }
 
-const VariantSelection = ({ deviceId, onSelect }: Props) => {
+interface Device {
+  id: string;
+  name: string;
+  brand: string;
+  model: string;
+}
+
+const VariantSelection = ({ deviceId, deviceName, onSelect }: Props) => {
   const [variants, setVariants] = useState<Variant[]>([]);
+  const [device, setDevice] = useState<Device | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
 
   useEffect(() => {
-    const fetchVariants = async () => {
+    const fetchData = async () => {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch device details
+      const { data: deviceData, error: deviceError } = await supabase
+        .from("devices")
+        .select("*")
+        .eq("id", deviceId)
+        .single();
+
+      if (deviceError) {
+        console.error("Error fetching device:", deviceError);
+      } else {
+        setDevice(deviceData);
+      }
+
+      // Fetch variants
+      const { data: variantsData, error: variantsError } = await supabase
         .from("variants")
         .select("*")
         .eq("device_id", deviceId)
         .order("storage_gb");
 
-      if (error) {
-        console.error("Error fetching variants:", error);
+      if (variantsError) {
+        console.error("Error fetching variants:", variantsError);
       } else {
-        setVariants(data || []);
+        setVariants(variantsData || []);
       }
+      
       setLoading(false);
     };
 
-    fetchVariants();
+    fetchData();
   }, [deviceId]);
 
   const handleSelect = (variant: Variant) => {
@@ -52,6 +77,10 @@ const VariantSelection = ({ deviceId, onSelect }: Props) => {
     }
   };
 
+  const formatStorage = (gb: number) => {
+    return gb >= 1000 ? `${gb / 1000}TB` : `${gb}GB`;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -61,104 +90,113 @@ const VariantSelection = ({ deviceId, onSelect }: Props) => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto animate-fade-in-up">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-4">Select Storage Variant</h2>
-        <p className="text-muted-foreground">Choose your device's storage capacity</p>
+    <div className="max-w-2xl mx-auto animate-fade-in-up px-4">
+      <div className="text-center mb-12">
+        <h2 className="text-4xl font-bold mb-4">
+          Choose <span className="text-primary">Variant</span>
+        </h2>
+        <p className="text-muted-foreground text-lg">
+          Select storage capacity for your {device?.name || deviceName || "device"}
+        </p>
       </div>
 
-      <AnimatePresence mode="wait">
-        {selectedVariant && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="mb-8 p-8 bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/10 rounded-2xl border-2 border-primary/30 shadow-lg"
-          >
-            <div className="text-center space-y-4">
-              <div className="flex items-center justify-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-primary" />
-                <p className="text-sm font-medium text-muted-foreground">
-                  {selectedVariant.storage_gb}GB Selected
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Base Price</p>
-                <div className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  ₹{selectedVariant.base_price.toLocaleString("en-IN")}
-                </div>
-              </div>
-
-              <Button
-                onClick={handleGetExactValue}
-                size="lg"
-                className="w-full max-w-md mx-auto bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity text-lg py-6 shadow-xl"
-              >
-                <TrendingUp className="w-5 h-5 mr-2" />
-                Get Exact Value
-              </Button>
-
-              <p className="text-xs text-muted-foreground">
-                Answer quick questions to get your warranty-based pricing
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="grid md:grid-cols-3 gap-6">
-        {variants.map((variant, index) => (
-          <motion.div
-            key={variant.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card
-              className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 overflow-hidden group ${
-                selectedVariant?.id === variant.id
-                  ? "border-primary shadow-lg"
-                  : "hover:border-primary/50"
-              }`}
+      <Card className="p-8 shadow-lg">
+        <h3 className="text-xl font-semibold mb-6">Storage Capacity</h3>
+        
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          {variants.slice(0, 3).map((variant, index) => (
+            <motion.button
+              key={variant.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.05 }}
               onClick={() => handleSelect(variant)}
-            >
-              <div className={`h-2 ${
+              className={`py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-200 ${
                 selectedVariant?.id === variant.id
-                  ? "bg-gradient-to-r from-primary to-secondary"
-                  : "bg-gradient-to-r from-gray-300 to-gray-400"
-              }`} />
-              <CardContent className="p-8 text-center relative">
-                {selectedVariant?.id === variant.id && (
-                  <div className="absolute top-4 right-4">
-                    <CheckCircle2 className="w-6 h-6 text-primary" />
-                  </div>
-                )}
-                <div className={`inline-flex p-4 rounded-full mb-4 transition-all ${
-                  selectedVariant?.id === variant.id
-                    ? "bg-primary/20 scale-110"
-                    : "bg-primary/10 group-hover:scale-110"
-                }`}>
-                  <HardDrive className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">{variant.storage_gb}GB</h3>
-                <p className="text-sm text-muted-foreground">
-                  {selectedVariant?.id === variant.id 
-                    ? "Selected"
-                    : "Click to select"
-                  }
-                </p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      {variants.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground text-lg">No variants available for this device</p>
+                  ? "bg-primary text-primary-foreground shadow-md scale-105"
+                  : "bg-muted hover:bg-muted/80"
+              }`}
+            >
+              {formatStorage(variant.storage_gb)}
+            </motion.button>
+          ))}
         </div>
-      )}
+
+        {variants.length > 3 && (
+          <div className="grid grid-cols-2 gap-4">
+            {variants.slice(3, 5).map((variant, index) => (
+              <motion.button
+                key={variant.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: (index + 3) * 0.05 }}
+                onClick={() => handleSelect(variant)}
+                className={`py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-200 ${
+                  selectedVariant?.id === variant.id
+                    ? "bg-primary text-primary-foreground shadow-md scale-105"
+                    : "bg-muted hover:bg-muted/80"
+                }`}
+              >
+                {formatStorage(variant.storage_gb)}
+              </motion.button>
+            ))}
+          </div>
+        )}
+
+        {variants.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground text-lg">No variants available for this device</p>
+          </div>
+        )}
+
+        <AnimatePresence mode="wait">
+          {selectedVariant && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-8 pt-6 border-t"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-primary" />
+                    <span className="font-medium">Selected Variant</span>
+                  </div>
+                  <span className="text-lg font-semibold">
+                    {formatStorage(selectedVariant.storage_gb)}
+                  </span>
+                </div>
+
+                <div className="bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/10 rounded-lg p-6 border-2 border-primary/20">
+                  <div className="text-center space-y-3">
+                    <p className="text-sm text-muted-foreground font-medium">Estimated Price</p>
+                    <div className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                      ₹{selectedVariant.base_price.toLocaleString("en-IN")}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      *Base price for {formatStorage(selectedVariant.storage_gb)} variant
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleGetExactValue}
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity text-lg py-6 shadow-xl"
+                >
+                  <TrendingUp className="w-5 h-5 mr-2" />
+                  Get Exact Value
+                </Button>
+
+                <p className="text-xs text-muted-foreground text-center">
+                  Answer quick questions to get your warranty-based pricing
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Card>
 
       <div className="mt-8 text-center">
         <p className="text-sm text-muted-foreground">
