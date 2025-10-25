@@ -12,6 +12,7 @@ interface Props {
   basePrice: number;
   deviceName: string;
   releaseDate: string;
+  variantId: string;
   onComplete: (
     condition: {
       canMakeCalls: boolean;
@@ -25,7 +26,7 @@ interface Props {
   ) => void;
 }
 
-const ConditionQuestions = ({ basePrice, deviceName, releaseDate, onComplete }: Props) => {
+const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onComplete }: Props) => {
   const [currentStep, setCurrentStep] = useState<"yesno" | "condition">("yesno");
 
   const [canMakeCalls, setCanMakeCalls] = useState<boolean | null>(null);
@@ -37,6 +38,8 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, onComplete }: 
   const [ageGroup, setAgeGroup] = useState<string>("");
 
   const [finalPrice, setFinalPrice] = useState(0);
+  const [warrantyPrices, setWarrantyPrices] = useState<any>(null);
+  const [loadingPrices, setLoadingPrices] = useState(false);
 
   const callsRef = useRef<HTMLDivElement>(null);
   const touchRef = useRef<HTMLDivElement>(null);
@@ -45,10 +48,30 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, onComplete }: 
   const ageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (ageGroup) {
+    const fetchWarrantyPrices = async () => {
+      setLoadingPrices(true);
+      const { data, error } = await supabase
+        .from("warranty_prices")
+        .select("*")
+        .eq("variant_id", variantId)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching warranty prices:", error);
+      } else {
+        setWarrantyPrices(data);
+      }
+      setLoadingPrices(false);
+    };
+
+    fetchWarrantyPrices();
+  }, [variantId]);
+
+  useEffect(() => {
+    if (ageGroup && warrantyPrices) {
       updatePrice();
     }
-  }, [ageGroup, overallCondition, canMakeCalls, isTouchWorking, isScreenOriginal, isBatteryHealthy]);
+  }, [ageGroup, warrantyPrices]);
 
   // Auto-scroll effects
   useEffect(() => {
@@ -85,40 +108,28 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, onComplete }: 
   }, [overallCondition, currentStep]);
 
   const updatePrice = () => {
-    let price = basePrice;
-
-    if (!ageGroup) {
-      setFinalPrice(price);
+    if (!ageGroup || !warrantyPrices) {
       return;
     }
 
+    let price = basePrice;
+
     switch (ageGroup) {
       case "0-3":
-        price = basePrice * 0.95;
+        price = parseFloat(warrantyPrices.price_0_3_months);
         break;
       case "3-6":
-        price = basePrice * 0.90;
+        price = parseFloat(warrantyPrices.price_3_6_months);
         break;
       case "6-11":
-        price = basePrice * 0.85;
+        price = parseFloat(warrantyPrices.price_6_11_months);
         break;
       case "12+":
-        price = basePrice * 0.75;
+        price = parseFloat(warrantyPrices.price_11_plus_months);
         break;
       default:
         price = basePrice;
     }
-
-    if (overallCondition === "average") {
-      price = price * 0.90;
-    } else if (overallCondition === "below-average") {
-      price = price * 0.75;
-    }
-
-    if (canMakeCalls === false) price = price * 0.85;
-    if (isTouchWorking === false) price = price * 0.80;
-    if (isScreenOriginal === false) price = price * 0.90;
-    if (isBatteryHealthy === false) price = price * 0.95;
 
     setFinalPrice(Math.round(price));
   };

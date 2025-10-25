@@ -47,6 +47,7 @@ const ConditionPage = () => {
       variantId={variantId}
       basePrice={parseFloat(basePrice)}
       deviceName={deviceName}
+      releaseDate=""
       onComplete={handleComplete}
     />
   );
