@@ -16,6 +16,7 @@ interface Device {
   model_name: string;
   series: string | null;
   release_date: string | null;
+  image_url: string | null;
 }
 
 const DeviceSelection = ({ brandId, onSelect }: Props) => {
@@ -23,10 +24,22 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
   const [filteredDevices, setFilteredDevices] = useState<Device[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isAppleBrand, setIsAppleBrand] = useState(false);
 
   useEffect(() => {
     const fetchDevices = async () => {
       setLoading(true);
+      
+      // Fetch brand to check if it's Apple
+      const { data: brandData } = await supabase
+        // @ts-expect-error - Supabase types are regenerating after migration
+        .from("brands")
+        .select("name")
+        .eq("id", brandId)
+        .single();
+      
+      setIsAppleBrand(brandData?.name?.toLowerCase() === "apple");
+
       const { data, error } = await supabase
         // @ts-expect-error - Supabase types are regenerating after migration
         .from("devices")
@@ -67,7 +80,7 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto animate-fade-in-up">
+    <div className="max-w-7xl mx-auto animate-fade-in-up px-4">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold mb-4">Select Your Device Model</h2>
         <p className="text-muted-foreground">Choose your specific device model</p>
@@ -86,7 +99,8 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Grid: 3 columns mobile, 6 columns desktop */}
+      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
         {filteredDevices.map((device, index) => (
           <motion.div
             key={device.id}
@@ -98,8 +112,29 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
               className="cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-105 border-2 hover:border-primary/50"
               onClick={() => onSelect(device.id, device.model_name, device.release_date)}
             >
-              <CardContent className="p-4">
-                <span className="font-medium">{device.model_name}</span>
+              <CardContent className="p-3">
+                {/* Device Image - No background */}
+                {device.image_url && (
+                  <div className="mb-2 overflow-hidden rounded-md">
+                    <img
+                      src={device.image_url}
+                      alt={device.model_name}
+                      className="w-full h-24 md:h-28 object-contain"
+                    />
+                  </div>
+                )}
+                
+                {/* Model Name */}
+                <h3 className="font-medium text-xs md:text-sm mb-1 line-clamp-2">
+                  {device.model_name}
+                </h3>
+                
+                {/* Series - Only show for non-Apple devices */}
+                {!isAppleBrand && device.series && (
+                  <p className="text-xs text-muted-foreground line-clamp-1">
+                    {device.series}
+                  </p>
+                )}
               </CardContent>
             </Card>
           </motion.div>

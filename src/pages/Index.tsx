@@ -227,7 +227,7 @@ const Index = () => {
             </motion.div>
           )}
 
-          {currentStep === "condition" && flowState.basePrice !== null && (
+          {currentStep === "condition" && flowState.basePrice !== null && flowState.variantId && (
             <motion.div
               key="condition"
               initial={{ opacity: 0, x: 100 }}
@@ -236,6 +236,7 @@ const Index = () => {
               transition={{ duration: 0.3 }}
             >
               <ConditionQuestions
+                variantId={flowState.variantId}  // ✅ FIXED: Now passing variantId
                 basePrice={flowState.basePrice}
                 deviceName={flowState.deviceName || ""}
                 releaseDate={flowState.releaseDate || ""}
