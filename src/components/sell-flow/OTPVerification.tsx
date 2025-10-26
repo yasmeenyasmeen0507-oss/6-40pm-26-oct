@@ -28,6 +28,10 @@ const OTPVerification = ({ onVerify }: Props) => {
       return;
     }
 
+    // Store in localStorage temporarily
+    localStorage.setItem('pending_verification_phone', `+91${phoneNumber}`);
+    localStorage.setItem('verification_timestamp', new Date().toISOString());
+
     // Simulate OTP send
     setOtpSent(true);
     toast({
@@ -49,11 +53,22 @@ const OTPVerification = ({ onVerify }: Props) => {
     setIsVerifying(true);
     // Simulate verification
     setTimeout(() => {
+      const verifiedPhone = `+91${phoneNumber}`;
+      
+      // Store verified phone in localStorage
+      localStorage.setItem('verified_phone', verifiedPhone);
+      localStorage.setItem('phone_verified_at', new Date().toISOString());
+      localStorage.setItem('is_phone_verified', 'true');
+      
+      // Clear pending verification
+      localStorage.removeItem('pending_verification_phone');
+      
       toast({
         title: "Verified!",
         description: "Phone number verified successfully",
       });
-      onVerify(phoneNumber);
+      
+      onVerify(verifiedPhone);
     }, 1000);
   };
 
@@ -117,6 +132,9 @@ const OTPVerification = ({ onVerify }: Props) => {
                   maxLength={6}
                   className="text-center text-2xl tracking-widest"
                 />
+                <p className="text-xs text-muted-foreground text-center">
+                  OTP sent to +91 {phoneNumber}
+                </p>
               </div>
 
               <Button
@@ -132,10 +150,23 @@ const OTPVerification = ({ onVerify }: Props) => {
                 onClick={() => {
                   setOtpSent(false);
                   setOtp("");
+                  localStorage.removeItem('pending_verification_phone');
                 }}
                 className="w-full text-center text-sm text-primary hover:underline"
               >
                 Change Phone Number
+              </button>
+
+              <button
+                onClick={() => {
+                  toast({
+                    title: "OTP Resent!",
+                    description: `New code sent to +91 ${phoneNumber}`,
+                  });
+                }}
+                className="w-full text-center text-sm text-muted-foreground hover:text-primary"
+              >
+                Resend OTP
               </button>
             </motion.div>
           )}

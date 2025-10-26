@@ -8,10 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, MapPin, User, Home, CheckCircle2, Mail, AlertCircle } from "lucide-react";
+import { CalendarIcon, MapPin, User, Home, CheckCircle2, Mail, AlertCircle, Phone, ShieldCheck } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 import type { FlowState } from "@/pages/Index";
 
 interface Props {
@@ -21,7 +22,7 @@ interface Props {
 const PickupScheduler = ({ flowState }: Props) => {
   const [customerName, setCustomerName] = useState("");
   const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState("");  // ✅ NEW
+  const [emailError, setEmailError] = useState("");
   const [address, setAddress] = useState("");
   const [pincode, setPincode] = useState("");
   const [pickupDate, setPickupDate] = useState<Date>();
@@ -30,7 +31,12 @@ const PickupScheduler = ({ flowState }: Props) => {
   const [isSuccess, setIsSuccess] = useState(false);
   const { toast } = useToast();
 
-  // ✅ NEW: Real-time email validation
+  // ✅ Get verified phone from localStorage
+  const verifiedPhone = localStorage.getItem('verified_phone');
+  const isPhoneVerified = localStorage.getItem('is_phone_verified') === 'true';
+  const phoneVerifiedAt = localStorage.getItem('phone_verified_at');
+
+  // Email validation
   const validateEmail = (value: string) => {
     setEmail(value);
     
@@ -39,20 +45,17 @@ const PickupScheduler = ({ flowState }: Props) => {
       return;
     }
 
-    // Check if email contains @gmail.com
     if (!value.includes("@gmail.com")) {
       setEmailError("Please enter a valid Gmail address (@gmail.com)");
       return;
     }
 
-    // Check basic email format
     const emailRegex = /^[A-Za-z0-9._%+-]+@gmail\.com$/;
     if (!emailRegex.test(value)) {
       setEmailError("Invalid Gmail format");
       return;
     }
 
-    // Valid email
     setEmailError("");
   };
 
@@ -66,7 +69,6 @@ const PickupScheduler = ({ flowState }: Props) => {
       return;
     }
 
-    // ✅ Check for email errors before submission
     if (emailError || !email.includes("@gmail.com")) {
       toast({
         title: "Invalid Email",
@@ -91,28 +93,33 @@ const PickupScheduler = ({ flowState }: Props) => {
       const { error } = await supabase
         .from("pickup_requests")
         .insert({
-          user_phone: flowState.phoneNumber!,
+          // ✅ Phone Numbers
+          user_phone: flowState.phoneNumber!, // Phone from form/URL
+          verified_phone: verifiedPhone, // OTP verified phone
+          is_phone_verified: isPhoneVerified,
+          phone_verified_at: phoneVerifiedAt,
+          
+          // Device & Location
           device_id: flowState.deviceId!,
           variant_id: flowState.variantId!,
           city_id: flowState.cityId!,
+          
+          // Device Condition
           condition: "good" as any,
           age_group: flowState.condition!.ageGroup as any,
-          
           has_charger: flowState.condition!.hasCharger,
           has_bill: flowState.condition!.hasBill,
           has_box: flowState.condition!.hasBox,
-          
           device_powers_on: true,
           display_condition: "good" as any,
           body_condition: "good" as any,
-          
           can_make_calls: flowState.condition!.canMakeCalls,
           is_touch_working: flowState.condition!.isTouchWorking,
           is_screen_original: flowState.condition!.isScreenOriginal,
           is_battery_healthy: flowState.condition!.isBatteryHealthy,
-          
           overall_condition: flowState.condition!.overallCondition,
           
+          // Pricing & Customer Details
           final_price: flowState.finalPrice,
           customer_name: customerName,
           email: email,
@@ -124,6 +131,12 @@ const PickupScheduler = ({ flowState }: Props) => {
         });
 
       if (error) throw error;
+
+      // ✅ Clear verification data from localStorage after successful submission
+      localStorage.removeItem('verified_phone');
+      localStorage.removeItem('is_phone_verified');
+      localStorage.removeItem('phone_verified_at');
+      localStorage.removeItem('verification_timestamp');
 
       setIsSuccess(true);
       toast({
@@ -171,6 +184,18 @@ const PickupScheduler = ({ flowState }: Props) => {
               <span className="font-semibold">{pickupTime}</span>
             </div>
             <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Contact Number:</span>
+              <span className="font-semibold flex items-center gap-2">
+                {verifiedPhone || flowState.phoneNumber}
+                {isPhoneVerified && (
+                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-300">
+                    <ShieldCheck className="h-3 w-3 mr-1" />
+                    Verified
+                  </Badge>
+                )}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Expected Payment:</span>
               <span className="text-2xl font-bold text-primary">₹{flowState.finalPrice?.toLocaleString()}</span>
             </div>
@@ -205,7 +230,6 @@ const PickupScheduler = ({ flowState }: Props) => {
     "4:00 PM - 6:00 PM"
   ];
 
-  // ✅ Determine email input border color
   const getEmailBorderClass = () => {
     if (!email) return "";
     if (emailError) return "border-red-500 focus-visible:ring-red-500";
@@ -226,6 +250,28 @@ const PickupScheduler = ({ flowState }: Props) => {
 
       <Card>
         <CardContent className="pt-6 space-y-6">
+          {/* ✅ Show Verified Phone Number */}
+          {verifiedPhone && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-green-700" />
+                  <span className="text-sm font-medium text-green-700">Verified Contact Number</span>
+                </div>
+                <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                  <ShieldCheck className="w-3 h-3 mr-1" />
+                  OTP Verified
+                </Badge>
+              </div>
+              <p className="text-lg font-semibold text-green-900 mt-2">{verifiedPhone}</p>
+              {phoneVerifiedAt && (
+                <p className="text-xs text-green-600 mt-1">
+                  Verified on {format(new Date(phoneVerifiedAt), "MMM dd, yyyy 'at' HH:mm")}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="name" className="flex items-center gap-2">
               <User className="w-4 h-4" />
@@ -239,7 +285,6 @@ const PickupScheduler = ({ flowState }: Props) => {
             />
           </div>
 
-          {/* ✅ Email Field with Validation */}
           <div className="space-y-2">
             <Label htmlFor="email" className="flex items-center gap-2">
               <Mail className="w-4 h-4" />
