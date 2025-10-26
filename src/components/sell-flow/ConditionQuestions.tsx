@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Check, X, Calendar, Smartphone, Star, AlertCircle, Zap, Package, FileText } from "lucide-react";
+import { Check, X, Calendar, Smartphone, Star, AlertCircle, Zap, Package, FileText, CheckCircle, XCircle, Ban } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
@@ -54,6 +54,7 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
   const [hasOriginalCharger, setHasOriginalCharger] = useState<boolean | null>(null);
   const [hasOriginalBox, setHasOriginalBox] = useState<boolean | null>(null);
   const [hasPurchaseBill, setHasPurchaseBill] = useState<boolean | null>(null);
+  const [hasNoneSelected, setHasNoneSelected] = useState<boolean>(false);
 
   const [finalPrice, setFinalPrice] = useState(0);
   const [basePriceFromAge, setBasePriceFromAge] = useState(0);
@@ -65,11 +66,8 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
   const screenRef = useRef<HTMLDivElement>(null);
   const batteryRef = useRef<HTMLDivElement>(null);
   const ageRef = useRef<HTMLDivElement>(null);
-  const chargerRef = useRef<HTMLDivElement>(null);
-  const boxRef = useRef<HTMLDivElement>(null);
-  const billRef = useRef<HTMLDivElement>(null);
 
-  // Fetch warranty prices (now includes deduction amounts!)
+  // Fetch warranty prices
   useEffect(() => {
     const fetchWarrantyPrices = async () => {
       if (!variantId) {
@@ -116,12 +114,12 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
 
   // Recalculate price when accessories change
   useEffect(() => {
-    if (basePriceFromAge > 0 && warrantyPrices && hasOriginalCharger !== null && hasOriginalBox !== null && hasPurchaseBill !== null) {
+    if (basePriceFromAge > 0 && warrantyPrices) {
       calculateFinalPriceWithDeductions();
     }
-  }, [hasOriginalCharger, hasOriginalBox, hasPurchaseBill, basePriceFromAge]);
+  }, [hasOriginalCharger, hasOriginalBox, hasPurchaseBill, hasNoneSelected, basePriceFromAge, warrantyPrices]);
 
-  // Auto-scroll effects for Step 1
+  // Auto-scroll effects
   useEffect(() => {
     if (canMakeCalls !== null && touchRef.current) {
       setTimeout(() => {
@@ -146,7 +144,6 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
     }
   }, [isScreenOriginal]);
 
-  // Auto-scroll effects for Step 2
   useEffect(() => {
     if (overallCondition && ageRef.current && currentStep === "condition") {
       setTimeout(() => {
@@ -154,23 +151,6 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
       }, 400);
     }
   }, [overallCondition, currentStep]);
-
-  // Auto-scroll effects for Step 3
-  useEffect(() => {
-    if (hasOriginalCharger !== null && boxRef.current && currentStep === "accessories") {
-      setTimeout(() => {
-        boxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
-    }
-  }, [hasOriginalCharger, currentStep]);
-
-  useEffect(() => {
-    if (hasOriginalBox !== null && billRef.current && currentStep === "accessories") {
-      setTimeout(() => {
-        billRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
-    }
-  }, [hasOriginalBox, currentStep]);
 
   const updatePrice = () => {
     if (!ageGroup || !warrantyPrices) {
@@ -208,33 +188,36 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
     setFinalPrice(roundedPrice);
   };
 
-  // Calculate final price using fixed amount deductions
   const calculateFinalPriceWithDeductions = () => {
     if (!warrantyPrices) return;
 
     let price = basePriceFromAge;
     let totalDeduction = 0;
 
-    // Get deduction amounts from warranty_prices (with fallback to 0)
     const chargerDeduction = parseFloat(warrantyPrices.charger_deduction_amount || 0);
     const boxDeduction = parseFloat(warrantyPrices.box_deduction_amount || 0);
     const billDeduction = parseFloat(warrantyPrices.bill_deduction_amount || 0);
 
-    // Calculate total deduction amount
-    if (hasOriginalCharger === false) {
-      totalDeduction += chargerDeduction;
-      console.log(`📉 No charger: -₹${chargerDeduction}`);
-    }
-    if (hasOriginalBox === false) {
-      totalDeduction += boxDeduction;
-      console.log(`📉 No box: -₹${boxDeduction}`);
-    }
-    if (hasPurchaseBill === false) {
-      totalDeduction += billDeduction;
-      console.log(`📉 No bill: -₹${billDeduction}`);
+    // If "None" is selected, deduct ALL amounts
+    if (hasNoneSelected) {
+      totalDeduction = chargerDeduction + boxDeduction + billDeduction;
+      console.log(`📉 No accessories: -₹${totalDeduction} (all deductions applied)`);
+    } else {
+      // Apply individual deductions
+      if (hasOriginalCharger === false) {
+        totalDeduction += chargerDeduction;
+        console.log(`📉 No charger: -₹${chargerDeduction}`);
+      }
+      if (hasOriginalBox === false) {
+        totalDeduction += boxDeduction;
+        console.log(`📉 No box: -₹${boxDeduction}`);
+      }
+      if (hasPurchaseBill === false) {
+        totalDeduction += billDeduction;
+        console.log(`📉 No bill: -₹${billDeduction}`);
+      }
     }
 
-    // Apply deductions
     if (totalDeduction > 0) {
       price = price - totalDeduction;
       console.log(`💰 Total deduction: ₹${Math.round(totalDeduction)}`);
@@ -276,20 +259,10 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
   };
 
   const handleComplete = () => {
-    if (hasOriginalCharger === null) {
-      alert("Please answer if you have the original charger");
-      return;
-    }
-
-    if (hasOriginalBox === null) {
-      alert("Please answer if you have the original box");
-      return;
-    }
-
-    if (hasPurchaseBill === null) {
-      alert("Please answer if you have the purchase bill");
-      return;
-    }
+    // If "None" is selected, all accessories are false
+    const finalCharger = hasNoneSelected ? false : (hasOriginalCharger !== null ? hasOriginalCharger : false);
+    const finalBox = hasNoneSelected ? false : (hasOriginalBox !== null ? hasOriginalBox : false);
+    const finalBill = hasNoneSelected ? false : (hasPurchaseBill !== null ? hasPurchaseBill : false);
 
     console.log('✅ Completing with:', {
       canMakeCalls,
@@ -298,9 +271,10 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
       isBatteryHealthy,
       overallCondition,
       ageGroup,
-      hasCharger: hasOriginalCharger,
-      hasBox: hasOriginalBox,
-      hasBill: hasPurchaseBill,
+      hasCharger: finalCharger,
+      hasBox: finalBox,
+      hasBill: finalBill,
+      hasNoneSelected,
       basePriceFromAge,
       finalPrice
     });
@@ -313,50 +287,57 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
         isBatteryHealthy,
         overallCondition,
         ageGroup,
-        hasCharger: hasOriginalCharger,
-        hasBox: hasOriginalBox,
-        hasBill: hasPurchaseBill,
+        hasCharger: finalCharger,
+        hasBox: finalBox,
+        hasBill: finalBill,
       },
       finalPrice
     );
   };
 
-  const YesNoButton = ({ 
-    value, 
-    onChange, 
-    label 
-  }: { 
-    value: boolean | null; 
-    onChange: (val: boolean) => void;
-    label: string;
-  }) => (
-    <div className="flex gap-3 justify-center">
-      <Button
-        onClick={() => onChange(true)}
-        variant={value === true ? "default" : "outline"}
-        className={`flex-1 h-16 text-lg font-medium transition-all ${
-          value === true 
-            ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
-            : "hover:border-green-300"
-        }`}
-      >
-        <Check className="w-5 h-5 mr-2" />
-        Yes
-      </Button>
-      <Button
-        onClick={() => onChange(false)}
-        variant={value === false ? "default" : "outline"}
-        className={`flex-1 h-16 text-lg font-medium transition-all ${
-          value === false 
-            ? "bg-red-500 hover:bg-red-600 text-white border-red-500" 
-            : "hover:border-red-300"
-        }`}
-      >
-        <X className="w-5 h-5 mr-2" />
-        No
-      </Button>
-    </div>
-  );
+  const handleAnswer = (value: boolean, setter: (val: boolean) => void) => {
+    setter(value);
+  };
+
+  const handleConditionSelect = (value: string) => {
+    setOverallCondition(value);
+    setTimeout(() => {
+      ageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 200);
+  };
+
+  const handleAccessoryToggle = (key: 'charger' | 'box' | 'bill') => {
+    // Unselect "None" option when individual items are selected
+    setHasNoneSelected(false);
+    
+    if (key === 'charger') setHasOriginalCharger(prev => prev === true ? null : true);
+    if (key === 'box') setHasOriginalBox(prev => prev === true ? null : true);
+    if (key === 'bill') setHasPurchaseBill(prev => prev === true ? null : true);
+  };
+
+  const handleNoneToggle = () => {
+    const newNoneState = !hasNoneSelected;
+    setHasNoneSelected(newNoneState);
+    
+    // If "None" is selected, clear all individual selections
+    if (newNoneState) {
+      setHasOriginalCharger(null);
+      setHasOriginalBox(null);
+      setHasPurchaseBill(null);
+    }
+  };
+
+  const getStepTitle = () => {
+    if (currentStep === "yesno") return `Tell us more about your ${deviceName}`;
+    if (currentStep === "condition") return "Device Condition & Age";
+    return "Do you have the following accessories?";
+  };
+
+  const getStepDescription = () => {
+    if (currentStep === "yesno") return "Please answer a few questions about your device.";
+    if (currentStep === "condition") return "Please provide device condition and age information.";
+    return "Select the accessories you have.";
+  };
 
   if (!variantId) {
     return (
@@ -368,405 +349,245 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
     );
   }
 
-  // Step 1: Yes/No Questions
-  if (currentStep === "yesno") {
-    return (
-      <div className="max-w-4xl mx-auto animate-fade-in-up pb-20">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-4">Tell Us About Your {deviceName}</h2>
-          <p className="text-muted-foreground">Answer these questions for assessment purposes during pickup</p>
-        </div>
+  const questions = [
+    { 
+      question: "Are you able to make and receive calls?", 
+      description: "Check your device for cellular network connectivity issues.",
+      value: canMakeCalls,
+      setter: setCanMakeCalls,
+      ref: callsRef
+    },
+    { 
+      question: "Is your device's touch screen working properly?", 
+      description: "Check the touch screen functionality of your phone.",
+      value: isTouchWorking,
+      setter: setIsTouchWorking,
+      ref: touchRef
+    },
+    { 
+      question: "Is your phone's screen original?", 
+      description: "Pick 'Yes' if screen was never changed or was changed by Authorized Service Center. Pick 'No' if screen was changed at local shop.",
+      value: isScreenOriginal,
+      setter: setIsScreenOriginal,
+      ref: screenRef
+    },
+    { 
+      question: "Battery Health above 80%", 
+      description: "Check if your device's battery health is above 80%.",
+      value: isBatteryHealthy,
+      setter: setIsBatteryHealthy,
+      ref: batteryRef
+    }
+  ];
 
-        <div className="space-y-6">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }} 
-            animate={{ opacity: 1, x: 0 }} 
-            transition={{ delay: 0.1 }}
-            ref={callsRef}
-          >
-            <Card className={canMakeCalls !== null ? "border-2 border-green-200" : ""}>
-              <CardHeader>
-                <CardTitle className="text-lg">Are you able to make and receive calls?</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Check your device for cellular network connectivity issues.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <YesNoButton 
-                  value={canMakeCalls} 
-                  onChange={setCanMakeCalls}
-                  label="Can make calls"
-                />
-              </CardContent>
-            </Card>
-          </motion.div>
+  const conditionOptions = [
+    { value: "good", label: "Good", description: "No scratch, No dent, Works perfectly" },
+    { value: "average", label: "Average", description: "Visible scratches or dents but fully functional" },
+    { value: "below-average", label: "Below Average", description: "Major Dents & Major Scratches" }
+  ];
 
-          <AnimatePresence>
-            {canMakeCalls !== null && (
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }} 
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ delay: 0.1 }}
-                ref={touchRef}
-              >
-                <Card className={isTouchWorking !== null ? "border-2 border-green-200" : ""}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Is your device's touch screen working properly?</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Check the touch screen functionality of your phone.
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <YesNoButton 
-                      value={isTouchWorking} 
-                      onChange={setIsTouchWorking}
-                      label="Touch working"
-                    />
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
+  const ageOptions = [
+    { value: "0-3", label: "0-3 Months", description: "No Physical Damage" },
+    { value: "3-6", label: "3-6 Months", description: "No Physical Damage" },
+    { value: "6-11", label: "6-11 Months", description: "No Physical Damage" },
+    { value: "12+", label: "11+ Months", description: "Out Of Warranty" }
+  ];
 
-          <AnimatePresence>
-            {isTouchWorking !== null && (
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }} 
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ delay: 0.1 }}
-                ref={screenRef}
-              >
-                <Card className={isScreenOriginal !== null ? "border-2 border-green-200" : ""}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Is your phone's screen original?</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Pick 'Yes' if screen was never changed or was changed by Authorized Service Center. 
-                      Pick 'No' if screen was changed at local shop.
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <YesNoButton 
-                      value={isScreenOriginal} 
-                      onChange={setIsScreenOriginal}
-                      label="Original screen"
-                    />
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {isScreenOriginal !== null && (
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }} 
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ delay: 0.1 }}
-                ref={batteryRef}
-              >
-                <Card className={isBatteryHealthy !== null ? "border-2 border-green-200" : ""}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Battery Health above 80%</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Check if your device's battery health is above 80%.
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <YesNoButton 
-                      value={isBatteryHealthy} 
-                      onChange={setIsBatteryHealthy}
-                      label="Battery healthy"
-                    />
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <div className="mt-8 flex justify-center">
-          <Button 
-            size="lg" 
-            onClick={handleNextToCondition} 
-            className="bg-gradient-to-r from-primary to-secondary text-white px-12 py-6 text-lg"
-            disabled={canMakeCalls === null || isTouchWorking === null || 
-                     isScreenOriginal === null || isBatteryHealthy === null}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Step 2: Overall Condition and Age
-  if (currentStep === "condition") {
-    return (
-      <div className="max-w-4xl mx-auto animate-fade-in-up pb-20">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-4">Device Condition & Age</h2>
-          <p className="text-muted-foreground">Help us determine the best offer for your {deviceName}</p>
-          {loadingPrices && (
-            <p className="text-sm text-blue-500 mt-2">Loading pricing information...</p>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-            <Card className={overallCondition ? "border-2 border-green-200" : ""}>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Smartphone className="w-5 h-5" />
-                  What is the overall condition of your phone?
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <RadioGroup value={overallCondition} onValueChange={setOverallCondition}>
-                  <div className="flex items-center space-x-3 p-4 rounded-lg hover:bg-accent transition-colors border-2 border-transparent hover:border-green-200">
-                    <RadioGroupItem value="good" id="condition-good" />
-                    <Label htmlFor="condition-good" className="cursor-pointer flex-1">
-                      <div className="flex items-center gap-2">
-                        <Star className="w-5 h-5 text-green-500" />
-                        <div>
-                          <div className="font-semibold text-base">Good</div>
-                          <div className="text-sm text-muted-foreground">No scratch, No dent, Works perfectly</div>
-                        </div>
-                      </div>
-                    </Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3 p-4 rounded-lg hover:bg-accent transition-colors border-2 border-transparent hover:border-yellow-200 mt-3">
-                    <RadioGroupItem value="average" id="condition-average" />
-                    <Label htmlFor="condition-average" className="cursor-pointer flex-1">
-                      <div className="flex items-center gap-2">
-                        <AlertCircle className="w-5 h-5 text-yellow-500" />
-                        <div>
-                          <div className="font-semibold text-base">Average</div>
-                          <div className="text-sm text-muted-foreground">Visible scratches or dents but fully functional</div>
-                        </div>
-                      </div>
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center space-x-3 p-4 rounded-lg hover:bg-accent transition-colors border-2 border-transparent hover:border-orange-200 mt-3">
-                    <RadioGroupItem value="below-average" id="condition-below" />
-                    <Label htmlFor="condition-below" className="cursor-pointer flex-1">
-                      <div className="flex items-center gap-2">
-                        <AlertCircle className="w-5 h-5 text-orange-500" />
-                        <div>
-                          <div className="font-semibold text-base">Below Average</div>
-                          <div className="text-sm text-muted-foreground">Major Dents & Major Scratches</div>
-                        </div>
-                      </div>
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <AnimatePresence mode="wait">
-            {overallCondition && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div ref={ageRef}>
-                  <Card className={ageGroup ? "border-2 border-green-200" : "border-2 border-primary/30"}>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Calendar className="w-5 h-5" />
-                        How old is your phone?
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground">This affects your warranty status and offer price</p>
-                    </CardHeader>
-                    <CardContent>
-                      <RadioGroup value={ageGroup} onValueChange={setAgeGroup}>
-                        <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
-                          <RadioGroupItem value="0-3" id="age-0-3" />
-                          <Label htmlFor="age-0-3" className="cursor-pointer flex-1">
-                            <div className="font-medium">0-3 Months</div>
-                            <div className="text-xs text-muted-foreground">No Physical Damage</div>
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
-                          <RadioGroupItem value="3-6" id="age-3-6" />
-                          <Label htmlFor="age-3-6" className="cursor-pointer flex-1">
-                            <div className="font-medium">3-6 Months</div>
-                            <div className="text-xs text-muted-foreground">No Physical Damage</div>
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
-                          <RadioGroupItem value="6-11" id="age-6-11" />
-                          <Label htmlFor="age-6-11" className="cursor-pointer flex-1">
-                            <div className="font-medium">6-11 Months</div>
-                            <div className="text-xs text-muted-foreground">No Physical Damage</div>
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent transition-colors">
-                          <RadioGroupItem value="12+" id="age-12plus" />
-                          <Label htmlFor="age-12plus" className="cursor-pointer flex-1">
-                            <div className="font-medium">11+ Months</div>
-                            <div className="text-xs text-muted-foreground">Out Of Warranty</div>
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                    </CardContent>
-                  </Card>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <div className="mt-8 flex justify-center gap-4">
-          <Button 
-            size="lg" 
-            variant="outline"
-            onClick={() => {
-              setCurrentStep("yesno");
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="px-8 py-6 text-lg"
-          >
-            Back
-          </Button>
-          <Button 
-            size="lg" 
-            onClick={handleNextToAccessories} 
-            className="bg-gradient-to-r from-primary to-secondary text-white px-12 py-6 text-lg"
-            disabled={!ageGroup || !overallCondition || !finalPrice}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Step 3: Accessories & Documents - NO DEDUCTION WARNINGS
   return (
-    <div className="max-w-4xl mx-auto animate-fade-in-up pb-20">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-4">Accessories & Documents</h2>
-        <p className="text-muted-foreground">Let us know what you have with your {deviceName}</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-2xl mx-auto py-8 px-4">
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-bold mb-2" style={{ color: 'black' }}>
+            {getStepTitle()}
+          </h1>
+          <p className="text-lg" style={{ color: 'black' }}>
+            {getStepDescription()}
+          </p>
+        </div>
 
-      <div className="space-y-6">
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }} 
-          animate={{ opacity: 1, x: 0 }} 
-          transition={{ delay: 0.1 }}
-          ref={chargerRef}
-        >
-          <Card className={hasOriginalCharger !== null ? "border-2 border-green-200" : ""}>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Zap className="w-5 h-5 text-blue-500" />
-                Do you have the original charger?
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                The original charging adapter and cable that came with your device
-              </p>
-            </CardHeader>
-            <CardContent>
-              <YesNoButton 
-                value={hasOriginalCharger} 
-                onChange={setHasOriginalCharger}
-                label="Original charger"
-              />
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <AnimatePresence>
-          {hasOriginalCharger !== null && (
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }} 
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ delay: 0.1 }}
-              ref={boxRef}
-            >
-              <Card className={hasOriginalBox !== null ? "border-2 border-green-200" : ""}>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Package className="w-5 h-5 text-purple-500" />
-                    Do you have the original box with matching IMEI?
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    The retail box with IMEI/Serial number matching your device
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <YesNoButton 
-                    value={hasOriginalBox} 
-                    onChange={setHasOriginalBox}
-                    label="Original box"
-                  />
-                </CardContent>
+        {/* Step 1: Yes/No Questions */}
+        {currentStep === "yesno" && (
+          <div className="space-y-6">
+            {questions.map((question, index) => (
+              <Card 
+                key={index} 
+                className="p-6"
+                ref={question.ref}
+              >
+                <div className="space-y-6 text-center">
+                  <h2 className="text-2xl font-bold" style={{ color: 'black' }}>{question.question}</h2>
+                  <p className="text-lg" style={{ color: 'black' }}>{question.description}</p>
+                  <div className="flex gap-4 justify-center">
+                    <Button
+                      onClick={() => handleAnswer(true, question.setter)}
+                      className={`px-8 py-4 flex items-center gap-2 ${question.value !== true ? "opacity-50 hover:opacity-100" : ""}`}
+                      style={{ backgroundColor: 'royalBlue', color: 'white' }}
+                    >
+                      <CheckCircle size={20} /> Yes
+                    </Button>
+                    <Button
+                      onClick={() => handleAnswer(false, question.setter)}
+                      variant="outline"
+                      className={`px-8 py-4 flex items-center gap-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground ${question.value === false ? "bg-destructive text-destructive-foreground" : ""}`}
+                    >
+                      <XCircle size={20} /> No
+                    </Button>
+                  </div>
+                </div>
               </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            ))}
+          </div>
+        )}
 
-        <AnimatePresence>
-          {hasOriginalBox !== null && (
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }} 
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ delay: 0.1 }}
-              ref={billRef}
+        {/* Step 2: Condition and Age */}
+        {currentStep === "condition" && (
+          <div className="space-y-6">
+            {/* Phone Condition */}
+            <Card className="p-6">
+              <div className="space-y-6 text-center">
+                <h2 className="text-2xl font-bold" style={{ color: 'black' }}>What is the overall condition of your phone?</h2>
+                <div className="space-y-3">
+                  {conditionOptions.map(option => (
+                    <Button
+                      key={option.value}
+                      onClick={() => handleConditionSelect(option.value)}
+                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${overallCondition !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
+                      style={{
+                        backgroundColor: overallCondition === option.value ? 'royalBlue' : '',
+                        color: overallCondition === option.value ? 'white' : 'black'
+                      }}
+                    >
+                      <div>
+                        <div className="font-semibold">{option.label}</div>
+                        <div className="text-sm opacity-75">{option.description}</div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </Card>
+
+            {/* Phone Age */}
+            <Card className="p-6" ref={ageRef}>
+              <div className="space-y-6 text-center">
+                <h2 className="text-2xl font-bold" style={{ color: 'black' }}>How old is your phone?</h2>
+                <div className="space-y-3">
+                  {ageOptions.map(option => (
+                    <Button
+                      key={option.value}
+                      onClick={() => setAgeGroup(option.value)}
+                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${ageGroup !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
+                      style={{
+                        backgroundColor: ageGroup === option.value ? 'royalBlue' : '',
+                        color: ageGroup === option.value ? 'white' : 'black'
+                      }}
+                    >
+                      <div>
+                        <div className="font-semibold">{option.label}</div>
+                        <div className="text-sm opacity-75">{option.description}</div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Step 3: Accessories */}
+        {currentStep === "accessories" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Charger Card */}
+            <Card
+              onClick={() => handleAccessoryToggle('charger')}
+              className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasOriginalCharger !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
+              style={{ backgroundColor: hasOriginalCharger === true ? 'royalBlue' : '', color: hasOriginalCharger === true ? 'white' : 'black' }}
             >
-              <Card className={hasPurchaseBill !== null ? "border-2 border-green-200" : ""}>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-green-500" />
-                    Do you have the purchase bill/invoice?
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Original receipt or invoice from authorized retailer
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <YesNoButton 
-                    value={hasPurchaseBill} 
-                    onChange={setHasPurchaseBill}
-                    label="Purchase bill"
-                  />
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              <Zap className="w-16 h-16" />
+              <span className="font-semibold">Original Charger of Device</span>
+              {hasOriginalCharger === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
+            </Card>
 
-      <div className="mt-8 flex justify-center gap-4">
-        <Button 
-          size="lg" 
-          variant="outline"
-          onClick={() => {
-            setCurrentStep("condition");
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          className="px-8 py-6 text-lg"
-        >
-          Back
-        </Button>
-        <Button 
-          size="lg" 
-          onClick={handleComplete} 
-          className="bg-gradient-to-r from-primary to-secondary text-white px-12 py-6 text-lg"
-          disabled={hasOriginalCharger === null || hasOriginalBox === null || hasPurchaseBill === null}
-        >
-          Continue to Verification
-        </Button>
+            {/* Box Card */}
+            <Card
+              onClick={() => handleAccessoryToggle('box')}
+              className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasOriginalBox !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
+              style={{ backgroundColor: hasOriginalBox === true ? 'royalBlue' : '', color: hasOriginalBox === true ? 'white' : 'black' }}
+            >
+              <Package className="w-16 h-16" />
+              <span className="font-semibold">Original Box with same IMEI</span>
+              {hasOriginalBox === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
+            </Card>
+            
+            {/* Bill Card */}
+            <Card
+              onClick={() => handleAccessoryToggle('bill')}
+              className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasPurchaseBill !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
+              style={{ backgroundColor: hasPurchaseBill === true ? 'royalBlue' : '', color: hasPurchaseBill === true ? 'white' : 'black' }}
+            >
+              <FileText className="w-16 h-16" />
+              <span className="font-semibold">Bill of the device is available</span>
+              {hasPurchaseBill === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
+            </Card>
+
+            {/* None of the Above Card */}
+            <Card
+              onClick={handleNoneToggle}
+              className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${!hasNoneSelected ? "bg-muted/30 hover:bg-muted" : ""}`}
+              style={{ backgroundColor: hasNoneSelected ? 'royalBlue' : '', color: hasNoneSelected ? 'white' : 'black' }}
+            >
+              <Ban className="w-16 h-16" />
+              <span className="font-semibold">I don't have any of the following</span>
+              {hasNoneSelected && <CheckCircle size={20} className="absolute top-2 right-2" />}
+            </Card>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="mt-8 text-center flex gap-4 justify-center">
+          {currentStep !== "yesno" && (
+            <Button
+              onClick={() => setCurrentStep(currentStep === "condition" ? "yesno" : "condition")}
+              variant="outline"
+              className="px-12 py-4 text-lg"
+            >
+              Back
+            </Button>
+          )}
+          
+          {currentStep === "yesno" && (
+            <Button
+              onClick={handleNextToCondition}
+              className="px-12 py-4 text-lg"
+              style={{ backgroundColor: 'royalBlue', color: 'white' }}
+              disabled={questions.some(q => q.value === null)}
+            >
+              Next
+            </Button>
+          )}
+          
+          {currentStep === "condition" && (
+            <Button
+              onClick={handleNextToAccessories}
+              className="px-12 py-4 text-lg"
+              style={{ backgroundColor: 'royalBlue', color: 'white' }}
+              disabled={!overallCondition || !ageGroup}
+            >
+              Next
+            </Button>
+          )}
+          
+          {currentStep === "accessories" && (
+            <Button
+              onClick={handleComplete}
+              className="px-12 py-4 text-lg"
+              style={{ backgroundColor: 'royalBlue', color: 'white' }}
+            >
+              Continue to Verification
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
