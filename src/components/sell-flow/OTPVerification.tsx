@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Phone, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { anonSupabase } from "@/integrations/supabase/anonClient";
 import type { FlowState } from "@/pages/Index";
 
 interface Props {
@@ -79,8 +79,8 @@ const OTPVerification = ({ onVerify, flowState }: Props) => {
         final_price: flowState?.finalPrice,
       });
 
-      // ✅ Save lead to database
-      const { data: leadData, error: leadError } = await supabase
+      // ✅ Save lead to database using anonSupabase
+      const { data: leadData, error: leadError } = await anonSupabase  // ✅ FIXED: Changed from supabase to anonSupabase
         .from('leads')
         .insert({
           customer_name: customerName,

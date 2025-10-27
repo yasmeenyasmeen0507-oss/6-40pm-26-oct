@@ -1,45 +1,98 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   TrendingUp, 
   Users, 
   IndianRupee, 
   Package, 
-  Calendar,
+  Calendar as CalendarIcon,
   MapPin,
   Phone,
-  CheckCircle
+  CheckCircle,
+  ArrowUpRight,
+  ArrowDownRight,
+  Filter
 } from 'lucide-react';
-import { startOfDay, startOfWeek, startOfMonth, format } from 'date-fns';
+import { startOfDay, endOfDay, startOfWeek, startOfMonth, format, subDays, differenceInDays } from 'date-fns';
+import { cn } from '@/lib/utils';
+
+type DateRange = {
+  from: Date;
+  to: Date;
+};
 
 export default function AdminAnalytics() {
-  const { data: analytics, isLoading } = useQuery({
-    queryKey: ['admin-analytics'],
-    queryFn: async () => {
-      const now = new Date();
-      const todayStart = startOfDay(now).toISOString();
-      const weekStart = startOfWeek(now, { weekStartsOn: 1 }).toISOString();
-      const monthStart = startOfMonth(now).toISOString();
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: startOfMonth(new Date()),
+    to: endOfDay(new Date()),
+  });
 
-      // Fetch pickup requests with filters
-      const [allRequests, todayRequests, weekRequests, monthRequests, citiesData] = await Promise.all([
-        supabase.from('pickup_requests').select('id, final_price, status', { count: 'exact' }),
-        supabase.from('pickup_requests').select('id', { count: 'exact' }).gte('created_at', todayStart),
-        supabase.from('pickup_requests').select('id', { count: 'exact' }).gte('created_at', weekStart),
-        supabase.from('pickup_requests').select('id', { count: 'exact' }).gte('created_at', monthStart),
-        supabase.from('pickup_requests').select('city:cities(name)', { count: 'exact' })
+  const { data: analytics, isLoading } = useQuery({
+    queryKey: ['admin-analytics', dateRange],
+    queryFn: async () => {
+      const fromDate = dateRange.from.toISOString();
+      const toDate = dateRange.to.toISOString();
+
+      // Fetch pickup requests with date filters
+      const [filteredRequests, allRequests, citiesData, dailyData] = await Promise.all([
+        supabase
+          .from('pickup_requests')
+          .select('id, final_price, status, created_at')
+          .gte('created_at', fromDate)
+          .lte('created_at', toDate),
+        supabase.from('pickup_requests').select('id, final_price, status'),
+        supabase
+          .from('pickup_requests')
+          .select('city:cities(name)')
+          .gte('created_at', fromDate)
+          .lte('created_at', toDate),
+        supabase
+          .from('pickup_requests')
+          .select('id, final_price, status, created_at')
+          .gte('created_at', fromDate)
+          .lte('created_at', toDate)
+          .order('created_at', { ascending: true })
       ]);
 
-      // Calculate revenue from completed requests
-      const completedRevenue = allRequests.data
+      // Calculate filtered revenue
+      const filteredRevenue = filteredRequests.data
         ?.filter(req => req.status === 'completed')
         .reduce((sum, req) => sum + Number(req.final_price || 0), 0) || 0;
 
-      // Average deal value
-      const completedCount = allRequests.data?.filter(req => req.status === 'completed').length || 1;
-      const avgDealValue = completedRevenue / completedCount;
+      const filteredCompleted = filteredRequests.data?.filter(req => req.status === 'completed').length || 0;
+      const avgDealValue = filteredCompleted > 0 ? filteredRevenue / filteredCompleted : 0;
+
+      // Calculate total (all-time) revenue for comparison
+      const totalRevenue = allRequests.data
+        ?.filter(req => req.status === 'completed')
+        .reduce((sum, req) => sum + Number(req.final_price || 0), 0) || 0;
+
+      // Group by day for daily breakdown
+      const dailyBreakdown: Record<string, { revenue: number; orders: number }> = {};
+      
+      dailyData.data?.forEach(req => {
+        const date = format(new Date(req.created_at), 'yyyy-MM-dd');
+        if (!dailyBreakdown[date]) {
+          dailyBreakdown[date] = { revenue: 0, orders: 0 };
+        }
+        dailyBreakdown[date].orders += 1;
+        if (req.status === 'completed') {
+          dailyBreakdown[date].revenue += Number(req.final_price || 0);
+        }
+      });
+
+      const dailyStats = Object.entries(dailyBreakdown)
+        .sort(([a], [b]) => b.localeCompare(a)) // Latest first
+        .map(([date, stats]) => ({
+          date,
+          ...stats,
+        }));
 
       // Top cities
       const cityCounts: Record<string, number> = {};
@@ -53,19 +106,52 @@ export default function AdminAnalytics() {
         .slice(0, 5)
         .map(([name, count]) => ({ name, count }));
 
+      // Calculate growth (compare to previous period)
+      const daysDiff = differenceInDays(dateRange.to, dateRange.from);
+      const previousPeriodStart = subDays(dateRange.from, daysDiff + 1);
+      const previousPeriodEnd = subDays(dateRange.from, 1);
+
+      const previousData = await supabase
+        .from('pickup_requests')
+        .select('final_price, status')
+        .gte('created_at', previousPeriodStart.toISOString())
+        .lte('created_at', previousPeriodEnd.toISOString());
+
+      const previousRevenue = previousData.data
+        ?.filter(req => req.status === 'completed')
+        .reduce((sum, req) => sum + Number(req.final_price || 0), 0) || 0;
+
+      const revenueGrowth = previousRevenue > 0 
+        ? ((filteredRevenue - previousRevenue) / previousRevenue) * 100 
+        : 0;
+
+      const ordersGrowth = previousData.data?.length && previousData.data.length > 0
+        ? (((filteredRequests.data?.length || 0) - previousData.data.length) / previousData.data.length) * 100
+        : 0;
+
       return {
-        totalRequests: allRequests.count || 0,
-        todayRequests: todayRequests.count || 0,
-        weekRequests: weekRequests.count || 0,
-        monthRequests: monthRequests.count || 0,
-        totalRevenue: completedRevenue,
+        totalRequests: filteredRequests.data?.length || 0,
+        filteredRevenue,
         avgDealValue: Math.round(avgDealValue),
-        completedCount,
+        completedCount: filteredCompleted,
         topCities,
+        dailyStats,
+        totalRevenue,
+        revenueGrowth: Math.round(revenueGrowth * 10) / 10,
+        ordersGrowth: Math.round(ordersGrowth * 10) / 10,
       };
     },
-    refetchInterval: 60000, // Refresh every minute
+    refetchInterval: 60000,
   });
+
+  const quickFilters = [
+    { label: 'Today', from: startOfDay(new Date()), to: endOfDay(new Date()) },
+    { label: 'Yesterday', from: startOfDay(subDays(new Date(), 1)), to: endOfDay(subDays(new Date(), 1)) },
+    { label: 'Last 7 Days', from: startOfDay(subDays(new Date(), 6)), to: endOfDay(new Date()) },
+    { label: 'Last 30 Days', from: startOfDay(subDays(new Date(), 29)), to: endOfDay(new Date()) },
+    { label: 'This Month', from: startOfMonth(new Date()), to: endOfDay(new Date()) },
+    { label: 'All Time', from: new Date(2020, 0, 1), to: endOfDay(new Date()) },
+  ];
 
   if (isLoading) {
     return (
@@ -85,122 +171,192 @@ export default function AdminAnalytics() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Analytics</h1>
-        <p className="text-slate-500 mt-1">
-          Performance metrics and insights • Updated: {format(new Date(), 'HH:mm:ss')}
-        </p>
-      </div>
-
-      {/* Requests by Time Period */}
-      <div>
-        <h2 className="text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-blue-600" />
-          Pickup Requests Overview
-        </h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
-              <Package className="h-4 w-4 text-slate-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{analytics?.totalRequests || 0}</div>
-              <p className="text-xs text-slate-500">All time</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Today</CardTitle>
-              <Calendar className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-700">
-                {analytics?.todayRequests || 0}
-              </div>
-              <p className="text-xs text-slate-500">
-                {format(new Date(), 'MMM dd, yyyy')}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Week</CardTitle>
-              <Calendar className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-700">
-                {analytics?.weekRequests || 0}
-              </div>
-              <p className="text-xs text-slate-500">Last 7 days</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Month</CardTitle>
-              <Calendar className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-700">
-                {analytics?.monthRequests || 0}
-              </div>
-              <p className="text-xs text-slate-500">
-                {format(new Date(), 'MMMM yyyy')}
-              </p>
-            </CardContent>
-          </Card>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Analytics</h1>
+          <p className="text-slate-500 mt-1">
+            Performance metrics and insights • Updated: {format(new Date(), 'HH:mm:ss')}
+          </p>
         </div>
       </div>
 
-      {/* Revenue Metrics */}
+      {/* Date Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Filter className="h-5 w-5" />
+            Date Range Filter
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {quickFilters.map((filter) => (
+              <Button
+                key={filter.label}
+                variant={
+                  format(dateRange.from, 'yyyy-MM-dd') === format(filter.from, 'yyyy-MM-dd') &&
+                  format(dateRange.to, 'yyyy-MM-dd') === format(filter.to, 'yyyy-MM-dd')
+                    ? 'default'
+                    : 'outline'
+                }
+                size="sm"
+                onClick={() => setDateRange({ from: filter.from, to: filter.to })}
+              >
+                {filter.label}
+              </Button>
+            ))}
+          </div>
+
+          <div className="flex gap-2 items-center">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="justify-start text-left font-normal">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {format(dateRange.from, 'MMM dd, yyyy')} - {format(dateRange.to, 'MMM dd, yyyy')}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <div className="flex gap-2 p-3">
+                  <div>
+                    <p className="text-sm font-medium mb-2">From</p>
+                    <Calendar
+                      mode="single"
+                      selected={dateRange.from}
+                      onSelect={(date) => date && setDateRange(prev => ({ ...prev, from: startOfDay(date) }))}
+                      initialFocus
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium mb-2">To</p>
+                    <Calendar
+                      mode="single"
+                      selected={dateRange.to}
+                      onSelect={(date) => date && setDateRange(prev => ({ ...prev, to: endOfDay(date) }))}
+                      initialFocus
+                    />
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Key Metrics */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <IndianRupee className="h-4 w-4 text-emerald-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-emerald-700">
+              ₹{(analytics?.filteredRevenue || 0).toLocaleString('en-IN')}
+            </div>
+            <div className="flex items-center gap-1 text-xs mt-1">
+              {analytics && analytics.revenueGrowth >= 0 ? (
+                <ArrowUpRight className="h-3 w-3 text-green-600" />
+              ) : (
+                <ArrowDownRight className="h-3 w-3 text-red-600" />
+              )}
+              <span className={analytics && analytics.revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600'}>
+                {Math.abs(analytics?.revenueGrowth || 0)}%
+              </span>
+              <span className="text-slate-500">vs previous period</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <Package className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-700">
+              {analytics?.totalRequests || 0}
+            </div>
+            <div className="flex items-center gap-1 text-xs mt-1">
+              {analytics && analytics.ordersGrowth >= 0 ? (
+                <ArrowUpRight className="h-3 w-3 text-green-600" />
+              ) : (
+                <ArrowDownRight className="h-3 w-3 text-red-600" />
+              )}
+              <span className={analytics && analytics.ordersGrowth >= 0 ? 'text-green-600' : 'text-red-600'}>
+                {Math.abs(analytics?.ordersGrowth || 0)}%
+              </span>
+              <span className="text-slate-500">vs previous period</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg. Order Value</CardTitle>
+            <TrendingUp className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-700">
+              ₹{(analytics?.avgDealValue || 0).toLocaleString('en-IN')}
+            </div>
+            <p className="text-xs text-slate-500 mt-1">Per completed pickup</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-700">
+              {analytics?.completedCount || 0}
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              {analytics?.completedCount && analytics?.totalRequests 
+                ? Math.round((analytics.completedCount / analytics.totalRequests) * 100)
+                : 0}% completion rate
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Daily Breakdown */}
       <div>
         <h2 className="text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
-          <IndianRupee className="h-5 w-5 text-emerald-600" />
-          Revenue Metrics
+          <CalendarIcon className="h-5 w-5 text-blue-600" />
+          Daily Breakdown
         </h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <IndianRupee className="h-4 w-4 text-emerald-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-emerald-700">
-                ₹{(analytics?.totalRevenue || 0).toLocaleString('en-IN')}
+        <Card>
+          <CardContent className="pt-6">
+            {analytics?.dailyStats && analytics.dailyStats.length > 0 ? (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {analytics.dailyStats.map((day) => (
+                  <div key={day.date} className="flex items-center justify-between border-b pb-3 last:border-0">
+                    <div>
+                      <p className="font-medium text-slate-900">
+                        {format(new Date(day.date), 'MMM dd, yyyy')}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {format(new Date(day.date), 'EEEE')}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-emerald-700">
+                        ₹{day.revenue.toLocaleString('en-IN')}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {day.orders} {day.orders === 1 ? 'order' : 'orders'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <p className="text-xs text-slate-500">From completed pickups</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg. Deal Value</CardTitle>
-              <TrendingUp className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-700">
-                ₹{(analytics?.avgDealValue || 0).toLocaleString('en-IN')}
-              </div>
-              <p className="text-xs text-slate-500">Per completed pickup</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-700">
-                {analytics?.completedCount || 0}
-              </div>
-              <p className="text-xs text-slate-500">Successfully completed</p>
-            </CardContent>
-          </Card>
-        </div>
+            ) : (
+              <p className="text-center text-slate-500 py-8">No data for selected period</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Top Cities */}
