@@ -236,7 +236,7 @@ const Index = () => {
               transition={{ duration: 0.3 }}
             >
               <ConditionQuestions
-                variantId={flowState.variantId}  // ✅ FIXED: Now passing variantId
+                variantId={flowState.variantId}
                 basePrice={flowState.basePrice}
                 deviceName={flowState.deviceName || ""}
                 releaseDate={flowState.releaseDate || ""}
@@ -257,6 +257,7 @@ const Index = () => {
               transition={{ duration: 0.3 }}
             >
               <OTPVerification
+                flowState={flowState}   
                 onVerify={(phoneNumber) => {
                   updateFlowState({ phoneNumber });
                   setCurrentStep("valuation");

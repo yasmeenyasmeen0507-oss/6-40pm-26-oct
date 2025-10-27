@@ -31,10 +31,19 @@ const PickupScheduler = ({ flowState }: Props) => {
   const [isSuccess, setIsSuccess] = useState(false);
   const { toast } = useToast();
 
-  // ✅ Get verified phone from localStorage
+  // ✅ Get verified phone and lead ID from localStorage
   const verifiedPhone = localStorage.getItem('verified_phone');
   const isPhoneVerified = localStorage.getItem('is_phone_verified') === 'true';
   const phoneVerifiedAt = localStorage.getItem('phone_verified_at');
+  const leadId = localStorage.getItem('lead_id'); // ✅ Lead to convert
+  const storedCustomerName = localStorage.getItem('customer_name');
+
+  // Pre-fill customer name if available
+  useState(() => {
+    if (storedCustomerName && !customerName) {
+      setCustomerName(storedCustomerName);
+    }
+  }, []);
 
   // Email validation
   const validateEmail = (value: string) => {
@@ -90,12 +99,13 @@ const PickupScheduler = ({ flowState }: Props) => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
+      // ✅ Step 1: Create pickup request
+      const { data: pickupData, error: pickupError } = await supabase
         .from("pickup_requests")
         .insert({
-          // ✅ Phone Numbers
-          user_phone: flowState.phoneNumber!, // Phone from form/URL
-          verified_phone: verifiedPhone, // OTP verified phone
+          // Phone Numbers
+          user_phone: flowState.phoneNumber!, 
+          verified_phone: verifiedPhone,
           is_phone_verified: isPhoneVerified,
           phone_verified_at: phoneVerifiedAt,
           
@@ -128,21 +138,47 @@ const PickupScheduler = ({ flowState }: Props) => {
           pickup_date: format(pickupDate, "yyyy-MM-dd"),
           pickup_time: pickupTime,
           status: "pending",
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (pickupError) throw pickupError;
 
-      // ✅ Clear verification data from localStorage after successful submission
+      console.log('✅ Pickup request created:', pickupData);
+
+      // ✅ Step 2: Convert lead to pickup (if lead exists)
+      if (leadId) {
+        const { error: leadUpdateError } = await supabase
+          .from('leads')
+          .update({
+            converted_to_pickup: true,
+            pickup_request_id: pickupData.id,
+            lead_status: 'converted',
+          })
+          .eq('id', leadId);
+
+        if (leadUpdateError) {
+          console.error('❌ Error converting lead:', leadUpdateError);
+          // Don't fail the whole operation if lead update fails
+        } else {
+          console.log('✅ Lead converted to pickup:', leadId);
+        }
+      }
+
+      // ✅ Clear all localStorage data after successful submission
       localStorage.removeItem('verified_phone');
+      localStorage.removeItem('customer_name');
       localStorage.removeItem('is_phone_verified');
       localStorage.removeItem('phone_verified_at');
       localStorage.removeItem('verification_timestamp');
+      localStorage.removeItem('lead_id');
 
       setIsSuccess(true);
       toast({
         title: "Success!",
         description: "Your pickup has been scheduled successfully",
       });
+
     } catch (error) {
       console.error("Error submitting pickup request:", error);
       toast({
@@ -220,6 +256,15 @@ const PickupScheduler = ({ flowState }: Props) => {
             Payment will be made immediately after verification
           </p>
         </div>
+
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={() => window.location.href = '/'}
+          className="mt-6"
+        >
+          Return to Home
+        </Button>
       </motion.div>
     );
   }

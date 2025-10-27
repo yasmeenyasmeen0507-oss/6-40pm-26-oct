@@ -9,11 +9,9 @@ import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminPickupRequests from "./pages/admin/PickupRequests";
-import AdminBrands from "./pages/admin/Brands";
-import AdminCities from "./pages/admin/Cities";
-import AdminReviews from "./pages/admin/Reviews";
-import AdminActivityLogs from "./pages/admin/ActivityLogs";
-import AdminSettings from "./pages/admin/Settings";
+import AdminLeads from "./pages/admin/Leads";
+import AdminAnalytics from "./pages/admin/Analytics";
+import AdminPricing from "./pages/admin/Pricing";
 import AdminLayout from "./layouts/AdminLayout";
 import { AdminAuthProvider } from "./contexts/AdminAuthContext";
 import { ProtectedAdminRoute } from "./components/admin/ProtectedAdminRoute";
@@ -43,12 +41,10 @@ const App = () => (
             >
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="pickup-requests" element={<AdminPickupRequests />} />
+              <Route path="leads" element={<AdminLeads />} />
               <Route path="devices" element={<div>Devices</div>} />
-              <Route path="brands" element={<AdminBrands />} />
-              <Route path="cities" element={<AdminCities />} />
-              <Route path="reviews" element={<AdminReviews />} />
-              <Route path="activity-logs" element={<AdminActivityLogs />} />
-              <Route path="settings" element={<AdminSettings />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="pricing" element={<AdminPricing />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

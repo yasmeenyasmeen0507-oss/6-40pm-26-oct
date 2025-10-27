@@ -8,14 +8,12 @@ import {
   LayoutDashboard,
   Package,
   ShoppingBag,
-  MapPin,
-  Star,
-  FileText,
-  Settings,
+  Phone,
+  TrendingUp,
+  IndianRupee,
   LogOut,
   Menu,
   X,
-  Building2,
   Bell,
   User,
 } from 'lucide-react';
@@ -24,12 +22,10 @@ import { cn } from '@/lib/utils';
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
   { icon: ShoppingBag, label: 'Pickup Requests', path: '/admin/pickup-requests' },
+  { icon: Phone, label: 'Leads', path: '/admin/leads' },
   { icon: Package, label: 'Devices', path: '/admin/devices' },
-  { icon: Building2, label: 'Brands', path: '/admin/brands' },
-  { icon: MapPin, label: 'Cities', path: '/admin/cities' },
-  { icon: Star, label: 'Reviews', path: '/admin/reviews' },
-  { icon: FileText, label: 'Activity Logs', path: '/admin/activity-logs' },
-  { icon: Settings, label: 'Settings', path: '/admin/settings' },
+  { icon: TrendingUp, label: 'Analytics', path: '/admin/analytics' },
+  { icon: IndianRupee, label: 'Pricing', path: '/admin/pricing' },
 ];
 
 export default function AdminLayout() {

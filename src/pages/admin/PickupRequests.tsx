@@ -54,7 +54,7 @@ import {
 } from 'lucide-react';
 import { logAdminActivity } from '@/lib/admin/auth';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 
 interface PickupRequest {
   id: string;
@@ -319,6 +319,7 @@ export default function AdminPickupRequests() {
         'City',
         'Address',
         'Pincode',
+        'Request Time',
         'Pickup Date',
         'Pickup Time',
         'Status',
@@ -346,6 +347,7 @@ export default function AdminPickupRequests() {
         req.city?.name || '',
         req.address || '',
         req.pincode || '',
+        format(new Date(req.created_at), 'yyyy-MM-dd HH:mm:ss'),
         req.pickup_date || '',
         req.pickup_time || '',
         req.status,
@@ -494,6 +496,7 @@ export default function AdminPickupRequests() {
                     <TableHead>Customer</TableHead>
                     <TableHead>Device</TableHead>
                     <TableHead>City</TableHead>
+                    <TableHead>Request Time</TableHead>
                     <TableHead>Pickup Date</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Status</TableHead>
@@ -526,6 +529,22 @@ export default function AdminPickupRequests() {
                         </div>
                       </TableCell>
                       <TableCell>{request.city?.name}</TableCell>
+                      
+                      {/* ✅ Request Time Column */}
+                      <TableCell>
+                        <div className="text-sm">
+                          <div 
+                            className="font-medium text-slate-700"
+                            title={format(new Date(request.created_at), 'MMM dd, yyyy HH:mm:ss')}
+                          >
+                            {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
+                          </div>
+                          <div className="text-xs text-slate-400">
+                            {format(new Date(request.created_at), 'HH:mm:ss')}
+                          </div>
+                        </div>
+                      </TableCell>
+                      
                       <TableCell>
                         <div className="text-sm">
                           {request.pickup_date

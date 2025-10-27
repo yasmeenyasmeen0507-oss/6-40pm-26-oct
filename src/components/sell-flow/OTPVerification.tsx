@@ -6,13 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Phone, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import type { FlowState } from "@/pages/Index";
 
 interface Props {
   onVerify: (phoneNumber: string) => void;
+  flowState?: FlowState;
 }
 
-const OTPVerification = ({ onVerify }: Props) => {
+const OTPVerification = ({ onVerify, flowState }: Props) => {
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [customerName, setCustomerName] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -28,8 +32,18 @@ const OTPVerification = ({ onVerify }: Props) => {
       return;
     }
 
+    if (!customerName.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please enter your name",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Store in localStorage temporarily
     localStorage.setItem('pending_verification_phone', `+91${phoneNumber}`);
+    localStorage.setItem('pending_customer_name', customerName);
     localStorage.setItem('verification_timestamp', new Date().toISOString());
 
     // Simulate OTP send
@@ -40,7 +54,7 @@ const OTPVerification = ({ onVerify }: Props) => {
     });
   };
 
-  const handleVerifyOTP = () => {
+  const handleVerifyOTP = async () => {
     if (otp.length !== 6) {
       toast({
         title: "Invalid OTP",
@@ -51,25 +65,86 @@ const OTPVerification = ({ onVerify }: Props) => {
     }
 
     setIsVerifying(true);
-    // Simulate verification
-    setTimeout(() => {
+
+    try {
       const verifiedPhone = `+91${phoneNumber}`;
       
-      // Store verified phone in localStorage
+      console.log('💾 Saving lead with data:', {
+        customer_name: customerName,
+        phone_number: phoneNumber,
+        verified_phone: verifiedPhone,
+        device_id: flowState?.deviceId,
+        variant_id: flowState?.variantId,
+        city_id: flowState?.cityId,
+        final_price: flowState?.finalPrice,
+      });
+
+      // ✅ Save lead to database
+      const { data: leadData, error: leadError } = await supabase
+        .from('leads')
+        .insert({
+          customer_name: customerName,
+          phone_number: phoneNumber,
+          verified_phone: verifiedPhone,
+          is_phone_verified: true,
+          device_id: flowState?.deviceId,
+          variant_id: flowState?.variantId,
+          city_id: flowState?.cityId,
+          final_price: flowState?.finalPrice || 0,
+          
+          // Device condition answers
+          condition: flowState?.condition?.overallCondition,
+          age_group: flowState?.condition?.ageGroup,
+          device_powers_on: true,
+          can_make_calls: flowState?.condition?.canMakeCalls,
+          is_touch_working: flowState?.condition?.isTouchWorking,
+          is_screen_original: flowState?.condition?.isScreenOriginal,
+          is_battery_healthy: flowState?.condition?.isBatteryHealthy,
+          
+          // Lead management
+          lead_status: 'new',
+          converted_to_pickup: false,
+        })
+        .select()
+        .single();
+
+      if (leadError) {
+        console.error('❌ Error saving lead:', leadError);
+        throw leadError;
+      }
+
+      console.log('✅ Lead saved successfully:', leadData);
+
+      // Store in localStorage
       localStorage.setItem('verified_phone', verifiedPhone);
+      localStorage.setItem('customer_name', customerName);
       localStorage.setItem('phone_verified_at', new Date().toISOString());
       localStorage.setItem('is_phone_verified', 'true');
+      localStorage.setItem('lead_id', leadData.id); // Store lead ID for conversion
       
       // Clear pending verification
       localStorage.removeItem('pending_verification_phone');
+      localStorage.removeItem('pending_customer_name');
       
       toast({
         title: "Verified!",
         description: "Phone number verified successfully",
       });
       
-      onVerify(verifiedPhone);
-    }, 1000);
+      setTimeout(() => {
+        onVerify(verifiedPhone);
+      }, 1000);
+
+    } catch (error: any) {
+      console.error('❌ Verification error:', error);
+      toast({
+        title: "Verification Failed",
+        description: error?.message || "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   return (
@@ -87,6 +162,18 @@ const OTPVerification = ({ onVerify }: Props) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="name">Your Name</Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Enter your full name"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              disabled={otpSent}
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
             <div className="flex gap-2">
@@ -151,6 +238,7 @@ const OTPVerification = ({ onVerify }: Props) => {
                   setOtpSent(false);
                   setOtp("");
                   localStorage.removeItem('pending_verification_phone');
+                  localStorage.removeItem('pending_customer_name');
                 }}
                 className="w-full text-center text-sm text-primary hover:underline"
               >
