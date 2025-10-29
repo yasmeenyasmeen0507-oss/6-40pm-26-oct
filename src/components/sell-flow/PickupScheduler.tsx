@@ -29,6 +29,7 @@ const PickupScheduler = ({ flowState }: Props) => {
   const [pickupTime, setPickupTime] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const { toast } = useToast();
 
   // ✅ Get verified phone and lead ID from localStorage
@@ -191,6 +192,11 @@ const PickupScheduler = ({ flowState }: Props) => {
     }
   };
 
+  const handleDateSelect = (date: Date | undefined) => {
+    setPickupDate(date);
+    setCalendarOpen(false); // Close calendar after selection
+  };
+
   if (isSuccess) {
     return (
       <motion.div
@@ -198,18 +204,18 @@ const PickupScheduler = ({ flowState }: Props) => {
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-2xl mx-auto text-center space-y-8"
       >
-        <div className="inline-flex p-6 rounded-full bg-gradient-to-br from-primary to-secondary">
+        <div className="inline-flex p-6 rounded-full bg-[#4169E1]">
           <CheckCircle2 className="w-16 h-16 text-white" />
         </div>
         
         <div className="space-y-4">
-          <h2 className="text-4xl font-bold text-gradient">Pickup Scheduled!</h2>
+          <h2 className="text-4xl font-bold text-[#4169E1]">Pickup Scheduled!</h2>
           <p className="text-xl text-muted-foreground">
             Your device pickup has been successfully scheduled
           </p>
         </div>
 
-        <Card className="border-2 border-primary/20">
+        <Card className="border-2 border-[#4169E1]/20">
           <CardContent className="pt-6 space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Pickup Date:</span>
@@ -224,7 +230,7 @@ const PickupScheduler = ({ flowState }: Props) => {
               <span className="font-semibold flex items-center gap-2">
                 {verifiedPhone || flowState.phoneNumber}
                 {isPhoneVerified && (
-                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-300">
+                  <Badge variant="outline" className="text-xs bg-[#4169E1]/10 text-[#4169E1] border-[#4169E1]/30">
                     <ShieldCheck className="h-3 w-3 mr-1" />
                     Verified
                   </Badge>
@@ -233,26 +239,26 @@ const PickupScheduler = ({ flowState }: Props) => {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Expected Payment:</span>
-              <span className="text-2xl font-bold text-primary">₹{flowState.finalPrice?.toLocaleString()}</span>
+              <span className="text-2xl font-bold text-[#4169E1]">₹{flowState.finalPrice?.toLocaleString()}</span>
             </div>
           </CardContent>
         </Card>
 
         <div className="space-y-3 text-sm text-muted-foreground">
+         <p className="flex items-center justify-center gap-2">
+  <CheckCircle2 className="w-4 h-4 text-[#4169E1]" />
+  Confirmation sent to {verifiedPhone || flowState.phoneNumber}
+</p>
           <p className="flex items-center justify-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-green-500" />
-            Confirmation email sent to {email}
-          </p>
-          <p className="flex items-center justify-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-green-500" />
+            <CheckCircle2 className="w-4 h-4 text-[#4169E1]" />
             Our executive will contact you before pickup
           </p>
           <p className="flex items-center justify-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-green-500" />
+            <CheckCircle2 className="w-4 h-4 text-[#4169E1]" />
             Please keep your device and documents ready
           </p>
           <p className="flex items-center justify-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-green-500" />
+            <CheckCircle2 className="w-4 h-4 text-[#4169E1]" />
             Payment will be made immediately after verification
           </p>
         </div>
@@ -261,7 +267,7 @@ const PickupScheduler = ({ flowState }: Props) => {
           variant="outline"
           size="lg"
           onClick={() => window.location.href = '/'}
-          className="mt-6"
+          className="mt-6 border-[#4169E1] text-[#4169E1] hover:bg-[#4169E1] hover:text-white"
         >
           Return to Home
         </Button>
@@ -278,17 +284,17 @@ const PickupScheduler = ({ flowState }: Props) => {
   const getEmailBorderClass = () => {
     if (!email) return "";
     if (emailError) return "border-red-500 focus-visible:ring-red-500";
-    return "border-green-500 focus-visible:ring-green-500";
+    return "border-[#4169E1] focus-visible:ring-[#4169E1]";
   };
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div className="text-center space-y-4">
-        <h2 className="text-3xl font-bold text-gradient">Schedule Your Pickup</h2>
+        <h2 className="text-3xl font-bold text-[#4169E1]">Schedule Your Pickup</h2>
         <p className="text-muted-foreground">
           We'll collect your device and pay you instantly after verification
         </p>
-        <div className="text-2xl font-bold text-primary">
+        <div className="text-2xl font-bold text-[#4169E1]">
           Offer Price: ₹{flowState.finalPrice?.toLocaleString()}
         </div>
       </div>
@@ -297,20 +303,20 @@ const PickupScheduler = ({ flowState }: Props) => {
         <CardContent className="pt-6 space-y-6">
           {/* ✅ Show Verified Phone Number */}
           {verifiedPhone && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="bg-[#4169E1]/10 border border-[#4169E1]/30 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-green-700" />
-                  <span className="text-sm font-medium text-green-700">Verified Contact Number</span>
+                  <Phone className="w-4 h-4 text-[#4169E1]" />
+                  <span className="text-sm font-medium text-[#4169E1]">Verified Contact Number</span>
                 </div>
-                <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                <Badge variant="outline" className="bg-[#4169E1]/20 text-[#4169E1] border-[#4169E1]/30">
                   <ShieldCheck className="w-3 h-3 mr-1" />
                   OTP Verified
                 </Badge>
               </div>
-              <p className="text-lg font-semibold text-green-900 mt-2">{verifiedPhone}</p>
+              <p className="text-lg font-semibold text-[#4169E1] mt-2">{verifiedPhone}</p>
               {phoneVerifiedAt && (
-                <p className="text-xs text-green-600 mt-1">
+                <p className="text-xs text-[#4169E1]/70 mt-1">
                   Verified on {format(new Date(phoneVerifiedAt), "MMM dd, yyyy 'at' HH:mm")}
                 </p>
               )}
@@ -327,6 +333,7 @@ const PickupScheduler = ({ flowState }: Props) => {
               placeholder="Enter your full name"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
+              className="focus:ring-[#4169E1] focus:border-[#4169E1]"
             />
           </div>
 
@@ -345,7 +352,7 @@ const PickupScheduler = ({ flowState }: Props) => {
                 className={getEmailBorderClass()}
               />
               {email && !emailError && (
-                <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#4169E1]" />
               )}
               {emailError && (
                 <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />
@@ -358,7 +365,7 @@ const PickupScheduler = ({ flowState }: Props) => {
               </p>
             )}
             {email && !emailError && (
-              <p className="text-sm text-green-600 flex items-center gap-1">
+              <p className="text-sm text-[#4169E1] flex items-center gap-1">
                 <CheckCircle2 className="w-4 h-4" />
                 Valid Gmail address
               </p>
@@ -375,6 +382,7 @@ const PickupScheduler = ({ flowState }: Props) => {
               placeholder="Enter complete address"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
+              className="focus:ring-[#4169E1] focus:border-[#4169E1]"
             />
           </div>
 
@@ -389,6 +397,7 @@ const PickupScheduler = ({ flowState }: Props) => {
               value={pincode}
               onChange={(e) => setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
               maxLength={6}
+              className="focus:ring-[#4169E1] focus:border-[#4169E1]"
             />
           </div>
 
@@ -398,11 +407,11 @@ const PickupScheduler = ({ flowState }: Props) => {
                 <CalendarIcon className="w-4 h-4" />
                 Pickup Date
               </Label>
-              <Popover>
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-start text-left font-normal"
+                    className="w-full justify-start text-left font-normal hover:bg-[#4169E1]/10 hover:border-[#4169E1]"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {pickupDate ? format(pickupDate, "PPP") : "Select date"}
@@ -412,7 +421,7 @@ const PickupScheduler = ({ flowState }: Props) => {
                   <Calendar
                     mode="single"
                     selected={pickupDate}
-                    onSelect={setPickupDate}
+                    onSelect={handleDateSelect}
                     disabled={(date) => {
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
@@ -420,6 +429,7 @@ const PickupScheduler = ({ flowState }: Props) => {
                       return date < today || date > maxDate;
                     }}
                     initialFocus
+                    className="[&_.rdp-day_selected]:bg-[#4169E1] [&_.rdp-day_selected]:text-white [&_.rdp-day_button:hover]:bg-[#4169E1]/10"
                   />
                 </PopoverContent>
               </Popover>
@@ -428,12 +438,16 @@ const PickupScheduler = ({ flowState }: Props) => {
             <div className="space-y-2">
               <Label>Pickup Time</Label>
               <Select value={pickupTime} onValueChange={setPickupTime}>
-                <SelectTrigger>
+                <SelectTrigger className="hover:border-[#4169E1] focus:ring-[#4169E1]">
                   <SelectValue placeholder="Select time slot" />
                 </SelectTrigger>
                 <SelectContent>
                   {timeSlots.map((slot) => (
-                    <SelectItem key={slot} value={slot}>
+                    <SelectItem 
+                      key={slot} 
+                      value={slot}
+                      className="focus:bg-[#4169E1]/10 focus:text-[#4169E1]"
+                    >
                       {slot}
                     </SelectItem>
                   ))}
@@ -444,7 +458,7 @@ const PickupScheduler = ({ flowState }: Props) => {
 
           <Button
             size="lg"
-            className="w-full bg-gradient-to-r from-primary to-secondary text-white"
+            className="w-full bg-[#4169E1] hover:bg-[#3557C1] text-white"
             onClick={handleSubmit}
             disabled={isSubmitting || !!emailError || !email}
           >

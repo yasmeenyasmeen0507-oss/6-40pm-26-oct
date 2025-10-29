@@ -19,6 +19,53 @@ interface Device {
   image_url: string | null;
 }
 
+// NEW: Your custom sort order
+const appleSortOrder = [
+  "iphone 17 Pro max",
+  "iphone 17 pro",
+  "iphone 17",
+  "iphone air",
+  "iphone 16 pro max",
+  "iphone 16 pro",
+  "iphone 16 plus",
+  "iphone 16",
+  "iphone 16 e",
+  "iphone 15 pro max",
+  "iphone 15 pro",
+  "iphone 15 plus",
+  "iphone 15",
+  "iphone 14 pro max",
+  "iphone 14 pro",
+  "iphone 14 plus",
+  "iphone 14",
+  "iphone 13 pro max",
+  "iphone 13 pro",
+  "iphone 13",
+  "iphone 13 Mini",
+  "iphone 12 Pro max",
+  "iphone 12 pro",
+  "iphone 12",
+  "iphone 12 Mini",
+  "iphone 11 pro max",
+  "iphone 11 pro",
+  "iphone 11",
+  "iphone SE 2022",
+  "iphone SE 2020",
+  "iphone SE 1st Generation",
+  "iphone XS Max",
+  "iphone XS",
+  "iphone XR",
+  "iphone X",
+  "iphone 8 Plus",
+  "iphone 8",
+  "iphone 7 plus",
+  "iphone 7",
+  "iphone 6s plus",
+  "iphone 6S",
+  "iphone 6 Plus",
+  "iphone 6"
+];
+
 const DeviceSelection = ({ brandId, onSelect }: Props) => {
   const [devices, setDevices] = useState<Device[]>([]);
   const [filteredDevices, setFilteredDevices] = useState<Device[]>([]);
@@ -30,28 +77,51 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
     const fetchDevices = async () => {
       setLoading(true);
       
-      // Fetch brand to check if it's Apple
       const { data: brandData } = await supabase
-        // @ts-expect-error - Supabase types are regenerating after migration
+        // @ts-expect-error
         .from("brands")
         .select("name")
         .eq("id", brandId)
         .single();
       
-      setIsAppleBrand(brandData?.name?.toLowerCase() === "apple");
+      const isApple = brandData?.name?.toLowerCase() === "apple";
+      setIsAppleBrand(isApple);
 
-      const { data, error } = await supabase
-        // @ts-expect-error - Supabase types are regenerating after migration
+      // CHANGED: Build the query
+      let query = supabase
+        // @ts-expect-error
         .from("devices")
         .select("*")
-        .eq("brand_id", brandId)
-        .order("model_name");
+        .eq("brand_id", brandId);
+
+      // CHANGED: Only sort alphabetically if it's NOT Apple
+      if (!isApple) {
+        query = query.order("model_name");
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error("Error fetching devices:", error);
+        setDevices([]);
+        setFilteredDevices([]);
       } else {
-        setDevices(data || []);
-        setFilteredDevices(data || []);
+        let finalData = data || [];
+
+        // NEW: Apply your custom sort logic if it's an Apple device
+        if (isApple) {
+          // Helper function to get the sort index
+          const getSortIndex = (modelName: string) => {
+            const index = appleSortOrder.indexOf(modelName);
+            // If model isn't in our list, push it to the end
+            return index === -1 ? appleSortOrder.length : index;
+          };
+          
+          finalData.sort((a, b) => getSortIndex(a.model_name) - getSortIndex(b.model_name));
+        }
+        
+        setDevices(finalData);
+        setFilteredDevices(finalData);
       }
       setLoading(false);
     };
@@ -82,7 +152,9 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
   return (
     <div className="max-w-7xl mx-auto animate-fade-in-up px-4">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-4">Select Your Device Model</h2>
+        <h2 className="text-3xl font-bold mb-4">
+          Select Your <span className="text-[#4169E1]">Device</span> Model
+        </h2>
         <p className="text-muted-foreground">Choose your specific device model</p>
       </div>
 

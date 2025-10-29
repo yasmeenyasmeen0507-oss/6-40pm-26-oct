@@ -13,6 +13,7 @@ interface Props {
   deviceName: string;
   releaseDate: string;
   variantId: string;
+  brandName?: string;
   onComplete: (
     condition: {
       canMakeCalls: boolean;
@@ -29,12 +30,13 @@ interface Props {
   ) => void;
 }
 
-const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onComplete }: Props) => {
+const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, brandName, onComplete }: Props) => {
   console.log('🔍 ConditionQuestions Props:', {
     basePrice,
     deviceName,
     releaseDate,
     variantId,
+    brandName,
     hasOnComplete: typeof onComplete === 'function'
   });
 
@@ -66,6 +68,18 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
   const screenRef = useRef<HTMLDivElement>(null);
   const batteryRef = useRef<HTMLDivElement>(null);
   const ageRef = useRef<HTMLDivElement>(null);
+  const accessoriesRef = useRef<HTMLDivElement>(null);
+
+  // Check if brand is Apple
+  const isAppleBrand = brandName?.toLowerCase().includes('apple') || brandName?.toLowerCase().includes('iphone');
+
+  // Set battery health to true by default for non-Apple devices
+  useEffect(() => {
+    if (brandName && !isAppleBrand && isBatteryHealthy === null) {
+      setIsBatteryHealthy(true);
+      console.log('✅ Auto-set battery health to true for non-Apple device:', brandName);
+    }
+  }, [brandName, isAppleBrand, isBatteryHealthy]);
 
   // Fetch warranty prices
   useEffect(() => {
@@ -152,6 +166,17 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
     }
   }, [overallCondition, currentStep]);
 
+  useEffect(() => {
+    if (currentStep === "accessories" && accessoriesRef.current) {
+      setTimeout(() => {
+        window.scrollTo({ 
+          top: document.documentElement.scrollHeight, 
+          behavior: 'smooth' 
+        });
+      }, 300);
+    }
+  }, [currentStep]);
+
   const updatePrice = () => {
     if (!ageGroup || !warrantyPrices) {
       console.warn('⚠️ Cannot update price - missing age group or warranty prices');
@@ -229,11 +254,18 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
   };
 
   const handleNextToCondition = () => {
-    if (canMakeCalls === null || isTouchWorking === null || 
-        isScreenOriginal === null || isBatteryHealthy === null) {
+    // Check if all required questions are answered
+    if (canMakeCalls === null || isTouchWorking === null || isScreenOriginal === null) {
       alert("Please answer all device condition questions");
       return;
     }
+    
+    // Only validate battery health for Apple devices
+    if (isAppleBrand && isBatteryHealthy === null) {
+      alert("Please answer all device condition questions");
+      return;
+    }
+    
     setCurrentStep("condition");
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -328,7 +360,13 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
   };
 
   const getStepTitle = () => {
-    if (currentStep === "yesno") return `Tell us more about your ${deviceName}`;
+    if (currentStep === "yesno") {
+      return (
+        <>
+          Tell us more about your <span style={{ color: "#4169E1" }}>{deviceName}</span>
+        </>
+      );
+    }
     if (currentStep === "condition") return "Device Condition & Age";
     return "Do you have the following accessories?";
   };
@@ -347,8 +385,9 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
         <p className="text-muted-foreground">Please go back and select a device variant (storage option)</p>
       </div>
     );
-  }
+  };
 
+  // Define questions array with conditional battery question
   const questions = [
     { 
       question: "Are you able to make and receive calls?", 
@@ -371,13 +410,14 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
       setter: setIsScreenOriginal,
       ref: screenRef
     },
-    { 
+    // Only show battery question for Apple devices
+    ...(isAppleBrand ? [{ 
       question: "Battery Health above 80%", 
       description: "Check if your device's battery health is above 80%.",
       value: isBatteryHealthy,
       setter: setIsBatteryHealthy,
       ref: batteryRef
-    }
+    }] : [])
   ];
 
   const conditionOptions = [
@@ -497,60 +537,62 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
 
         {/* Step 3: Accessories */}
         {currentStep === "accessories" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Charger Card */}
-            <Card
-              onClick={() => handleAccessoryToggle('charger')}
-              className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasOriginalCharger !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
-              style={{ backgroundColor: hasOriginalCharger === true ? 'royalBlue' : '', color: hasOriginalCharger === true ? 'white' : 'black' }}
-            >
-              <Zap className="w-16 h-16" />
-              <span className="font-semibold">Original Charger of Device</span>
-              {hasOriginalCharger === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
-            </Card>
+          <div ref={accessoriesRef}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Charger Card */}
+              <Card
+                onClick={() => handleAccessoryToggle('charger')}
+                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasOriginalCharger !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
+                style={{ backgroundColor: hasOriginalCharger === true ? 'royalBlue' : '', color: hasOriginalCharger === true ? 'white' : 'black' }}
+              >
+                <img src="/assets/charger.jpg" alt="Charger" className="w-16 h-16 object-contain" />
+                <span className="font-semibold">Original Charger of Device</span>
+                {hasOriginalCharger === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
+              </Card>
 
-            {/* Box Card */}
-            <Card
-              onClick={() => handleAccessoryToggle('box')}
-              className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasOriginalBox !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
-              style={{ backgroundColor: hasOriginalBox === true ? 'royalBlue' : '', color: hasOriginalBox === true ? 'white' : 'black' }}
-            >
-              <Package className="w-16 h-16" />
-              <span className="font-semibold">Original Box with same IMEI</span>
-              {hasOriginalBox === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
-            </Card>
-            
-            {/* Bill Card */}
-            <Card
-              onClick={() => handleAccessoryToggle('bill')}
-              className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasPurchaseBill !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
-              style={{ backgroundColor: hasPurchaseBill === true ? 'royalBlue' : '', color: hasPurchaseBill === true ? 'white' : 'black' }}
-            >
-              <FileText className="w-16 h-16" />
-              <span className="font-semibold">Bill of the device is available</span>
-              {hasPurchaseBill === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
-            </Card>
+              {/* Box Card */}
+              <Card
+                onClick={() => handleAccessoryToggle('box')}
+                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasOriginalBox !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
+                style={{ backgroundColor: hasOriginalBox === true ? 'royalBlue' : '', color: hasOriginalBox === true ? 'white' : 'black' }}
+              >
+                <img src="/assets/box.jpg" alt="Box" className="w-16 h-16 object-contain" />
+                <span className="font-semibold">Original Box with same IMEI</span>
+                {hasOriginalBox === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
+              </Card>
+              
+              {/* Bill Card */}
+              <Card
+                onClick={() => handleAccessoryToggle('bill')}
+                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasPurchaseBill !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
+                style={{ backgroundColor: hasPurchaseBill === true ? 'royalBlue' : '', color: hasPurchaseBill === true ? 'white' : 'black' }}
+              >
+                <img src="/assets/bill.jpg" alt="Bill" className="w-16 h-16 object-contain" />
+                <span className="font-semibold">Bill of the device is available</span>
+                {hasPurchaseBill === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
+              </Card>
 
-            {/* None of the Above Card */}
-            <Card
-              onClick={handleNoneToggle}
-              className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${!hasNoneSelected ? "bg-muted/30 hover:bg-muted" : ""}`}
-              style={{ backgroundColor: hasNoneSelected ? 'royalBlue' : '', color: hasNoneSelected ? 'white' : 'black' }}
-            >
-              <Ban className="w-16 h-16" />
-              <span className="font-semibold">I don't have any of the following</span>
-              {hasNoneSelected && <CheckCircle size={20} className="absolute top-2 right-2" />}
-            </Card>
+              {/* None of the Above Card */}
+              <Card
+                onClick={handleNoneToggle}
+                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${!hasNoneSelected ? "bg-muted/30 hover:bg-muted" : ""}`}
+                style={{ backgroundColor: hasNoneSelected ? 'royalBlue' : '', color: hasNoneSelected ? 'white' : 'black' }}
+              >
+                <img src="/assets/none.jpg" alt="None" className="w-16 h-16 object-contain" />
+                <span className="font-semibold">I don't have any of the following</span>
+                {hasNoneSelected && <CheckCircle size={20} className="absolute top-2 right-2" />}
+              </Card>
+            </div>
           </div>
         )}
 
         {/* Action Buttons */}
-        <div className="mt-8 text-center flex gap-4 justify-center">
+        <div className="mt-8 text-center flex flex-col sm:flex-row gap-4 justify-center">
           {currentStep !== "yesno" && (
             <Button
               onClick={() => setCurrentStep(currentStep === "condition" ? "yesno" : "condition")}
               variant="outline"
-              className="px-12 py-4 text-lg"
+              className="w-full sm:w-auto px-12 py-4 text-lg"
             >
               Back
             </Button>
@@ -559,7 +601,7 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
           {currentStep === "yesno" && (
             <Button
               onClick={handleNextToCondition}
-              className="px-12 py-4 text-lg"
+              className="w-full sm:w-auto px-12 py-4 text-lg"
               style={{ backgroundColor: 'royalBlue', color: 'white' }}
               disabled={questions.some(q => q.value === null)}
             >
@@ -570,7 +612,7 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
           {currentStep === "condition" && (
             <Button
               onClick={handleNextToAccessories}
-              className="px-12 py-4 text-lg"
+              className="w-full sm:w-auto px-12 py-4 text-lg"
               style={{ backgroundColor: 'royalBlue', color: 'white' }}
               disabled={!overallCondition || !ageGroup}
             >
@@ -581,7 +623,7 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, onC
           {currentStep === "accessories" && (
             <Button
               onClick={handleComplete}
-              className="px-12 py-4 text-lg"
+              className="w-full sm:w-auto px-12 py-4 text-lg"
               style={{ backgroundColor: 'royalBlue', color: 'white' }}
             >
               Continue to Verification

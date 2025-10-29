@@ -10,8 +10,6 @@ import ConditionQuestions from "@/components/sell-flow/ConditionQuestions";
 import OTPVerification from "@/components/sell-flow/OTPVerification";
 import FinalValuation from "@/components/sell-flow/FinalValuation";
 import PickupScheduler from "@/components/sell-flow/PickupScheduler";
-import { Smartphone, ArrowLeft, Home } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 type Step = 
   | "category" 
@@ -98,44 +96,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border/50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={goHome}>
-            <div className="bg-gradient-to-br from-primary to-secondary p-2 rounded-xl">
-              <Smartphone className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              SellkarIndia
-            </span>
-          </div>
-          <div className="flex gap-2">
-            {currentStep === "category" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goHome}
-                className="gap-2"
-              >
-                <Home className="w-4 h-4" />
-                Home
-              </Button>
-            )}
-            {canGoBack && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goBack}
-                className="gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <AnimatePresence mode="wait">
@@ -240,6 +200,7 @@ const Index = () => {
                 basePrice={flowState.basePrice}
                 deviceName={flowState.deviceName || ""}
                 releaseDate={flowState.releaseDate || ""}
+                brandName={flowState.brandName || ""}
                 onComplete={(condition, finalPrice) => {
                   updateFlowState({ condition, finalPrice });
                   setCurrentStep("otp");

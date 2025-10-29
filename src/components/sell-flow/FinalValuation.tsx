@@ -39,7 +39,7 @@ const FinalValuation = ({ finalPrice, deviceName, onContinue }: Props) => {
           x: randomInRange(0.1, 0.3),
           y: Math.random() - 0.2,
         },
-        colors: ["#10b981", "#3b82f6", "#f59e0b"],
+        colors: ["#4169E1", "#3557C1", "#5B7FE8"],
       });
       confetti({
         particleCount,
@@ -49,7 +49,7 @@ const FinalValuation = ({ finalPrice, deviceName, onContinue }: Props) => {
           x: randomInRange(0.7, 0.9),
           y: Math.random() - 0.2,
         },
-        colors: ["#10b981", "#3b82f6", "#f59e0b"],
+        colors: ["#4169E1", "#3557C1", "#5B7FE8"],
       });
     }, 250);
 
@@ -68,7 +68,7 @@ const FinalValuation = ({ finalPrice, deviceName, onContinue }: Props) => {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          className="inline-flex p-6 rounded-full bg-gradient-to-br from-primary to-secondary"
+          className="inline-flex p-6 rounded-full bg-[#4169E1]"
         >
           <CheckCircle2 className="w-16 h-16 text-white" />
         </motion.div>
@@ -97,9 +97,9 @@ const FinalValuation = ({ finalPrice, deviceName, onContinue }: Props) => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
         >
-          <Card className="border-4 border-primary/30 shadow-2xl bg-gradient-to-br from-primary/5 to-secondary/5">
+          <Card className="border-4 border-[#4169E1]/30 shadow-2xl bg-gradient-to-br from-[#4169E1]/5 to-[#4169E1]/10">
             <CardContent className="p-12">
-              <div className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-pulse-glow">
+              <div className="text-6xl md:text-7xl font-bold text-[#4169E1] animate-pulse-glow">
                 ₹{finalPrice.toLocaleString("en-IN")}
               </div>
             </CardContent>
@@ -110,27 +110,32 @@ const FinalValuation = ({ finalPrice, deviceName, onContinue }: Props) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="grid md:grid-cols-3 gap-6"
         >
-          <Card>
-            <CardContent className="p-6 text-center space-y-3">
-              <TrendingUp className="w-8 h-8 text-primary mx-auto" />
-              <h3 className="font-semibold">Best Value</h3>
-              <p className="text-sm text-muted-foreground">Competitive market price</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6 text-center space-y-3">
-              <Shield className="w-8 h-8 text-secondary mx-auto" />
-              <h3 className="font-semibold">100% Safe</h3>
-              <p className="text-sm text-muted-foreground">Secure transaction</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6 text-center space-y-3">
-              <Clock className="w-8 h-8 text-accent mx-auto" />
-              <h3 className="font-semibold">Quick Pickup</h3>
-              <p className="text-sm text-muted-foreground">At your convenience</p>
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex flex-wrap justify-center items-center gap-8">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="w-6 h-6 text-[#4169E1]" />
+                  <div className="text-left">
+                    <h3 className="font-semibold text-sm">Best Value</h3>
+                    <p className="text-xs text-muted-foreground">Competitive price</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Shield className="w-6 h-6 text-[#4169E1]" />
+                  <div className="text-left">
+                    <h3 className="font-semibold text-sm">100% Safe</h3>
+                    <p className="text-xs text-muted-foreground">Secure transaction</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="w-6 h-6 text-[#4169E1]" />
+                  <div className="text-left">
+                    <h3 className="font-semibold text-sm">Quick Pickup</h3>
+                    <p className="text-xs text-muted-foreground">Your convenience</p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
@@ -143,7 +148,7 @@ const FinalValuation = ({ finalPrice, deviceName, onContinue }: Props) => {
           <Button
             size="lg"
             onClick={onContinue}
-            className="bg-gradient-to-r from-primary via-secondary to-accent text-white px-12 py-6 text-lg animate-pulse-glow"
+            className="bg-[#4169E1] hover:bg-[#3557C1] text-white px-12 py-6 text-lg animate-pulse-glow"
           >
             Sell Now & Schedule Pickup
           </Button>

@@ -4,23 +4,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   TrendingUp, 
-  Users, 
   IndianRupee, 
   Package, 
   Calendar as CalendarIcon,
   MapPin,
-  Phone,
   CheckCircle,
   ArrowUpRight,
   ArrowDownRight,
   Filter
 } from 'lucide-react';
 import { startOfDay, endOfDay, startOfWeek, startOfMonth, format, subDays, differenceInDays } from 'date-fns';
-import { cn } from '@/lib/utils';
 
 type DateRange = {
   from: Date;
@@ -185,11 +180,11 @@ export default function AdminAnalytics() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Filter className="h-5 w-5" />
-            Date Range Filter
+            Date Range: {format(dateRange.from, 'MMM dd, yyyy')} - {format(dateRange.to, 'MMM dd, yyyy')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-2">
             {quickFilters.map((filter) => (
               <Button
                 key={filter.label}
@@ -201,43 +196,12 @@ export default function AdminAnalytics() {
                 }
                 size="sm"
                 onClick={() => setDateRange({ from: filter.from, to: filter.to })}
+                className="gap-2"
               >
+                <CalendarIcon className="h-3 w-3" />
                 {filter.label}
               </Button>
             ))}
-          </div>
-
-          <div className="flex gap-2 items-center">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-start text-left font-normal">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(dateRange.from, 'MMM dd, yyyy')} - {format(dateRange.to, 'MMM dd, yyyy')}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <div className="flex gap-2 p-3">
-                  <div>
-                    <p className="text-sm font-medium mb-2">From</p>
-                    <Calendar
-                      mode="single"
-                      selected={dateRange.from}
-                      onSelect={(date) => date && setDateRange(prev => ({ ...prev, from: startOfDay(date) }))}
-                      initialFocus
-                    />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium mb-2">To</p>
-                    <Calendar
-                      mode="single"
-                      selected={dateRange.to}
-                      onSelect={(date) => date && setDateRange(prev => ({ ...prev, to: endOfDay(date) }))}
-                      initialFocus
-                    />
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
           </div>
         </CardContent>
       </Card>

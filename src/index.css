@@ -5,7 +5,54 @@
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
+/* === CHAMPAGNE SAND THEME === */
+* {
+  box-sizing: border-box;
+}
 
+html {
+  background-color: #f5f0e8;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(
+    135deg,
+    #f5f0e8 0%,
+    #faf7f2 25%,
+    #f0e8d8 50%,
+    #faf7f2 75%,
+    #f5f0e8 100%
+  );
+  background-size: 400% 400%;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+#root {
+  background-color: transparent;
+  min-height: 100vh;
+}
+
+/* Override gradient backgrounds */
+.bg-gradient-to-br,
+.min-h-screen {
+  background: transparent !important;
+}
+
+/* Cards - lighter champagne */
+.card {
+  background-color: #fdfbf7 !important;
+  border: 1px solid #e8dfd0 !important;
+}
+
+/* Header - translucent champagne */
+header {
+  background-color: rgba(250, 247, 242, 0.9) !important;
+  backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid #e8dfd0 !important;
+}
 @layer base {
   :root {
     --background: 0 0% 100%;

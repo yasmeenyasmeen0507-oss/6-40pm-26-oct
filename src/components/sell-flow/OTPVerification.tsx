@@ -80,7 +80,7 @@ const OTPVerification = ({ onVerify, flowState }: Props) => {
       });
 
       // ✅ Save lead to database using anonSupabase
-      const { data: leadData, error: leadError } = await anonSupabase  // ✅ FIXED: Changed from supabase to anonSupabase
+      const { data: leadData, error: leadError } = await anonSupabase
         .from('leads')
         .insert({
           customer_name: customerName,
@@ -150,14 +150,16 @@ const OTPVerification = ({ onVerify, flowState }: Props) => {
   return (
     <div className="max-w-md mx-auto animate-fade-in-up">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-4">Verify Your Number</h2>
+        <h2 className="text-3xl font-bold mb-4">
+          Verify Your <span style={{ color: "#4169E1" }}>Number</span>
+        </h2>
         <p className="text-muted-foreground">We'll send you an OTP to verify your phone number</p>
       </div>
 
       <Card className="border-2 shadow-xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Phone className="w-5 h-5 text-primary" />
+            <Phone className="w-5 h-5 text-[#4169E1]" />
             Phone Verification
           </CardTitle>
         </CardHeader>
@@ -171,6 +173,7 @@ const OTPVerification = ({ onVerify, flowState }: Props) => {
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               disabled={otpSent}
+              className="focus:ring-[#4169E1] focus:border-[#4169E1]"
             />
           </div>
 
@@ -186,7 +189,7 @@ const OTPVerification = ({ onVerify, flowState }: Props) => {
                 onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
                 maxLength={10}
                 disabled={otpSent}
-                className="flex-1"
+                className="flex-1 focus:ring-[#4169E1] focus:border-[#4169E1]"
               />
             </div>
           </div>
@@ -194,7 +197,7 @@ const OTPVerification = ({ onVerify, flowState }: Props) => {
           {!otpSent ? (
             <Button
               onClick={handleSendOTP}
-              className="w-full bg-gradient-to-r from-primary to-secondary text-white"
+              className="w-full bg-[#4169E1] hover:bg-[#3557C1] text-white"
               size="lg"
             >
               Send OTP
@@ -207,7 +210,7 @@ const OTPVerification = ({ onVerify, flowState }: Props) => {
             >
               <div className="space-y-2">
                 <Label htmlFor="otp" className="flex items-center gap-2">
-                  <Lock className="w-4 h-4" />
+                  <Lock className="w-4 h-4 text-[#4169E1]" />
                   Enter OTP
                 </Label>
                 <Input
@@ -217,7 +220,7 @@ const OTPVerification = ({ onVerify, flowState }: Props) => {
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   maxLength={6}
-                  className="text-center text-2xl tracking-widest"
+                  className="text-center text-2xl tracking-widest focus:ring-[#4169E1] focus:border-[#4169E1]"
                 />
                 <p className="text-xs text-muted-foreground text-center">
                   OTP sent to +91 {phoneNumber}
@@ -226,7 +229,7 @@ const OTPVerification = ({ onVerify, flowState }: Props) => {
 
               <Button
                 onClick={handleVerifyOTP}
-                className="w-full bg-gradient-to-r from-primary to-secondary text-white"
+                className="w-full bg-[#4169E1] hover:bg-[#3557C1] text-white"
                 size="lg"
                 disabled={isVerifying}
               >
@@ -240,7 +243,7 @@ const OTPVerification = ({ onVerify, flowState }: Props) => {
                   localStorage.removeItem('pending_verification_phone');
                   localStorage.removeItem('pending_customer_name');
                 }}
-                className="w-full text-center text-sm text-primary hover:underline"
+                className="w-full text-center text-sm text-[#4169E1] hover:underline"
               >
                 Change Phone Number
               </button>
@@ -252,7 +255,7 @@ const OTPVerification = ({ onVerify, flowState }: Props) => {
                     description: `New code sent to +91 ${phoneNumber}`,
                   });
                 }}
-                className="w-full text-center text-sm text-muted-foreground hover:text-primary"
+                className="w-full text-center text-sm text-muted-foreground hover:text-[#4169E1]"
               >
                 Resend OTP
               </button>

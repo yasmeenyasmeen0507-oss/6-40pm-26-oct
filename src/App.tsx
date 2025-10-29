@@ -26,9 +26,12 @@ const App = () => (
       <BrowserRouter>
         <AdminAuthProvider>
           <Routes>
+            {/* Routes WITHOUT MainLayout */}
             <Route path="/" element={<Home />} />
             <Route path="/sell" element={<Index />} />
+            <Route path="*" element={<NotFound />} />
 
+            {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
 
             <Route
@@ -46,8 +49,6 @@ const App = () => (
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="pricing" element={<AdminPricing />} />
             </Route>
-
-            <Route path="*" element={<NotFound />} />
           </Routes>
         </AdminAuthProvider>
       </BrowserRouter>

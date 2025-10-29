@@ -78,13 +78,18 @@ const VariantSelection = ({ deviceId, deviceName, onSelect }: Props) => {
   };
 
   const formatStorage = (gb: number) => {
-    return gb >= 1000 ? `${gb / 1000}TB` : `${gb}GB`;
+    if (gb >= 1000) {
+      const tb = gb / 1000;
+      // If it's a whole number (like 1.0, 2.0), don't show decimals
+      return tb % 1 === 0 ? `${tb}TB` : `${tb.toFixed(1)}TB`;
+    }
+    return `${gb}GB`;
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#4169E1]" />
       </div>
     );
   }
@@ -93,7 +98,7 @@ const VariantSelection = ({ deviceId, deviceName, onSelect }: Props) => {
     <div className="max-w-2xl mx-auto animate-fade-in-up px-4">
       <div className="text-center mb-12">
         <h2 className="text-4xl font-bold mb-4">
-          Choose <span className="text-primary">Variant</span>
+          Choose <span style={{ color: "#4169E1" }}>Variant</span>
         </h2>
         <p className="text-muted-foreground text-lg">
           Select storage capacity for your {device?.name || deviceName || "device"}
@@ -113,7 +118,7 @@ const VariantSelection = ({ deviceId, deviceName, onSelect }: Props) => {
               onClick={() => handleSelect(variant)}
               className={`py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-200 ${
                 selectedVariant?.id === variant.id
-                  ? "bg-primary text-primary-foreground shadow-md scale-105"
+                  ? "bg-[#4169E1] text-white shadow-md scale-105"
                   : "bg-muted hover:bg-muted/80"
               }`}
             >
@@ -133,7 +138,7 @@ const VariantSelection = ({ deviceId, deviceName, onSelect }: Props) => {
                 onClick={() => handleSelect(variant)}
                 className={`py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-200 ${
                   selectedVariant?.id === variant.id
-                    ? "bg-primary text-primary-foreground shadow-md scale-105"
+                    ? "bg-[#4169E1] text-white shadow-md scale-105"
                     : "bg-muted hover:bg-muted/80"
                 }`}
               >
@@ -160,7 +165,7 @@ const VariantSelection = ({ deviceId, deviceName, onSelect }: Props) => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-primary" />
+                    <CheckCircle2 className="w-5 h-5 text-[#4169E1]" />
                     <span className="font-medium">Selected Variant</span>
                   </div>
                   <span className="text-lg font-semibold">
@@ -168,10 +173,10 @@ const VariantSelection = ({ deviceId, deviceName, onSelect }: Props) => {
                   </span>
                 </div>
 
-                <div className="bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/10 rounded-lg p-6 border-2 border-primary/20">
+                <div className="bg-[#4169E1]/10 rounded-lg p-6 border-2 border-[#4169E1]/20">
                   <div className="text-center space-y-3">
                     <p className="text-sm text-muted-foreground font-medium">Estimated Price</p>
-                    <div className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    <div className="text-5xl font-bold text-[#4169E1]">
                       ₹{selectedVariant.base_price.toLocaleString("en-IN")}
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -183,7 +188,7 @@ const VariantSelection = ({ deviceId, deviceName, onSelect }: Props) => {
                 <Button
                   onClick={handleGetExactValue}
                   size="lg"
-                  className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity text-lg py-6 shadow-xl"
+                  className="w-full bg-[#4169E1] hover:bg-[#3557C1] transition-colors text-lg py-6 shadow-xl"
                 >
                   <TrendingUp className="w-5 h-5 mr-2" />
                   Get Exact Value
