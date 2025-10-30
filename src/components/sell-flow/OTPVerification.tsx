@@ -74,7 +74,7 @@ const OTPVerification = ({ onVerify }: Props) => {
         {
           size: 'invisible',
           callback: () => {
-            console.log('reCAPTCHA solved');
+            // REMOVED: console.log('reCAPTCHA solved');
           },
           'expired-callback': () => {
             toast({
@@ -119,7 +119,7 @@ const OTPVerification = ({ onVerify }: Props) => {
       setupRecaptcha();
       const appVerifier = window.recaptchaVerifier;
 
-      console.log("📱 Sending OTP to:", formattedPhone);
+      // console.log("📱 Sending OTP to:", formattedPhone); // REMOVED
 
       const confirmation = await signInWithPhoneNumber(
         auth,
@@ -187,22 +187,20 @@ const OTPVerification = ({ onVerify }: Props) => {
     try {
       const formattedPhone = formatPhone(phoneNumber);
 
-      console.log("🔐 Verifying OTP for:", formattedPhone);
+      // console.log("🔐 Verifying OTP for:", formattedPhone); // REMOVED
 
       // Step 1: Verify with Firebase
       const result = await confirmationResult.confirm(otpCode);
       const user = result.user;
 
-      console.log("✅ Phone verified successfully:", user.uid);
+      // console.log("✅ Phone verified successfully:", user.uid); // REMOVED
 
-      // Step 2: Save lead to the 'leads' table (FIXED)
+      // Step 2: Save lead to the 'leads' table
       const leadData: any = {
         customer_name: customerName,
-        phone_number: formattedPhone, // Map to phone_number in leads table
+        phone_number: formattedPhone, 
         verified_phone: formattedPhone,
         is_phone_verified: true,
-        // REMOVED phone_verified_at, created_at, and updated_at
-        // Supabase handles these timestamps automatically if column is defined with default NOW()
         lead_status: 'otp-verified',
       };
       
@@ -213,7 +211,7 @@ const OTPVerification = ({ onVerify }: Props) => {
       if (flowState.condition) leadData.condition = flowState.condition;
       if (flowState.finalPrice) leadData.final_price = flowState.finalPrice;
 
-      console.log("💾 Saving lead to database:", leadData);
+      // console.log("💾 Saving lead to database:", leadData); // REMOVED
 
       // --- TARGETING 'leads' TABLE ---
       const { data: savedLead, error: dbError } = await supabase
@@ -232,8 +230,6 @@ const OTPVerification = ({ onVerify }: Props) => {
         });
         return;
       }
-
-      // NO LONGER LOGGING sensitive lead ID to console
 
       // Step 3: Store in localStorage
       localStorage.setItem("verified_phone", formattedPhone);
@@ -289,7 +285,7 @@ const OTPVerification = ({ onVerify }: Props) => {
 
     // Auto-verify when complete
     if (index === 5 && value) {
-      const fullOtp = [...newOtp];
+      const fullOtp = [...otp];
       fullOtp[5] = value;
       if (fullOtp.every((d) => d)) {
         setOtp(fullOtp);
