@@ -1,5 +1,3 @@
-import { usePickupNotifications } from '@/hooks/usePickupNotifications';
-import { NewPickupNotification } from '@/components/admin/NewPickupNotification';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,10 +61,10 @@ interface PickupRequest {
   email?: string;
   address?: string;
   pincode?: string;
-  pickup_date: string;
+  pickup_date: string | null; // Can be null
   pickup_time?: string;
   status: string;
-  final_price: number;
+  final_price: number | null; // Can be null
   created_at: string;
   notes?: string;
   updated_by?: string;
@@ -101,7 +99,7 @@ interface PickupRequest {
 
 export default function AdminPickupRequests() {
   const [searchQuery, setSearchQuery] = useState('');
-  const { newRequest, isAlarmPlaying, acceptRequest } = usePickupNotifications();
+  // REMOVED: const { newRequest, isAlarmPlaying, acceptRequest } = usePickupNotifications();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -121,7 +119,7 @@ export default function AdminPickupRequests() {
           device:devices(id, model_name, series, image_url, brand:brands(name, category)),
           variant:variants(storage_gb),
           city:cities(name)
-        `
+          `
         )
         .order('created_at', { ascending: false });
 
@@ -419,11 +417,7 @@ export default function AdminPickupRequests() {
 
   return (
     <div className="space-y-6">
-      <NewPickupNotification
-        request={newRequest}
-        onAccept={acceptRequest}
-        isAlarmPlaying={isAlarmPlaying}
-      />
+      {/* REMOVED: <NewPickupNotification /> */}
 
       <div className="flex items-center justify-between">
         <div>
@@ -530,7 +524,7 @@ export default function AdminPickupRequests() {
                       </TableCell>
                       <TableCell>{request.city?.name}</TableCell>
                       
-                      {/* ✅ Request Time Column */}
+                      {/* Request Time Column */}
                       <TableCell>
                         <div className="text-sm">
                           <div 
@@ -547,6 +541,7 @@ export default function AdminPickupRequests() {
                       
                       <TableCell>
                         <div className="text-sm">
+                          {/* FIX: Add null check for request.pickup_date */}
                           {request.pickup_date
                             ? format(new Date(request.pickup_date), 'MMM dd, yyyy')
                             : 'N/A'}
@@ -558,7 +553,8 @@ export default function AdminPickupRequests() {
                         </div>
                       </TableCell>
                       <TableCell className="font-semibold">
-                        ₹{Number(request.final_price).toLocaleString('en-IN')}
+                        {/* FIX: Add null check for final_price */}
+                        ₹{Number(request.final_price || 0).toLocaleString('en-IN')}
                       </TableCell>
                       <TableCell>
                         <Select
@@ -831,6 +827,7 @@ export default function AdminPickupRequests() {
                       <Calendar className="h-3 w-3" /> Date
                     </p>
                     <p className="font-medium">
+                      {/* FIX: Add null check for selectedRequest.pickup_date */}
                       {selectedRequest.pickup_date
                         ? format(new Date(selectedRequest.pickup_date), 'MMMM dd, yyyy')
                         : 'Not scheduled'}
@@ -859,7 +856,8 @@ export default function AdminPickupRequests() {
                   <div>
                     <p className="text-sm text-slate-500">Final Price</p>
                     <p className="text-2xl font-bold text-emerald-600">
-                      ₹{Number(selectedRequest.final_price).toLocaleString('en-IN')}
+                      {/* FIX: Add null check for final_price */}
+                      ₹{Number(selectedRequest.final_price || 0).toLocaleString('en-IN')}
                     </p>
                   </div>
                   <div>
@@ -890,10 +888,16 @@ export default function AdminPickupRequests() {
               {/* Metadata */}
               <div className="text-xs text-slate-500 bg-slate-100 p-3 rounded space-y-1">
                 <p><strong>Request ID:</strong> {selectedRequest.id}</p>
-                <p><strong>Created:</strong> {format(new Date(selectedRequest.created_at), 'MMM dd, yyyy HH:mm:ss')} UTC</p>
+                <p>
+                  {/* FIX: Add null check for created_at */}
+                  <strong>Created:</strong> {selectedRequest.created_at ? format(new Date(selectedRequest.created_at), 'MMM dd, yyyy HH:mm:ss') : 'N/A'} UTC
+                </p>
                 {selectedRequest.updated_at && (
                   <>
-                    <p><strong>Last Updated:</strong> {format(new Date(selectedRequest.updated_at), 'MMM dd, yyyy HH:mm:ss')} UTC</p>
+                    <p>
+                      {/* FIX: Add null check for updated_at */}
+                      <strong>Last Updated:</strong> {selectedRequest.updated_at ? format(new Date(selectedRequest.updated_at), 'MMM dd, yyyy HH:mm:ss') : 'N/A'} UTC
+                    </p>
                     {selectedRequest.updated_by && (
                       <p><strong>Updated By:</strong> {selectedRequest.updated_by}</p>
                     )}
@@ -951,7 +955,8 @@ export default function AdminPickupRequests() {
             </div>
             {selectedRequest?.updated_by && selectedRequest?.updated_at && (
               <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded border">
-                <div><strong>Last updated:</strong> {format(new Date(selectedRequest.updated_at), 'MMM dd, yyyy HH:mm:ss')} UTC</div>
+                {/* FIX: Add null check for updated_at */}
+                <div><strong>Last updated:</strong> {selectedRequest.updated_at ? format(new Date(selectedRequest.updated_at), 'MMM dd, yyyy HH:mm:ss') : 'N/A'} UTC</div>
                 <div><strong>Updated by:</strong> {selectedRequest.updated_by}</div>
               </div>
             )}

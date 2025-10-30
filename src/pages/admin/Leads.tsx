@@ -56,8 +56,8 @@ interface Lead {
   phone_number: string;
   verified_phone?: string;
   is_phone_verified: boolean;
-  final_price: number;
-  created_at: string;
+  final_price: number | null; // Changed to allow null
+  created_at: string | null; // Changed to allow null
   lead_status: string;
   lead_notes?: string;
   converted_to_pickup: boolean;
@@ -229,7 +229,7 @@ export default function AdminLeads() {
   // Revenue from completed leads only
   const completedRevenue = filteredLeads
     ?.filter(l => l.lead_status === 'completed')
-    .reduce((sum, l) => sum + Number(l.final_price || 0), 0) || 0;
+    .reduce((sum, l) => sum + Number(l.final_price || 0), 0) || 0; // Null check added here as well
 
   const exportToCSV = () => {
     if (!filteredLeads || filteredLeads.length === 0) {
@@ -247,7 +247,7 @@ export default function AdminLeads() {
         lead.final_price,
         lead.lead_status,
         lead.lead_notes || '',
-        format(new Date(lead.created_at), 'yyyy-MM-dd HH:mm:ss'),
+        lead.created_at ? format(new Date(lead.created_at), 'yyyy-MM-dd HH:mm:ss') : 'N/A', // Null check added
       ]);
 
       const csvContent = [
@@ -359,6 +359,7 @@ export default function AdminLeads() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-emerald-700">
+              {/* Null check handled in completedRevenue calculation */}
               ₹{completedRevenue.toLocaleString('en-IN')}
             </div>
             <p className="text-xs text-slate-500">From leads</p>
@@ -423,7 +424,8 @@ export default function AdminLeads() {
                                 {lead.device?.brand?.name} {lead.device?.model_name}
                               </div>
                               <div className="text-xs text-slate-500">
-                                {lead.variant?.storage_gb}GB • ₹{lead.final_price.toLocaleString('en-IN')}
+                                {/* FIX 1: Add null check for final_price */}
+                                {lead.variant?.storage_gb}GB • ₹{(lead.final_price || 0).toLocaleString('en-IN')}
                               </div>
                               <div className="text-xs text-slate-400 mt-0.5 truncate">
                                 {lead.customer_name}
@@ -445,7 +447,8 @@ export default function AdminLeads() {
                               )}
                             </div>
                             <div className="text-xs text-slate-400 mt-0.5">
-                              {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true })}
+                              {/* FIX 2: Add null check for created_at */}
+                              {lead.created_at ? formatDistanceToNow(new Date(lead.created_at), { addSuffix: true }) : 'N/A'}
                             </div>
                           </div>
                         </div>
@@ -544,7 +547,8 @@ export default function AdminLeads() {
                   </div>
                 </div>
                 <div className="text-2xl font-bold text-blue-700">
-                  ₹{selectedLead.final_price.toLocaleString('en-IN')}
+                  {/* FIX 3: Add null check for final_price in dialog */}
+                  ₹{(selectedLead.final_price || 0).toLocaleString('en-IN')}
                 </div>
               </div>
 
@@ -605,7 +609,7 @@ export default function AdminLeads() {
               </div>
 
               <div className="text-xs text-slate-500 bg-slate-100 p-3 rounded">
-                <p><strong>Created:</strong> {format(new Date(selectedLead.created_at), 'MMM dd, yyyy HH:mm:ss')}</p>
+                <p><strong>Created:</strong> {selectedLead.created_at ? format(new Date(selectedLead.created_at), 'MMM dd, yyyy HH:mm:ss') : 'N/A'}</p>
                 <p><strong>Phone:</strong> {selectedLead.verified_phone || selectedLead.phone_number}</p>
                 {selectedLead.city && <p><strong>City:</strong> {selectedLead.city.name}</p>}
               </div>

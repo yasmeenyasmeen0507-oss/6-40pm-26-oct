@@ -18,6 +18,10 @@ import {
   User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+// --- NEW IMPORTS FOR GLOBAL NOTIFICATIONS ---
+import { usePickupNotifications } from '@/hooks/usePickupNotifications'; 
+import { NewPickupNotification } from '@/components/admin/NewPickupNotification';
+// ------------------------------------------
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
@@ -32,6 +36,9 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { session, logout } = useAdminAuth();
   const location = useLocation();
+  
+  // 1. Instantiate Notification Hook Globally
+  const { newRequest, isAlarmPlaying, acceptRequest } = usePickupNotifications();
 
   const handleLogout = async () => {
     await logout();
@@ -112,15 +119,24 @@ export default function AdminLayout() {
             </Button>
 
             <div className="flex items-center space-x-4">
+              {/* Notification Bell with Alarm status */}
               <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                <Bell className={cn("h-5 w-5", isAlarmPlaying && 'text-red-500 animate-pulse')} />
+                {newRequest && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                )}
               </Button>
             </div>
           </div>
         </header>
 
         <main className="p-6">
+          {/* 2. GLOBAL NOTIFICATION COMPONENT: Renders pop-up over all content */}
+          <NewPickupNotification
+            request={newRequest}
+            onAccept={acceptRequest}
+            isAlarmPlaying={isAlarmPlaying}
+          />
           <Outlet />
         </main>
       </div>
