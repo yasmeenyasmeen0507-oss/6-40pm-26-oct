@@ -84,7 +84,7 @@ const Footer = () => {
           {/* Fourth Column: Contact Us (Removed) */}
           <div className="flex items-center justify-center h-full">
                 <h3 className="text-white text-center font-bold text-lg">
-                    Contact information available on Home page
+                     
                 </h3>
             </div>
         </div>
