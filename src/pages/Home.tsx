@@ -428,7 +428,7 @@ const Home = () => {
                       <div>
                         <div className="font-semibold text-gray-900">Call Us</div>
                         {/* UPDATED PHONE NUMBER */}
-                        <div className="text-blue-700">+91 96209 19351</div>
+                        <div className="text-blue-700">+91 7411329292</div>
                       </div>
                     </div>
                   </div>
