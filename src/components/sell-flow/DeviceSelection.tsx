@@ -258,9 +258,14 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
 
         // Apply custom sort logic for Apple
         if (isApple) {
+          // Normalize the sort order list to lowercase once
+          const normalizedAppleSortOrder = appleSortOrder.map(name => name.toLowerCase());
+
           const getSortIndex = (modelName: string) => {
-            const index = appleSortOrder.indexOf(modelName);
-            return index === -1 ? appleSortOrder.length : index;
+            // Normalize the device model name to lowercase for case-insensitive lookup
+            const normalizedModelName = modelName.toLowerCase();
+            const index = normalizedAppleSortOrder.indexOf(normalizedModelName);
+            return index === -1 ? normalizedAppleSortOrder.length : index;
           };
           finalData.sort((a, b) => getSortIndex(a.model_name) - getSortIndex(b.model_name));
         }
@@ -424,26 +429,30 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: Math.min(index * 0.01, 0.3) }}
+            className="h-full"
           >
             <Card
-              className="cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-105 border-2 hover:border-primary/50"
+              className="h-full cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-105 border-2 hover:border-primary/50"
               onClick={() => onSelect(device.id, device.model_name, device.release_date)}
             >
-              <CardContent className="p-3">
-                {device.image_url && (
-                  <div className="mb-2 overflow-hidden rounded-md">
+              <CardContent className="p-3 flex flex-col h-full">
+                {/* Fixed height image container and placeholder */}
+                <div className="mb-2 overflow-hidden rounded-md flex-shrink-0 w-full h-24 md:h-28 bg-gray-100 flex items-center justify-center">
+                  {device.image_url ? (
                     <img
                       src={device.image_url}
                       alt={device.model_name}
-                      className="w-full h-24 md:h-28 object-contain"
+                      className="w-full h-full object-contain"
                     />
-                  </div>
-                )}
+                  ) : (
+                    <span className="text-muted-foreground text-xs">No Image</span>
+                  )}
+                </div>
                 <h3 className="font-medium text-xs md:text-sm mb-1 line-clamp-2">
                   {device.model_name}
                 </h3>
                 {!isAppleBrand && !isSamsungBrand && device.series && (
-                  <p className="text-xs text-muted-foreground line-clamp-1">
+                  <p className="text-xs text-muted-foreground line-clamp-1 mt-auto">
                     {device.series}
                   </p>
                 )}
