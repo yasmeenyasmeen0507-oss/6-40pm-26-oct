@@ -267,7 +267,7 @@ const Home = () => {
                         <div className="text-center">
                           <h4 className="text-xl font-semibold text-foreground mb-2">Sell iPad</h4>
                           <p className="text-sm text-gray-900">Tablets & iPads</p>
-                        </div>
+                      </div>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -406,31 +406,8 @@ const Home = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="animate-slide-in-up">
-              <Card className="bg-white border-2">
-                <CardContent className="p-8">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-6">Send us a Message</h3>
-                  
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Input name="name" placeholder="Your Name" value={formData.name} onChange={handleInputChange} required className="border-2" />
-                      <Input name="email" type="email" placeholder="Email Address" value={formData.email} onChange={handleInputChange} required className="border-2" />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Input name="phone" type="tel" placeholder="Phone Number" value={formData.phone} onChange={handleInputChange} required className="border-2" />
-                      <Input name="subject" placeholder="Subject" value={formData.subject} onChange={handleInputChange} required className="border-2" />
-                    </div>
-
-                    <Textarea name="message" placeholder="Your Message" rows={5} value={formData.message} onChange={handleInputChange} required className="border-2 resize-none" />
-
-                    <Button type="submit" className="w-full bg-blue-700 text-white hover:bg-blue-800 font-semibold">
-                      Send Message
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </div>
+            {/* First column is now empty after removing 'Send us a Message' form */}
+            <div className="hidden lg:block"></div> 
 
             <div className="space-y-8 animate-slide-in-up">
               <Card className="bg-white border-2">
@@ -452,40 +429,6 @@ const Home = () => {
                         <div className="font-semibold text-gray-900">Call Us</div>
                         {/* UPDATED PHONE NUMBER */}
                         <div className="text-blue-700">+91 96209 19351</div>
-                      </div>
-                    </div>
-
-                    {/* REMOVED EMAIL SUPPORT BLOCK HERE */}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white border-2">
-                <CardContent className="p-8">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-6">Business Info</h3>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-start">
-                      <MapPin className="w-6 h-6 text-blue-700 mr-3 mt-1" />
-                      <div>
-                        <div className="font-semibold text-gray-900">Headquarters</div>
-                        <div className="text-gray-700">Tech Hub, Koramangala<br />Bangalore, Karnataka 560034</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start">
-                      <Clock className="w-6 h-6 text-blue-700 mr-3 mt-1" />
-                      <div>
-                        <div className="font-semibold text-gray-900">Business Hours</div>
-                        <div className="text-gray-700">Monday - Sunday: 9:00 AM - 9:00 PM<br />Emergency Support: 24/7</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start">
-                      <Shield className="w-6 h-6 text-blue-700 mr-3 mt-1" />
-                      <div>
-                        <div className="font-semibold text-gray-900">Service Coverage</div>
-                        <div className="text-gray-700">25+ Cities across India<br />Free pickup & delivery</div>
                       </div>
                     </div>
                   </div>
