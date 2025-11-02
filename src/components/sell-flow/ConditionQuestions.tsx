@@ -529,24 +529,24 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
         {/* Step 2: Condition and Age */}
         {currentStep === "condition" && (
           <div className="space-y-6">
-            {/* Phone Condition */}
-            <Card className="p-6">
+            {/* Phone Age */}
+            <Card className="p-6" ref={ageRef}>
               <div className="space-y-6 text-center">
-                <h2 className="text-2xl font-bold" style={{ color: 'black' }}>What is the overall condition of your phone?</h2>
+                <h2 className="text-xl sm:text-2xl font-bold px-2" style={{ color: 'black' }}>How old is your phone?</h2>
                 <div className="space-y-3">
-                  {conditionOptions.map(option => (
+                  {ageOptions.map(option => (
                     <Button
                       key={option.value}
-                      onClick={() => handleConditionSelect(option.value)}
-                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${overallCondition !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
+                      onClick={() => setAgeGroup(option.value)}
+                      className={`w-full px-4 sm:px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${ageGroup !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
                       style={{
-                        backgroundColor: overallCondition === option.value ? 'royalBlue' : '',
-                        color: overallCondition === option.value ? 'white' : 'black'
+                        backgroundColor: ageGroup === option.value ? 'royalBlue' : '',
+                        color: ageGroup === option.value ? 'white' : 'black'
                       }}
                     >
                       <div>
-                        <div className="font-semibold">{option.label}</div>
-                        <div className="text-sm opacity-75">{option.description}</div>
+                        <div className="font-semibold text-sm sm:text-base">{option.label}</div>
+                        <div className="text-xs sm:text-sm opacity-75">{option.description}</div>
                       </div>
                     </Button>
                   ))}
@@ -554,24 +554,24 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
               </div>
             </Card>
 
-            {/* Phone Age */}
-            <Card className="p-6" ref={ageRef}>
+            {/* Phone Condition */}
+            <Card className="p-6">
               <div className="space-y-6 text-center">
-                <h2 className="text-2xl font-bold" style={{ color: 'black' }}>How old is your phone?</h2>
+                <h2 className="text-xl sm:text-2xl font-bold px-2" style={{ color: 'black' }}>What is the overall condition of your phone?</h2>
                 <div className="space-y-3">
-                  {ageOptions.map(option => (
+                  {conditionOptions.map(option => (
                     <Button
                       key={option.value}
-                      onClick={() => setAgeGroup(option.value)}
-                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${ageGroup !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
+                      onClick={() => handleConditionSelect(option.value)}
+                      className={`w-full px-4 sm:px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${overallCondition !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
                       style={{
-                        backgroundColor: ageGroup === option.value ? 'royalBlue' : '',
-                        color: ageGroup === option.value ? 'white' : 'black'
+                        backgroundColor: overallCondition === option.value ? 'royalBlue' : '',
+                        color: overallCondition === option.value ? 'white' : 'black'
                       }}
                     >
                       <div>
-                        <div className="font-semibold">{option.label}</div>
-                        <div className="text-sm opacity-75">{option.description}</div>
+                        <div className="font-semibold text-sm sm:text-base">{option.label}</div>
+                        <div className="text-xs sm:text-sm opacity-75">{option.description}</div>
                       </div>
                     </Button>
                   ))}
