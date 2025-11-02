@@ -126,6 +126,13 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
     }
   }, [ageGroup, warrantyPrices]);
 
+  // Recalculate price when condition changes
+  useEffect(() => {
+    if (overallCondition && ageGroup && warrantyPrices) {
+      updatePrice();
+    }
+  }, [overallCondition, ageGroup, warrantyPrices]);
+
   // Recalculate price when accessories change
   useEffect(() => {
     if (basePriceFromAge > 0 && warrantyPrices) {
@@ -188,27 +195,34 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
     switch (ageGroup) {
       case "0-3":
         price = parseFloat(warrantyPrices.price_0_3_months);
-        console.log('💰 Price for 0-3 months:', price);
         break;
       case "3-6":
         price = parseFloat(warrantyPrices.price_3_6_months);
-        console.log('💰 Price for 3-6 months:', price);
         break;
       case "6-11":
         price = parseFloat(warrantyPrices.price_6_11_months);
-        console.log('💰 Price for 6-11 months:', price);
         break;
       case "12+":
         price = parseFloat(warrantyPrices.price_11_plus_months);
-        console.log('💰 Price for 12+ months:', price);
         break;
       default:
         price = basePrice;
-        console.log('💰 Using base price:', price);
     }
 
+    console.log('price before condition deduction:', price);
+
+    // Apply condition deduction percentage
+    let conditionPercent = 1;
+    if (overallCondition === "good") {
+      conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_good) / 100;
+    } else if (overallCondition === "average") {
+      conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_average) / 100;
+    } else if (overallCondition === "below-average") {
+      conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_belowAverage) / 100;
+    }
+    price = price * conditionPercent;
+    console.log('price after condition deduction:', price);
     const roundedPrice = Math.round(price);
-    console.log('💰 Base price from age group:', roundedPrice);
     setBasePriceFromAge(roundedPrice);
     setFinalPrice(roundedPrice);
   };
@@ -226,30 +240,24 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
     // If "None" is selected, deduct ALL amounts
     if (hasNoneSelected) {
       totalDeduction = chargerDeduction + boxDeduction + billDeduction;
-      console.log(`📉 No accessories: -₹${totalDeduction} (all deductions applied)`);
     } else {
       // Apply individual deductions
       if (hasOriginalCharger === false) {
         totalDeduction += chargerDeduction;
-        console.log(`📉 No charger: -₹${chargerDeduction}`);
       }
       if (hasOriginalBox === false) {
         totalDeduction += boxDeduction;
-        console.log(`📉 No box: -₹${boxDeduction}`);
       }
       if (hasPurchaseBill === false) {
         totalDeduction += billDeduction;
-        console.log(`📉 No bill: -₹${billDeduction}`);
       }
     }
 
     if (totalDeduction > 0) {
       price = price - totalDeduction;
-      console.log(`💰 Total deduction: ₹${Math.round(totalDeduction)}`);
     }
 
     const roundedPrice = Math.round(price);
-    console.log('💰 Final price after deductions:', roundedPrice);
     setFinalPrice(roundedPrice);
   };
 
@@ -483,30 +491,6 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
         {/* Step 2: Condition and Age */}
         {currentStep === "condition" && (
           <div className="space-y-6">
-            {/* Phone Condition */}
-            <Card className="p-6">
-              <div className="space-y-6 text-center">
-                <h2 className="text-2xl font-bold" style={{ color: 'black' }}>What is the overall condition of your phone?</h2>
-                <div className="space-y-3">
-                  {conditionOptions.map(option => (
-                    <Button
-                      key={option.value}
-                      onClick={() => handleConditionSelect(option.value)}
-                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${overallCondition !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
-                      style={{
-                        backgroundColor: overallCondition === option.value ? 'royalBlue' : '',
-                        color: overallCondition === option.value ? 'white' : 'black'
-                      }}
-                    >
-                      <div>
-                        <div className="font-semibold">{option.label}</div>
-                        <div className="text-sm opacity-75">{option.description}</div>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </Card>
 
             {/* Phone Age */}
             <Card className="p-6" ref={ageRef}>
@@ -521,6 +505,31 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
                       style={{
                         backgroundColor: ageGroup === option.value ? 'royalBlue' : '',
                         color: ageGroup === option.value ? 'white' : 'black'
+                      }}
+                    >
+                      <div>
+                        <div className="font-semibold">{option.label}</div>
+                        <div className="text-sm opacity-75">{option.description}</div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </Card>
+            
+            {/* Phone Condition */}
+            <Card className="p-6">
+              <div className="space-y-6 text-center">
+                <h2 className="text-2xl font-bold" style={{ color: 'black' }}>What is the overall condition of your phone?</h2>
+                <div className="space-y-3">
+                  {conditionOptions.map(option => (
+                    <Button
+                      key={option.value}
+                      onClick={() => handleConditionSelect(option.value)}
+                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${overallCondition !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
+                      style={{
+                        backgroundColor: overallCondition === option.value ? 'royalBlue' : '',
+                        color: overallCondition === option.value ? 'white' : 'black'
                       }}
                     >
                       <div>
