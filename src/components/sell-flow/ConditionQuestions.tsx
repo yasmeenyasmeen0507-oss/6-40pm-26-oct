@@ -126,6 +126,13 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
     }
   }, [ageGroup, warrantyPrices]);
 
+  // Recalculate price when condition changes
+  useEffect(() => {
+    if (overallCondition && ageGroup && warrantyPrices) {
+      updatePrice();
+    }
+  }, [overallCondition, ageGroup, warrantyPrices]);
+
   // Recalculate price when accessories change
   useEffect(() => {
     if (basePriceFromAge > 0 && warrantyPrices) {
@@ -187,84 +194,73 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
 
     switch (ageGroup) {
       case "0-3":
-        price = warrantyPrices.price_0_3_months ? parseFloat(warrantyPrices.price_0_3_months) : basePrice;
-        console.log('💰 Price for 0-3 months:', price);
+        price = parseFloat(warrantyPrices.price_0_3_months);
         break;
       case "3-6":
-        price = warrantyPrices.price_3_6_months ? parseFloat(warrantyPrices.price_3_6_months) : basePrice;
-        console.log('💰 Price for 3-6 months:', price);
+        price = parseFloat(warrantyPrices.price_3_6_months);
         break;
       case "6-11":
-        price = warrantyPrices.price_6_11_months ? parseFloat(warrantyPrices.price_6_11_months) : basePrice;
-        console.log('💰 Price for 6-11 months:', price);
+        price = parseFloat(warrantyPrices.price_6_11_months);
         break;
       case "12+":
-        price = warrantyPrices.price_11_plus_months ? parseFloat(warrantyPrices.price_11_plus_months) : basePrice;
-        console.log('💰 Price for 12+ months:', price);
+        price = parseFloat(warrantyPrices.price_11_plus_months);
         break;
       default:
         price = basePrice;
-        console.log('💰 Using base price:', price);
     }
 
-    // Check for NaN or invalid price
-    if (isNaN(price) || price <= 0) {
-      console.error('❌ Invalid price calculated, using base price');
-      price = basePrice;
-    }
+    console.log('price before condition deduction:', price);
 
+    // Apply condition deduction percentage
+    let conditionPercent = 1;
+    if (overallCondition === "good") {
+      conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_good);
+      conditionPercent = isNaN(conditionPercent) ? 1 : conditionPercent / 100;
+    } else if (overallCondition === "average") {
+      conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_average);
+      conditionPercent = isNaN(conditionPercent) ? 1 : conditionPercent / 100;
+    } else if (overallCondition === "below-average") {
+      conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_belowAverage);
+      conditionPercent = isNaN(conditionPercent) ? 1 : conditionPercent / 100;
+    }
+    price = price * conditionPercent;
+    console.log('price after condition deduction:', price);
     const roundedPrice = Math.round(price);
-    console.log('💰 Base price from age group:', roundedPrice);
     setBasePriceFromAge(roundedPrice);
     setFinalPrice(roundedPrice);
   };
 
   const calculateFinalPriceWithDeductions = () => {
-    if (!warrantyPrices || !basePriceFromAge || basePriceFromAge <= 0) {
-      console.warn('⚠️ Cannot calculate deductions - missing data');
-      return;
-    }
+    if (!warrantyPrices) return;
 
     let price = basePriceFromAge;
     let totalDeduction = 0;
 
-    const chargerDeduction = warrantyPrices.charger_deduction_amount ? parseFloat(warrantyPrices.charger_deduction_amount) : 0;
-    const boxDeduction = warrantyPrices.box_deduction_amount ? parseFloat(warrantyPrices.box_deduction_amount) : 0;
-    const billDeduction = warrantyPrices.bill_deduction_amount ? parseFloat(warrantyPrices.bill_deduction_amount) : 0;
-
-    // Validate deductions are valid numbers
-    if (isNaN(chargerDeduction) || isNaN(boxDeduction) || isNaN(billDeduction)) {
-      console.error('❌ Invalid deduction amounts');
-      return;
-    }
+    const chargerDeduction = parseFloat(warrantyPrices.charger_deduction_amount || 0);
+    const boxDeduction = parseFloat(warrantyPrices.box_deduction_amount || 0);
+    const billDeduction = parseFloat(warrantyPrices.bill_deduction_amount || 0);
 
     // If "None" is selected, deduct ALL amounts
     if (hasNoneSelected) {
       totalDeduction = chargerDeduction + boxDeduction + billDeduction;
-      console.log(`📉 No accessories: -₹${totalDeduction} (all deductions applied)`);
     } else {
       // Apply individual deductions
       if (hasOriginalCharger === false) {
         totalDeduction += chargerDeduction;
-        console.log(`📉 No charger: -₹${chargerDeduction}`);
       }
       if (hasOriginalBox === false) {
         totalDeduction += boxDeduction;
-        console.log(`📉 No box: -₹${boxDeduction}`);
       }
       if (hasPurchaseBill === false) {
         totalDeduction += billDeduction;
-        console.log(`📉 No bill: -₹${billDeduction}`);
       }
     }
 
     if (totalDeduction > 0) {
       price = price - totalDeduction;
-      console.log(`💰 Total deduction: ₹${Math.round(totalDeduction)}`);
     }
 
     const roundedPrice = Math.round(price);
-    console.log('💰 Final price after deductions:', roundedPrice);
     setFinalPrice(roundedPrice);
   };
 
@@ -306,33 +302,6 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
   };
 
   const handleComplete = () => {
-    // Validation checks
-    if (!onComplete || typeof onComplete !== 'function') {
-      console.error('❌ onComplete callback is not defined');
-      alert('Error: Cannot proceed. Please refresh the page.');
-      return;
-    }
-
-    if (canMakeCalls === null || isTouchWorking === null || isScreenOriginal === null) {
-      alert('Please answer all required questions');
-      return;
-    }
-
-    if (isAppleBrand && isBatteryHealthy === null) {
-      alert('Please answer the battery health question');
-      return;
-    }
-
-    if (!overallCondition || !ageGroup) {
-      alert('Please select condition and age');
-      return;
-    }
-
-    if (!finalPrice || finalPrice <= 0) {
-      alert('Price calculation error. Please try again.');
-      return;
-    }
-
     // If "None" is selected, all accessories are false
     const finalCharger = hasNoneSelected ? false : (hasOriginalCharger !== null ? hasOriginalCharger : false);
     const finalBox = hasNoneSelected ? false : (hasOriginalBox !== null ? hasOriginalBox : false);
@@ -384,13 +353,9 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
     // Unselect "None" option when individual items are selected
     setHasNoneSelected(false);
     
-    if (key === 'charger') {
-      setHasOriginalCharger(prev => prev === true ? null : true);
-    } else if (key === 'box') {
-      setHasOriginalBox(prev => prev === true ? null : true);
-    } else if (key === 'bill') {
-      setHasPurchaseBill(prev => prev === true ? null : true);
-    }
+    if (key === 'charger') setHasOriginalCharger(prev => prev === true ? null : true);
+    if (key === 'box') setHasOriginalBox(prev => prev === true ? null : true);
+    if (key === 'bill') setHasPurchaseBill(prev => prev === true ? null : true);
   };
 
   const handleNoneToggle = () => {
@@ -459,7 +424,7 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
     // Only show battery question for Apple devices
     ...(isAppleBrand ? [{ 
       question: "Battery Health above 80%", 
-      description: "Check if your device's battery health is above 80%.",
+      description: "Check if your device's battery health is above %.",
       value: isBatteryHealthy,
       setter: setIsBatteryHealthy,
       ref: batteryRef
@@ -529,49 +494,50 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
         {/* Step 2: Condition and Age */}
         {currentStep === "condition" && (
           <div className="space-y-6">
+
             {/* Phone Age */}
             <Card className="p-6" ref={ageRef}>
               <div className="space-y-6 text-center">
-                <h2 className="text-xl sm:text-2xl font-bold px-2" style={{ color: 'black' }}>How old is your phone?</h2>
+                <h2 className="text-2xl font-bold" style={{ color: 'black' }}>How old is your phone?</h2>
                 <div className="space-y-3">
                   {ageOptions.map(option => (
                     <Button
                       key={option.value}
                       onClick={() => setAgeGroup(option.value)}
-                      className={`w-full px-4 sm:px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${ageGroup !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
+                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${ageGroup !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
                       style={{
                         backgroundColor: ageGroup === option.value ? 'royalBlue' : '',
                         color: ageGroup === option.value ? 'white' : 'black'
                       }}
                     >
                       <div>
-                        <div className="font-semibold text-sm sm:text-base">{option.label}</div>
-                        <div className="text-xs sm:text-sm opacity-75">{option.description}</div>
+                        <div className="font-semibold">{option.label}</div>
+                        <div className="text-sm opacity-75">{option.description}</div>
                       </div>
                     </Button>
                   ))}
                 </div>
               </div>
             </Card>
-
+            
             {/* Phone Condition */}
             <Card className="p-6">
               <div className="space-y-6 text-center">
-                <h2 className="text-xl sm:text-2xl font-bold px-2" style={{ color: 'black' }}>What is the overall condition of your phone?</h2>
+                <h2 className="text-2xl font-bold" style={{ color: 'black' }}>What is the overall condition of your phone?</h2>
                 <div className="space-y-3">
                   {conditionOptions.map(option => (
                     <Button
                       key={option.value}
                       onClick={() => handleConditionSelect(option.value)}
-                      className={`w-full px-4 sm:px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${overallCondition !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
+                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${overallCondition !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
                       style={{
                         backgroundColor: overallCondition === option.value ? 'royalBlue' : '',
                         color: overallCondition === option.value ? 'white' : 'black'
                       }}
                     >
                       <div>
-                        <div className="font-semibold text-sm sm:text-base">{option.label}</div>
-                        <div className="text-xs sm:text-sm opacity-75">{option.description}</div>
+                        <div className="font-semibold">{option.label}</div>
+                        <div className="text-sm opacity-75">{option.description}</div>
                       </div>
                     </Button>
                   ))}
