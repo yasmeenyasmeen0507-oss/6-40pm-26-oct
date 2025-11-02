@@ -354,14 +354,14 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
   if (isSamsungBrand && !selectedSeries) {
     return (
       <div className="max-w-7xl mx-auto animate-fade-in-up px-4">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-4">
+        <div className="text-center mb-6 md:mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold mb-2 md:mb-4">
             Select <span className="text-[#4169E1]">Series</span>
           </h2>
-          <p className="text-muted-foreground">Choose your device series</p>
+          <p className="text-sm md:text-base text-muted-foreground">Choose your device series</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
           {Object.keys(groupedDevices).map((seriesName, index) => (
             <motion.div
               key={seriesName}
@@ -371,7 +371,7 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
             >
               <Button
                 variant="outline"
-                className="w-full h-20 text-base font-medium hover:bg-primary hover:text-primary-foreground transition-all"
+                className="w-full h-16 md:h-20 text-sm md:text-base font-medium hover:bg-primary hover:text-primary-foreground transition-all"
                 onClick={() => setSelectedSeries(seriesName)}
               >
                 {seriesName}
@@ -385,44 +385,44 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
 
   return (
     <div className="max-w-7xl mx-auto animate-fade-in-up px-4">
-      <div className="text-center mb-8">
+      <div className="text-center mb-6 md:mb-8">
         {isSamsungBrand && selectedSeries && (
           <Button
             variant="ghost"
-            className="mb-4"
+            className="mb-3 md:mb-4 text-sm md:text-base"
             onClick={() => {
               setSelectedSeries(null);
               setSearchQuery("");
             }}
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-3 h-3 md:w-4 md:h-4 mr-2" />
             Back to Series Selection
           </Button>
         )}
-        <h2 className="text-3xl font-bold mb-4">
+        <h2 className="text-2xl md:text-3xl font-bold mb-2 md:mb-4">
           {isSamsungBrand && selectedSeries ? (
             <>Select Your <span className="text-[#4169E1]">{selectedSeries}</span> Model</>
           ) : (
             <>Select Your <span className="text-[#4169E1]">Device</span> Model</>
           )}
         </h2>
-        <p className="text-muted-foreground">Choose your specific device model</p>
+        <p className="text-sm md:text-base text-muted-foreground">Choose your specific device model</p>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-6 md:mb-8">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search models..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 h-14 text-lg"
+            className="pl-10 md:pl-12 h-12 md:h-14 text-base md:text-lg"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4">
         {filteredDevices.map((device, index) => (
           <motion.div
             key={device.id}
@@ -435,9 +435,8 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
               className="h-full cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-105 border-2 hover:border-primary/50"
               onClick={() => onSelect(device.id, device.model_name, device.release_date)}
             >
-              <CardContent className="p-3 flex flex-col h-full">
-                {/* Fixed height image container and placeholder */}
-                <div className="mb-2 overflow-hidden rounded-md flex-shrink-0 w-full h-24 md:h-28 bg-gray-100 flex items-center justify-center">
+              <CardContent className="p-2 md:p-3 flex flex-col h-full">
+                <div className="mb-2 overflow-hidden rounded-md flex-shrink-0 w-full h-20 sm:h-24 md:h-28 bg-gray-100 flex items-center justify-center">
                   {device.image_url ? (
                     <img
                       src={device.image_url}
@@ -445,14 +444,14 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <span className="text-muted-foreground text-xs">No Image</span>
+                    <span className="text-muted-foreground text-[10px] md:text-xs">No Image</span>
                   )}
                 </div>
-                <h3 className="font-medium text-xs md:text-sm mb-1 line-clamp-2">
+                <h3 className="font-medium text-[11px] sm:text-xs md:text-sm mb-1 line-clamp-2">
                   {device.model_name}
                 </h3>
                 {!isAppleBrand && !isSamsungBrand && device.series && (
-                  <p className="text-xs text-muted-foreground line-clamp-1 mt-auto">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1 mt-auto">
                     {device.series}
                   </p>
                 )}
@@ -463,8 +462,8 @@ const DeviceSelection = ({ brandId, onSelect }: Props) => {
       </div>
 
       {filteredDevices.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground text-lg">No devices found</p>
+        <div className="text-center py-8 md:py-12">
+          <p className="text-muted-foreground text-base md:text-lg">No devices found</p>
         </div>
       )}
     </div>
