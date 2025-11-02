@@ -547,7 +547,6 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
                         <div className="text-sm opacity-75">{option.description}</div>
                       </div>
                     </Button>
-                  ))}
                 </div>
               </div>
             </Card>
@@ -674,6 +673,7 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
           )}
         </div>
       </div>
+      
     </div>
   );
 };
