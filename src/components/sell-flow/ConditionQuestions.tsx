@@ -1,51 +1,12 @@
 // @ts-nocheck
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-// Mocked UI components as they are not defined in this environment, using native elements or simple classes
-const Card = ({ children, className, ref, ...props }) => <div ref={ref} className={`bg-white rounded-xl p-4 shadow-lg ${className}`} {...props}>{children}</div>;
-const Button = ({ children, onClick, className, variant, disabled, style, ...props }) => {
-    let baseStyle = "px-4 py-2 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2";
-    if (variant === 'outline') {
-        baseStyle += " border border-gray-300 text-gray-700 hover:bg-gray-100";
-    } else {
-        baseStyle += " bg-royalBlue text-white hover:bg-blue-700";
-    }
-    if (disabled) {
-        baseStyle += " opacity-50 cursor-not-allowed";
-    }
-    return <button onClick={onClick} className={`${baseStyle} ${className}`} style={style} disabled={disabled} {...props}>{children}</button>;
-};
-import { Check, X, Calendar, Smartphone, Star, AlertCircle, Zap, Package, FileText, CheckCircle, XCircle, Ban } from "lucide-react";
-
-// MOCK: Replace the unreachable local import with a mock object
-const supabase = {
-    from: (table) => ({
-        select: (columns) => ({
-            eq: (key, value) => ({
-                maybeSingle: async () => {
-                    console.log(`[MOCK DB] Querying table: ${table} for ${key} = ${value}`);
-                    // Mock data structure for 'warranty_prices' to allow price calculation logic to run
-                    if (table === "warranty_prices" && value) {
-                        return {
-                            data: {
-                                variant_id: value,
-                                price_0_3_months: "50000",
-                                price_3_6_months: "45000",
-                                price_6_11_months: "40000",
-                                price_11_plus_months: "35000",
-                                charger_deduction_amount: "2000",
-                                box_deduction_amount: "1000",
-                                bill_deduction_amount: "500",
-                            },
-                            error: null
-                        };
-                    }
-                    return { data: null, error: { message: "Mock data not found" } };
-                }
-            })
-        })
-    })
-};
+// Assuming these components are available in the environment
+const Card = ({ children, className }) => <div className={`rounded-xl border bg-card text-card-foreground shadow ${className}`}>{children}</div>;
+const Button = ({ children, onClick, className, variant, disabled, style }) => <button onClick={onClick} className={`px-4 py-2 rounded-lg transition-colors ${className}`} style={style} disabled={disabled}>{children}</button>;
+const CheckCircle = ({ size, className }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="M9 11l3 3L22 4"></path></svg>;
+const XCircle = ({ size, className }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><path d="M15 9l-6 6"></path><path d="M9 9l6 6"></path></svg>;
+const AlertCircle = ({ size, className }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>;
 
 interface Props {
   basePrice: number;
@@ -68,6 +29,35 @@ interface Props {
     finalPrice: number
   ) => void;
 }
+
+// --- MOCK FUNCTION TO REPLACE SUPABASE FETCH ---
+// In a real environment, you would use the imported Supabase client here.
+const mockFetchWarrantyPrices = async (variantId) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // This data structure simulates the 'warranty_prices' table data
+    // We assume the actual fetched price data is structured like this for the calculations to work.
+    const mockData = {
+        'default-variant-128gb': {
+            variant_id: 'default-variant-128gb',
+            price_0_3_months: 50000,
+            price_3_6_months: 45000,
+            price_6_11_months: 40000,
+            price_11_plus_months: 35000,
+            charger_deduction_amount: 1500,
+            box_deduction_amount: 500,
+            bill_deduction_amount: 1000,
+        },
+        // Add more mock variants as needed
+    };
+
+    const data = mockData[variantId] || mockData['default-variant-128gb'];
+    
+    // Simulating the maybeSingle() response format
+    return { data: data, error: null };
+};
+// ---------------------------------------------
 
 const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, brandName, onComplete }: Props) => {
   console.log('🔍 ConditionQuestions Props:', {
@@ -130,30 +120,17 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
 
       console.log('🔍 Fetching warranty prices for variant:', variantId);
       setLoadingPrices(true);
-      
+      
       try {
-        const { data, error } = await supabase
-          .from("warranty_prices")
-          .select("*")
-          .eq("variant_id", variantId)
-          .maybeSingle();
+        // Using the mock function instead of the Supabase client directly
+        const { data, error } = await mockFetchWarrantyPrices(variantId);
 
         console.log('📊 Warranty prices result:', { data, error });
 
         if (error) {
           console.error("❌ Error fetching warranty prices:", error);
         } else if (!data) {
-          // If no specific data is found, use basePrice as a fallback for all age tiers (mocking)
-            console.warn('⚠️ No warranty prices found for this variant, using base price mock.');
-            setWarrantyPrices({
-                price_0_3_months: basePrice,
-                price_3_6_months: basePrice * 0.95, // Slight deduction for older phone
-                price_6_11_months: basePrice * 0.90, 
-                price_11_plus_months: basePrice * 0.85, 
-                charger_deduction_amount: "2000",
-                box_deduction_amount: "1000",
-                bill_deduction_amount: "500",
-            });
+          console.warn('⚠️ No warranty prices found for this variant');
         } else {
           console.log('✅ Warranty prices loaded:', data);
           setWarrantyPrices(data);
@@ -166,7 +143,7 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
     };
 
     fetchWarrantyPrices();
-  }, [variantId, basePrice]); // Added basePrice to dependencies for fallback logic
+  }, [variantId]);
 
   // Update price when age group changes
   useEffect(() => {
@@ -218,9 +195,9 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
   useEffect(() => {
     if (currentStep === "accessories" && accessoriesRef.current) {
       setTimeout(() => {
-        window.scrollTo({ 
-          top: document.documentElement.scrollHeight, 
-          behavior: 'smooth' 
+        window.scrollTo({ 
+          top: document.documentElement.scrollHeight, 
+          behavior: 'smooth' 
         });
       }, 300);
     }
@@ -236,25 +213,35 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
 
     switch (ageGroup) {
       case "0-3":
-        price = parseFloat(warrantyPrices.price_0_3_months);
+        // Null check: Use logical OR (||) to default to 0 if the value is null, undefined, or an empty string, preventing NaN from parseFloat.
+        price = parseFloat(warrantyPrices.price_0_3_months || 0);
         console.log('💰 Price for 0-3 months:', price);
         break;
       case "3-6":
-        price = parseFloat(warrantyPrices.price_3_6_months);
+        // Null check
+        price = parseFloat(warrantyPrices.price_3_6_months || 0);
         console.log('💰 Price for 3-6 months:', price);
         break;
       case "6-11":
-        price = parseFloat(warrantyPrices.price_6_11_months);
+        // Null check
+        price = parseFloat(warrantyPrices.price_6_11_months || 0);
         console.log('💰 Price for 6-11 months:', price);
         break;
       case "12+":
-        price = parseFloat(warrantyPrices.price_11_plus_months);
+        // Null check
+        price = parseFloat(warrantyPrices.price_11_plus_months || 0);
         console.log('💰 Price for 12+ months:', price);
         break;
       default:
         price = basePrice;
         console.log('💰 Using base price:', price);
     }
+
+    // Final safety check: if parsing failed and resulted in NaN, fall back to basePrice.
+    if (isNaN(price)) {
+        console.error('❌ Calculated price is NaN. Falling back to base price.');
+        price = basePrice;
+    }
 
     const roundedPrice = Math.round(price);
     console.log('💰 Base price from age group:', roundedPrice);
@@ -268,6 +255,7 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
     let price = basePriceFromAge;
     let totalDeduction = 0;
 
+    // Null check: Use logical OR (||) to default to 0 if the value is null, undefined, or an empty string.
     const chargerDeduction = parseFloat(warrantyPrices.charger_deduction_amount || 0);
     const boxDeduction = parseFloat(warrantyPrices.box_deduction_amount || 0);
     const billDeduction = parseFloat(warrantyPrices.bill_deduction_amount || 0);
@@ -277,19 +265,16 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
       totalDeduction = chargerDeduction + boxDeduction + billDeduction;
       console.log(`📉 No accessories: -₹${totalDeduction} (all deductions applied)`);
     } else {
-      // Apply individual deductions. Check for null states as well.
-      // Note: Accessory states can be 'true' (selected) or 'null' (unselected)
-      // We only deduct if the item is explicitly missing. Since the toggle sets to 'true' or 'null',
-      // if it's not 'true' (i.e., it's 'null'), we assume it's missing for deduction calculation.
-      if (hasOriginalCharger !== true) { // Covers both null (unselected) and false (not possible via current UX, but safe)
+      // Apply individual deductions
+      if (hasOriginalCharger === false) {
         totalDeduction += chargerDeduction;
         console.log(`📉 No charger: -₹${chargerDeduction}`);
       }
-      if (hasOriginalBox !== true) {
+      if (hasOriginalBox === false) {
         totalDeduction += boxDeduction;
         console.log(`📉 No box: -₹${boxDeduction}`);
       }
-      if (hasPurchaseBill !== true) {
+      if (hasPurchaseBill === false) {
         totalDeduction += billDeduction;
         console.log(`📉 No bill: -₹${billDeduction}`);
       }
@@ -300,6 +285,12 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
       console.log(`💰 Total deduction: ₹${Math.round(totalDeduction)}`);
     }
 
+    // Final safety check: if subtraction results in NaN (due to corrupted basePriceFromAge), set price to 0.
+    if (isNaN(price)) {
+        console.error('❌ Final price after deduction resulted in NaN. Setting to 0.');
+        price = 0;
+    }
+
     const roundedPrice = Math.round(price);
     console.log('💰 Final price after deductions:', roundedPrice);
     setFinalPrice(roundedPrice);
@@ -308,34 +299,33 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
   const handleNextToCondition = () => {
     // Check if all required questions are answered
     if (canMakeCalls === null || isTouchWorking === null || isScreenOriginal === null) {
-      // Replaced alert() with a console log or custom UI message for best practices
-      console.error("Please answer all device condition questions"); 
+      alert("Please answer all device condition questions");
       return;
     }
-    
+    
     // Only validate battery health for Apple devices
     if (isAppleBrand && isBatteryHealthy === null) {
-      console.error("Please answer all device condition questions");
+      alert("Please answer all device condition questions");
       return;
     }
-    
+    
     setCurrentStep("condition");
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleNextToAccessories = () => {
     if (!overallCondition) {
-      console.error("Please select the overall condition of your device");
+      alert("Please select the overall condition of your device");
       return;
     }
-    
+    
     if (!ageGroup) {
-      console.error("Please select when you purchased your device");
+      alert("Please select when you purchased your device");
       return;
     }
 
     if (!finalPrice || finalPrice === 0) {
-      console.error("Price calculation error. Please refresh and try again.");
+      alert("Price calculation error. Please refresh and try again.");
       return;
     }
 
@@ -344,14 +334,11 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
   };
 
   const handleComplete = () => {
-    // If "None" is selected, all accessories are false.
-    // Otherwise, we use an explicit check for `=== true` to ensure nulls are treated as false.
-    
-    // --- START of mandated null check adjustment ---
-    const finalCharger = hasNoneSelected ? false : (hasOriginalCharger === true);
-    const finalBox = hasNoneSelected ? false : (hasOriginalBox === true);
-    const finalBill = hasNoneSelected ? false : (hasPurchaseBill === true);
-    // --- END of mandated null check adjustment ---
+    // If "None" is selected, all accessories are false
+    // The null checks here ensure that if the user didn't explicitly select true/false, it defaults to false, unless 'None' was selected.
+    const finalCharger = hasNoneSelected ? false : (hasOriginalCharger !== null ? hasOriginalCharger : false);
+    const finalBox = hasNoneSelected ? false : (hasOriginalBox !== null ? hasOriginalBox : false);
+    const finalBill = hasNoneSelected ? false : (hasPurchaseBill !== null ? hasPurchaseBill : false);
 
     console.log('✅ Completing with:', {
       canMakeCalls,
@@ -370,10 +357,10 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
 
     onComplete(
       {
-        canMakeCalls: canMakeCalls || false, // Ensuring non-null boolean output
-        isTouchWorking: isTouchWorking || false, // Ensuring non-null boolean output
-        isScreenOriginal: isScreenOriginal || false, // Ensuring non-null boolean output
-        isBatteryHealthy: isBatteryHealthy || false, // Ensuring non-null boolean output
+        canMakeCalls,
+        isTouchWorking,
+        isScreenOriginal,
+        isBatteryHealthy,
         overallCondition,
         ageGroup,
         hasCharger: finalCharger,
@@ -384,7 +371,7 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
     );
   };
 
-  const handleAnswer = (value: boolean, setter: (val: boolean | null) => void) => {
+  const handleAnswer = (value: boolean, setter: (val: boolean) => void) => {
     setter(value);
   };
 
@@ -398,7 +385,7 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
   const handleAccessoryToggle = (key: 'charger' | 'box' | 'bill') => {
     // Unselect "None" option when individual items are selected
     setHasNoneSelected(false);
-    
+    
     if (key === 'charger') setHasOriginalCharger(prev => prev === true ? null : true);
     if (key === 'box') setHasOriginalBox(prev => prev === true ? null : true);
     if (key === 'bill') setHasPurchaseBill(prev => prev === true ? null : true);
@@ -407,7 +394,7 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
   const handleNoneToggle = () => {
     const newNoneState = !hasNoneSelected;
     setHasNoneSelected(newNoneState);
-    
+    
     // If "None" is selected, clear all individual selections
     if (newNoneState) {
       setHasOriginalCharger(null);
@@ -446,30 +433,30 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
 
   // Define questions array with conditional battery question
   const questions = [
-    { 
-      question: "Are you able to make and receive calls?", 
+    { 
+      question: "Are you able to make and receive calls?", 
       description: "Check your device for cellular network connectivity issues.",
       value: canMakeCalls,
       setter: setCanMakeCalls,
       ref: callsRef
     },
-    { 
-      question: "Is your device's touch screen working properly?", 
+    { 
+      question: "Is your device's touch screen working properly?", 
       description: "Check the touch screen functionality of your phone.",
       value: isTouchWorking,
       setter: setIsTouchWorking,
       ref: touchRef
     },
-    { 
-      question: "Is your phone's screen original?", 
+    { 
+      question: "Is your phone's screen original?", 
       description: "Pick 'Yes' if screen was never changed or was changed by Authorized Service Center. Pick 'No' if screen was changed at local shop.",
       value: isScreenOriginal,
       setter: setIsScreenOriginal,
       ref: screenRef
     },
     // Only show battery question for Apple devices
-    ...(isAppleBrand ? [{ 
-      question: "Battery Health above 80%", 
+    ...(isAppleBrand ? [{ 
+      question: "Battery Health above 80%", 
       description: "Check if your device's battery health is above 80%.",
       value: isBatteryHealthy,
       setter: setIsBatteryHealthy,
@@ -501,45 +488,36 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
           <p className="text-lg" style={{ color: 'black' }}>
             {getStepDescription()}
           </p>
-          <div className="mt-4 text-left p-4 rounded-lg shadow-md" style={{ backgroundColor: '#F0F8FF', borderLeft: '4px solid royalBlue' }}>
-            <p className="font-semibold text-royalBlue flex items-center gap-2">
-              <Zap size={18} /> Current Estimated Price: 
-              <span className="text-xl font-extrabold text-black ml-1">
-                ₹{finalPrice > 0 ? finalPrice.toLocaleString() : '---'}
-              </span>
-              {loadingPrices && <span className="text-sm text-gray-500 ml-2">(Calculating...)</span>}
-            </p>
-          </div>
         </div>
 
         {/* Step 1: Yes/No Questions */}
         {currentStep === "yesno" && (
           <div className="space-y-6">
             {questions.map((question, index) => (
-              <Card 
-                key={index} 
-                className="p-6 shadow-xl rounded-xl"
+              <Card 
+                key={index} 
+                className="p-6"
                 ref={question.ref}
               >
                 <div className="space-y-6 text-center">
                   <h2 className="text-2xl font-bold" style={{ color: 'black' }}>{question.question}</h2>
-                  <p className="text-lg text-gray-600">{question.description}</p>
+                  <p className="text-lg" style={{ color: 'black' }}>{question.description}</p>
                   <div className="flex gap-4 justify-center">
                     <Button
                       onClick={() => handleAnswer(true, question.setter)}
-                      className={`px-8 py-4 flex items-center gap-2 transition-all duration-200 ${question.value !== true ? "bg-gray-200 text-gray-700 hover:bg-gray-300" : ""}`}
-                      style={{ backgroundColor: question.value === true ? 'royalBlue' : undefined, color: question.value === true ? 'white' : undefined }}
+                      className={`px-8 py-4 flex items-center gap-2 ${question.value !== true ? "opacity-50 hover:opacity-100" : ""}`}
+                      style={{ backgroundColor: 'royalBlue', color: 'white' }}
                     >
                       <CheckCircle size={20} /> Yes
                     </Button>
                     <Button
                       onClick={() => handleAnswer(false, question.setter)}
                       variant="outline"
-                      className={`px-8 py-4 flex items-center gap-2 border-destructive text-destructive hover:bg-red-100 transition-all duration-200 ${question.value === false ? "bg-red-500 text-white hover:bg-red-600" : ""}`}
+                      className={`px-8 py-4 flex items-center gap-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground ${question.value === false ? "bg-destructive text-destructive-foreground" : ""}`}
                     >
                       <XCircle size={20} /> No
                     </Button>
-                  </div>
+                </div>
                 </div>
               </Card>
             ))}
@@ -550,23 +528,23 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
         {currentStep === "condition" && (
           <div className="space-y-6">
             {/* Phone Condition */}
-            <Card className="p-6 shadow-xl rounded-xl">
+            <Card className="p-6">
               <div className="space-y-6 text-center">
                 <h2 className="text-2xl font-bold" style={{ color: 'black' }}>What is the overall condition of your phone?</h2>
-                <div className="space-y-3 mt-4">
+                <div className="space-y-3">
                   {conditionOptions.map(option => (
                     <Button
                       key={option.value}
                       onClick={() => handleConditionSelect(option.value)}
-                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 border-2 ${overallCondition !== option.value ? "bg-gray-100 hover:bg-gray-200 border-gray-200 text-black" : "border-royalBlue shadow-md"}`}
+                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${overallCondition !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
                       style={{
-                        backgroundColor: overallCondition === option.value ? 'royalBlue' : undefined,
+                        backgroundColor: overallCondition === option.value ? 'royalBlue' : '',
                         color: overallCondition === option.value ? 'white' : 'black'
                       }}
                     >
                       <div>
                         <div className="font-semibold">{option.label}</div>
-                        <div className="text-sm opacity-90">{option.description}</div>
+                        <div className="text-sm opacity-75">{option.description}</div>
                       </div>
                     </Button>
                   ))}
@@ -575,26 +553,25 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
             </Card>
 
             {/* Phone Age */}
-            <Card className="p-6 shadow-xl rounded-xl" ref={ageRef}>
+            <Card className="p-6" ref={ageRef}>
               <div className="space-y-6 text-center">
                 <h2 className="text-2xl font-bold" style={{ color: 'black' }}>How old is your phone?</h2>
-                <div className="space-y-3 mt-4">
+                <div className="space-y-3">
                   {ageOptions.map(option => (
                     <Button
                       key={option.value}
                       onClick={() => setAgeGroup(option.value)}
-                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 border-2 ${ageGroup !== option.value ? "bg-gray-100 hover:bg-gray-200 border-gray-200 text-black" : "border-royalBlue shadow-md"}`}
+                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${ageGroup !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
                       style={{
-                        backgroundColor: ageGroup === option.value ? 'royalBlue' : undefined,
+                        backgroundColor: ageGroup === option.value ? 'royalBlue' : '',
                         color: ageGroup === option.value ? 'white' : 'black'
                       }}
                     >
                       <div>
                         <div className="font-semibold">{option.label}</div>
-                        <div className="text-sm opacity-90">{option.description}</div>
+                        <div className="text-sm opacity-75">{option.description}</div>
                       </div>
                     </Button>
-                  ))}
                 </div>
               </div>
             </Card>
@@ -608,44 +585,45 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
               {/* Charger Card */}
               <Card
                 onClick={() => handleAccessoryToggle('charger')}
-                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full rounded-xl shadow-md border-2 ${hasOriginalCharger === true ? "border-royalBlue" : hasNoneSelected ? "opacity-50" : "bg-gray-100 hover:bg-gray-200 border-gray-200"}`}
+                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasOriginalCharger !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
                 style={{ backgroundColor: hasOriginalCharger === true ? 'royalBlue' : '', color: hasOriginalCharger === true ? 'white' : 'black' }}
               >
-                <Package className="w-16 h-16 opacity-75" />
+                <img src="/assets/charger.jpg" alt="Charger" className="w-16 h-16 object-contain" />
                 <span className="font-semibold">Original Charger of Device</span>
-                {hasOriginalCharger === true && <CheckCircle size={20} className="absolute top-2 right-2 text-white" />}
+                {hasOriginalCharger === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
               </Card>
 
               {/* Box Card */}
               <Card
                 onClick={() => handleAccessoryToggle('box')}
-                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full rounded-xl shadow-md border-2 ${hasOriginalBox === true ? "border-royalBlue" : hasNoneSelected ? "opacity-50" : "bg-gray-100 hover:bg-gray-200 border-gray-200"}`}
+                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasOriginalBox !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
                 style={{ backgroundColor: hasOriginalBox === true ? 'royalBlue' : '', color: hasOriginalBox === true ? 'white' : 'black' }}
               >
-                <FileText className="w-16 h-16 opacity-75" />
+                <img src="/assets/box.jpg" alt="Box" className="w-16 h-16 object-contain" />
                 <span className="font-semibold">Original Box with same IMEI</span>
-                {hasOriginalBox === true && <CheckCircle size={20} className="absolute top-2 right-2 text-white" />}
+                {hasOriginalBox === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
               </Card>
-              
+              
               {/* Bill Card */}
               <Card
                 onClick={() => handleAccessoryToggle('bill')}
-                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full rounded-xl shadow-md border-2 ${hasPurchaseBill === true ? "border-royalBlue" : hasNoneSelected ? "opacity-50" : "bg-gray-100 hover:bg-gray-200 border-gray-200"}`}
+                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasPurchaseBill !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
                 style={{ backgroundColor: hasPurchaseBill === true ? 'royalBlue' : '', color: hasPurchaseBill === true ? 'white' : 'black' }}
               >
-                <Calendar className="w-16 h-16 opacity-75" />
+                <img src="/assets/bill.jpg" alt="Bill" className="w-16 h-16 object-contain" />
                 <span className="font-semibold">Bill of the device is available</span>
-                {hasPurchaseBill === true && <CheckCircle size={20} className="absolute top-2 right-2 text-white" />}
+                {hasPurchaseBill === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
               </Card>
 
               {/* None of the Above Card */}
               <Card
                 onClick={handleNoneToggle}
-                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full rounded-xl shadow-md border-2 ${hasNoneSelected ? "border-royalBlue bg-royalBlue text-white" : "bg-gray-100 hover:bg-gray-200 border-gray-200 text-black"}`}
+                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${!hasNoneSelected ? "bg-muted/30 hover:bg-muted" : ""}`}
+                style={{ backgroundColor: hasNoneSelected ? 'royalBlue' : '', color: hasNoneSelected ? 'white' : 'black' }}
               >
-                <Ban className={`w-16 h-16 ${hasNoneSelected ? 'text-white' : 'opacity-75'}`} />
-                <span className="font-semibold">I don't have any of the above</span>
-                {hasNoneSelected && <CheckCircle size={20} className="absolute top-2 right-2 text-white" />}
+                <img src="/assets/none.jpg" alt="None" className="w-16 h-16 object-contain" />
+                <span className="font-semibold">I don't have any of the following</span>
+                {hasNoneSelected && <CheckCircle size={20} className="absolute top-2 right-2" />}
               </Card>
             </div>
           </div>
@@ -657,38 +635,38 @@ const ConditionQuestions = ({ basePrice, deviceName, releaseDate, variantId, bra
             <Button
               onClick={() => setCurrentStep(currentStep === "condition" ? "yesno" : "condition")}
               variant="outline"
-              className="w-full sm:w-auto px-12 py-4 text-lg border-gray-300 text-gray-700 hover:bg-gray-100"
+              className="w-full sm:w-auto px-12 py-4 text-lg"
             >
               Back
             </Button>
           )}
-          
+          
           {currentStep === "yesno" && (
             <Button
               onClick={handleNextToCondition}
-              className="w-full sm:w-auto px-12 py-4 text-lg transition-all duration-200 disabled:opacity-50"
+              className="w-full sm:w-auto px-12 py-4 text-lg"
               style={{ backgroundColor: 'royalBlue', color: 'white' }}
               disabled={questions.some(q => q.value === null)}
             >
               Next
             </Button>
           )}
-          
+          
           {currentStep === "condition" && (
             <Button
               onClick={handleNextToAccessories}
-              className="w-full sm:w-auto px-12 py-4 text-lg transition-all duration-200 disabled:opacity-50"
+              className="w-full sm:w-auto px-12 py-4 text-lg"
               style={{ backgroundColor: 'royalBlue', color: 'white' }}
               disabled={!overallCondition || !ageGroup}
             >
               Next
             </Button>
           )}
-          
+          
           {currentStep === "accessories" && (
             <Button
               onClick={handleComplete}
-              className="w-full sm:w-auto px-12 py-4 text-lg transition-all duration-200"
+              className="w-full sm:w-auto px-12 py-4 text-lg"
               style={{ backgroundColor: 'royalBlue', color: 'white' }}
             >
               Continue to Verification
