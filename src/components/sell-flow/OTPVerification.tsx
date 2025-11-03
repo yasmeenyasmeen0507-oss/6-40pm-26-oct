@@ -11,12 +11,12 @@ import {
   RecaptchaVerifier, 
   signInWithPhoneNumber,
   ConfirmationResult 
-}from 'firebase/auth';
+} from 'firebase/auth';
 import { auth } from '@/firebase';
 import { supabase } from '@/lib/supabase';
 
 interface Props {
-  onVerify: (phoneNumber: string, leadId: string) => void; // Added leadId
+  onVerify: (phoneNumber: string, leadId: string) => void;
 }
 
 // Window type declaration
@@ -65,6 +65,19 @@ const OTPVerification = ({ onVerify }: Props) => {
     }
   }, [timer]);
 
+  // New useEffect for OTP validation
+  useEffect(() => {
+    // Check if OTP is complete (all 6 digits filled)
+    const isOtpComplete = otp.every((digit) => digit !== "");
+    if (isOtpComplete) {
+      // Add a small delay to ensure state is updated
+      const timer = setTimeout(() => {
+        handleVerifyOTP();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [otp]); // Only run when OTP changes
+
   // Initialize reCAPTCHA
   const setupRecaptcha = () => {
     if (!window.recaptchaVerifier) {
@@ -74,7 +87,7 @@ const OTPVerification = ({ onVerify }: Props) => {
         {
           size: 'invisible',
           callback: () => {
-            // REMOVED: console.log('reCAPTCHA solved');
+            // reCAPTCHA solved
           },
           'expired-callback': () => {
             toast({
@@ -119,8 +132,6 @@ const OTPVerification = ({ onVerify }: Props) => {
       setupRecaptcha();
       const appVerifier = window.recaptchaVerifier;
 
-      // console.log("📱 Sending OTP to:", formattedPhone); // REMOVED
-
       const confirmation = await signInWithPhoneNumber(
         auth,
         formattedPhone,
@@ -164,7 +175,8 @@ const OTPVerification = ({ onVerify }: Props) => {
   const handleVerifyOTP = async () => {
     const otpCode = otp.join("");
 
-    if (otpCode.length !== 6) {
+    // Add additional validation
+    if (!otpCode || otpCode.length !== 6) {
       toast({
         title: "Invalid OTP",
         description: "Please enter a valid 6-digit OTP",
@@ -182,18 +194,17 @@ const OTPVerification = ({ onVerify }: Props) => {
       return;
     }
 
+    // Prevent multiple verification attempts
+    if (isVerifying) return;
+
     setIsVerifying(true);
 
     try {
       const formattedPhone = formatPhone(phoneNumber);
 
-      // console.log("🔐 Verifying OTP for:", formattedPhone); // REMOVED
-
       // Step 1: Verify with Firebase
       const result = await confirmationResult.confirm(otpCode);
       const user = result.user;
-
-      // console.log("✅ Phone verified successfully:", user.uid); // REMOVED
 
       // Step 2: Save lead to the 'leads' table
       const leadData: any = {
@@ -210,8 +221,6 @@ const OTPVerification = ({ onVerify }: Props) => {
       if (flowState.cityId) leadData.city_id = flowState.cityId;
       if (flowState.condition) leadData.condition = flowState.condition;
       if (flowState.finalPrice) leadData.final_price = flowState.finalPrice;
-
-      // console.log("💾 Saving lead to database:", leadData); // REMOVED
 
       // --- TARGETING 'leads' TABLE ---
       const { data: savedLead, error: dbError } = await supabase
@@ -245,7 +254,7 @@ const OTPVerification = ({ onVerify }: Props) => {
 
       toast({
         title: "Success! ✅",
-        description: "Phone verified and lead created successfully",
+        description: "Phone verified  successfully",
       });
 
       // Step 4: Navigate with lead ID
@@ -282,16 +291,6 @@ const OTPVerification = ({ onVerify }: Props) => {
     if (value && index < 5) {
       document.getElementById(`otp-${index + 1}`)?.focus();
     }
-
-    // Auto-verify when complete
-    if (index === 5 && value) {
-      const fullOtp = [...otp];
-      fullOtp[5] = value;
-      if (fullOtp.every((d) => d)) {
-        setOtp(fullOtp);
-        setTimeout(() => handleVerifyOTP(), 100);
-      }
-    }
   };
 
   // Handle backspace navigation
@@ -319,11 +318,6 @@ const OTPVerification = ({ onVerify }: Props) => {
     // Focus last input
     const lastIndex = Math.min(pastedData.length - 1, 5);
     document.getElementById(`otp-${lastIndex}`)?.focus();
-
-    // Auto-verify if complete
-    if (pastedData.length === 6) {
-      setTimeout(() => handleVerifyOTP(), 100);
-    }
   };
 
   return (
