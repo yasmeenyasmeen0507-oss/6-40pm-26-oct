@@ -208,8 +208,6 @@ const ConditionQuestions = ({
     }
   }, [ageGroup, currentStep]);
 
-  // Removed scroll effect for condition selection to prevent unwanted scrolling
-
   useEffect(() => {
     if (currentStep === "accessories" && accessoriesRef.current) {
       setTimeout(() => {
@@ -243,7 +241,7 @@ const ConditionQuestions = ({
         price = basePrice;
     }
 
-    console.log("price before condition deduction:", price);
+    console.log("💰 Price before condition deduction:", price);
 
     // Apply condition deduction percentage
     let conditionPercent = 1;
@@ -258,12 +256,13 @@ const ConditionQuestions = ({
       conditionPercent = isNaN(conditionPercent) ? 1 : conditionPercent / 100;
     }
     price = price * conditionPercent;
-    console.log("price after condition deduction:", price);
+    console.log("💰 Price after condition deduction:", price);
     const roundedPrice = Math.round(price);
     setBasePriceFromAge(roundedPrice);
     setFinalPrice(roundedPrice);
   };
 
+  // ✅ FIXED DEDUCTION LOGIC
   const calculateFinalPriceWithDeductions = () => {
     if (!warrantyPrices) return;
 
@@ -274,24 +273,41 @@ const ConditionQuestions = ({
     const boxDeduction = parseFloat(warrantyPrices.box_deduction_amount || 0);
     const billDeduction = parseFloat(warrantyPrices.bill_deduction_amount || 0);
 
+    console.log("📦 Accessory Deductions:", {
+      chargerDeduction,
+      boxDeduction,
+      billDeduction,
+      hasOriginalCharger,
+      hasOriginalBox,
+      hasPurchaseBill,
+      hasNoneSelected
+    });
+
     // If "None" is selected, deduct ALL amounts
     if (hasNoneSelected) {
       totalDeduction = chargerDeduction + boxDeduction + billDeduction;
+      console.log("❌ 'None' selected - Deducting all amounts:", totalDeduction);
     } else {
-      // Apply individual deductions
-      if (hasOriginalCharger === false) {
+      // Apply individual deductions - deduct if NOT true (null or false)
+      if (hasOriginalCharger !== true) {
         totalDeduction += chargerDeduction;
+        console.log("❌ No charger - Deducting:", chargerDeduction);
       }
-      if (hasOriginalBox === false) {
+      if (hasOriginalBox !== true) {
         totalDeduction += boxDeduction;
+        console.log("❌ No box - Deducting:", boxDeduction);
       }
-      if (hasPurchaseBill === false) {
+      if (hasPurchaseBill !== true) {
         totalDeduction += billDeduction;
+        console.log("❌ No bill - Deducting:", billDeduction);
       }
     }
 
     if (totalDeduction > 0) {
       price = price - totalDeduction;
+      console.log(`💸 Total deduction: ₹${totalDeduction}, Final price: ₹${price}`);
+    } else {
+      console.log("✅ No deductions - Customer has all accessories");
     }
 
     const roundedPrice = Math.round(price);
@@ -337,21 +353,10 @@ const ConditionQuestions = ({
 
   const handleComplete = () => {
     // If "None" is selected, all accessories are false
-    const finalCharger = hasNoneSelected
-      ? false
-      : hasOriginalCharger !== null
-      ? hasOriginalCharger
-      : false;
-    const finalBox = hasNoneSelected
-      ? false
-      : hasOriginalBox !== null
-      ? hasOriginalBox
-      : false;
-    const finalBill = hasNoneSelected
-      ? false
-      : hasPurchaseBill !== null
-      ? hasPurchaseBill
-      : false;
+    // Otherwise, use true if selected, false if not selected (null becomes false)
+    const finalCharger = hasNoneSelected ? false : hasOriginalCharger === true;
+    const finalBox = hasNoneSelected ? false : hasOriginalBox === true;
+    const finalBill = hasNoneSelected ? false : hasPurchaseBill === true;
 
     console.log("✅ Completing with:", {
       canMakeCalls,
@@ -475,7 +480,7 @@ const ConditionQuestions = ({
       ? [
           {
             question: "Battery Health above 80%",
-            description: "Check if your device's battery health is above %.",
+            description: "Check if your device's battery health is above 80%.",
             value: isBatteryHealthy,
             setter: setIsBatteryHealthy,
             ref: batteryRef,
