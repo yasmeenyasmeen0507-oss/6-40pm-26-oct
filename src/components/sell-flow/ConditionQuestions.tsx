@@ -157,6 +157,13 @@ const ConditionQuestions = ({
     }
   }, [overallCondition, ageGroup, warrantyPrices]);
 
+  // ✅ Recalculate price when yes/no answers change
+  useEffect(() => {
+    if (ageGroup && warrantyPrices) {
+      updatePrice();
+    }
+  }, [canMakeCalls, isTouchWorking, isScreenOriginal, isBatteryHealthy]);
+
   // Recalculate price when accessories change
   useEffect(() => {
     if (basePriceFromAge > 0 && warrantyPrices) {
@@ -224,6 +231,7 @@ const ConditionQuestions = ({
 
     let price = basePrice;
 
+    // Step 1: Get base price from age group
     switch (ageGroup) {
       case "0-3":
         price = parseFloat(warrantyPrices.price_0_3_months);
@@ -241,28 +249,82 @@ const ConditionQuestions = ({
         price = basePrice;
     }
 
-    console.log("💰 Price before condition deduction:", price);
+    console.log("💰 Price from age group:", price);
 
-    // Apply condition deduction percentage
+    // Step 2: Apply YES/NO question deductions (PERCENTAGE-BASED)
+    // ✅ ONLY deduct if user explicitly selected "NO" (false)
+    // ✅ NO deduction if null (not answered) or true (YES)
+    let yesNoDeductionPercent = 0;
+
+    // Deduct ONLY if canMakeCalls === false (user selected "NO")
+    if (canMakeCalls === false) {
+      const callDeduction = parseFloat(warrantyPrices.call_deduction_percentage || 0);
+      yesNoDeductionPercent += callDeduction;
+      console.log(`📞 Call issue (NO selected) - Deducting ${callDeduction}%`);
+    } else {
+      console.log(`✅ Calls OK (${canMakeCalls === true ? 'YES' : 'Not answered'}) - No deduction`);
+    }
+
+    // Deduct ONLY if isTouchWorking === false (user selected "NO")
+    if (isTouchWorking === false) {
+      const touchDeduction = parseFloat(warrantyPrices.touch_deduction_percentage || 0);
+      yesNoDeductionPercent += touchDeduction;
+      console.log(`👆 Touch issue (NO selected) - Deducting ${touchDeduction}%`);
+    } else {
+      console.log(`✅ Touch OK (${isTouchWorking === true ? 'YES' : 'Not answered'}) - No deduction`);
+    }
+
+    // Deduct ONLY if isScreenOriginal === false (user selected "NO")
+    if (isScreenOriginal === false) {
+      const screenDeduction = parseFloat(warrantyPrices.screen_deduction_percentage || 0);
+      yesNoDeductionPercent += screenDeduction;
+      console.log(`📱 Non-original screen (NO selected) - Deducting ${screenDeduction}%`);
+    } else {
+      console.log(`✅ Screen OK (${isScreenOriginal === true ? 'YES' : 'Not answered'}) - No deduction`);
+    }
+
+    // Deduct ONLY if isBatteryHealthy === false (user selected "NO") - iOS only
+    if (isAppleBrand && isBatteryHealthy === false) {
+      const batteryDeduction = parseFloat(warrantyPrices.battery_deduction_percentage || 0);
+      yesNoDeductionPercent += batteryDeduction;
+      console.log(`🔋 Battery issue (NO selected, iOS) - Deducting ${batteryDeduction}%`);
+    } else if (isAppleBrand) {
+      console.log(`✅ Battery OK (${isBatteryHealthy === true ? 'YES' : 'Not answered'}) - No deduction`);
+    }
+
+    // Apply the combined deduction percentage
+    if (yesNoDeductionPercent > 0) {
+      const deductionMultiplier = 1 - (yesNoDeductionPercent / 100);
+      price = price * deductionMultiplier;
+      console.log(`💸 Total YES/NO deduction: ${yesNoDeductionPercent}%, Price after: ₹${price}`);
+    } else {
+      console.log(`✅ No YES/NO deductions - All answers are YES or not answered`);
+    }
+
+    // Step 3: Apply condition deduction percentage
     let conditionPercent = 1;
     if (overallCondition === "good") {
-      conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_good);
+      conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_good || 100);
       conditionPercent = isNaN(conditionPercent) ? 1 : conditionPercent / 100;
     } else if (overallCondition === "average") {
-      conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_average);
+      conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_average || 100);
       conditionPercent = isNaN(conditionPercent) ? 1 : conditionPercent / 100;
     } else if (overallCondition === "below-average") {
-      conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_belowAverage);
+      conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_belowAverage || 100);
       conditionPercent = isNaN(conditionPercent) ? 1 : conditionPercent / 100;
     }
-    price = price * conditionPercent;
-    console.log("💰 Price after condition deduction:", price);
+    
+    if (overallCondition) {
+      price = price * conditionPercent;
+      console.log("💰 Price after condition deduction:", price);
+    }
+
     const roundedPrice = Math.round(price);
     setBasePriceFromAge(roundedPrice);
     setFinalPrice(roundedPrice);
   };
 
-  // ✅ FIXED DEDUCTION LOGIC
+  // ✅ Accessory deduction logic (unchanged)
   const calculateFinalPriceWithDeductions = () => {
     if (!warrantyPrices) return;
 
@@ -305,9 +367,9 @@ const ConditionQuestions = ({
 
     if (totalDeduction > 0) {
       price = price - totalDeduction;
-      console.log(`💸 Total deduction: ₹${totalDeduction}, Final price: ₹${price}`);
+      console.log(`💸 Total accessory deduction: ₹${totalDeduction}, Final price: ₹${price}`);
     } else {
-      console.log("✅ No deductions - Customer has all accessories");
+      console.log("✅ No accessory deductions - Customer has all accessories");
     }
 
     const roundedPrice = Math.round(price);
