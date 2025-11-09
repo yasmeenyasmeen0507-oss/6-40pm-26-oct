@@ -21,24 +21,28 @@ interface NewPickupRequest {
 export function usePickupNotifications() {
   const [newRequest, setNewRequest] = useState<NewPickupRequest | null>(null);
   const [isAlarmPlaying, setIsAlarmPlaying] = useState(false);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const intervalRef = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasInteractedRef = useRef(false);
 
-  // Initialize audio context
+  // Initialize audio element
   useEffect(() => {
     console.log('🎯 usePickupNotifications hook mounted');
     
-    // Create AudioContext
+    // Create Audio element with your custom sound
+    audioRef.current = new Audio('/notification.mp3');
+    audioRef.current.loop = true; // Loop the sound continuously
+    audioRef.current.volume = 0.8; // Set volume (0.0 to 1.0) - adjust as needed
+    
+    console.log('✅ Audio element initialized with notification.mp3');
+
     const initAudio = () => {
       if (!hasInteractedRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
         hasInteractedRef.current = true;
-        console.log('✅ Audio context initialized');
+        console.log('✅ User interaction detected, audio ready');
       }
     };
 
-    // Initialize on first click
+    // Initialize on first interaction
     document.addEventListener('click', initAudio, { once: true });
     document.addEventListener('keydown', initAudio, { once: true });
 
@@ -47,11 +51,10 @@ export function usePickupNotifications() {
     return () => {
       document.removeEventListener('click', initAudio);
       document.removeEventListener('keydown', initAudio);
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current = null;
       }
     };
   }, []);
@@ -124,85 +127,46 @@ export function usePickupNotifications() {
   const playAlarm = () => {
     console.log('🔊 Attempting to play alarm...');
     
-    if (!audioContextRef.current) {
-      console.log('⚠️ Audio context not initialized, will play on next interaction');
-      const playOnClick = () => {
-        playGoogleMeetSound();
-        document.removeEventListener('click', playOnClick);
-      };
-      document.addEventListener('click', playOnClick, { once: true });
+    if (!audioRef.current) {
+      console.error('❌ Audio element not initialized');
       return;
     }
 
-    playGoogleMeetSound();
-  };
-
-  const playGoogleMeetSound = () => {
-    if (!audioContextRef.current) return;
-
     try {
-      const ctx = audioContextRef.current;
       setIsAlarmPlaying(true);
-
-      // Google Meet-style notification sound (3 ascending tones)
-      const playMeetTone = () => {
-        if (!isAlarmPlaying && intervalRef.current === null) return;
-
-        const now = ctx.currentTime;
-        
-        // First tone (lower)
-        const osc1 = ctx.createOscillator();
-        const gain1 = ctx.createGain();
-        osc1.connect(gain1);
-        gain1.connect(ctx.destination);
-        osc1.frequency.value = 660; // E5
-        osc1.type = 'sine';
-        gain1.gain.setValueAtTime(0.3, now);
-        gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-        osc1.start(now);
-        osc1.stop(now + 0.15);
-
-        // Second tone (middle)
-        const osc2 = ctx.createOscillator();
-        const gain2 = ctx.createGain();
-        osc2.connect(gain2);
-        gain2.connect(ctx.destination);
-        osc2.frequency.value = 880; // A5
-        osc2.type = 'sine';
-        gain2.gain.setValueAtTime(0.3, now + 0.15);
-        gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-        osc2.start(now + 0.15);
-        osc2.stop(now + 0.3);
-
-        // Third tone (higher)
-        const osc3 = ctx.createOscillator();
-        const gain3 = ctx.createGain();
-        osc3.connect(gain3);
-        gain3.connect(ctx.destination);
-        osc3.frequency.value = 1320; // E6
-        osc3.type = 'sine';
-        gain3.gain.setValueAtTime(0.4, now + 0.3);
-        gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-        osc3.start(now + 0.3);
-        osc3.stop(now + 0.6);
-      };
-
-      // Play immediately
-      playMeetTone();
-
-      // Repeat every 2 seconds
-      intervalRef.current = window.setInterval(playMeetTone, 2000);
-
-      console.log('✅ Alarm playing successfully');
+      
+      // Reset audio to start
+      audioRef.current.currentTime = 0;
+      
+      // Play the audio
+      const playPromise = audioRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('✅ Notification sound playing (notification.mp3)');
+          })
+          .catch(error => {
+            console.error('❌ Failed to play sound:', error);
+            // Try to play on next user interaction
+            const playOnClick = () => {
+              if (audioRef.current) {
+                audioRef.current.play().catch(console.error);
+              }
+              document.removeEventListener('click', playOnClick);
+            };
+            document.addEventListener('click', playOnClick, { once: true });
+          });
+      }
     } catch (error) {
       console.error('❌ Failed to play alarm:', error);
     }
   };
 
   const stopAlarm = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     }
     setIsAlarmPlaying(false);
     console.log('🔇 Alarm stopped');
