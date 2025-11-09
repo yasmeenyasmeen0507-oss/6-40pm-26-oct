@@ -4,12 +4,32 @@ import { useNavigate } from "react-router-dom";
 import BrandSelection from "@/components/sell-flow/BrandSelection";
 import DeviceSelection from "@/components/sell-flow/DeviceSelection";
 import CitySelection from "@/components/sell-flow/CitySelection";
-import VariantSelection from "@/components/sell-flow/VariantSelection";
-import ConditionQuestions from "@/components/sell-flow/ConditionQuestions";
+import LaptopVariantSelection from "@/components/sell-flow/LaptopVariantSelection";
+import LaptopConditionQuestions from "@/components/sell-flow/LaptopConditionQuestions";
 import OTPVerification from "@/components/sell-flow/OTPVerification";
 import FinalValuation from "@/components/sell-flow/FinalValuation";
 import PickupScheduler from "@/components/sell-flow/PickupScheduler";
-import { FlowState } from "./Index";
+
+export interface LaptopFlowState {
+  category: string;
+  brandId: string | null;
+  brandName: string | null;
+  deviceId: string | null;
+  deviceName: string | null;
+  releaseDate: string | null;
+  cityId: string | null;
+  cityName: string | null;
+  variantId: string | null;
+  processor: string | null;
+  ramGb: number | null;
+  storageGb: number | null;
+  screenSize: string | null;
+  basePrice: number | null;
+  ageRange: string | null;
+  condition: string | null;
+  phoneNumber: string | null;
+  finalPrice: number;
+}
 
 type Step = 
   | "brand" 
@@ -24,7 +44,7 @@ type Step =
 const SellLaptop = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<Step>("brand");
-  const [flowState, setFlowState] = useState<FlowState>({
+  const [flowState, setFlowState] = useState<LaptopFlowState>({
     category: "laptop",
     brandId: null,
     brandName: null,
@@ -34,14 +54,18 @@ const SellLaptop = () => {
     cityId: null,
     cityName: null,
     variantId: null,
+    processor: null,
+    ramGb: null,
     storageGb: null,
+    screenSize: null,
     basePrice: null,
+    ageRange: null,
     condition: null,
     phoneNumber: null,
     finalPrice: 0,
   });
 
-  const updateFlowState = (updates: Partial<FlowState>) => {
+  const updateFlowState = (updates: Partial<LaptopFlowState>) => {
     setFlowState(prev => ({ ...prev, ...updates }));
   };
 
@@ -126,17 +150,24 @@ const SellLaptop = () => {
               exit={{ opacity: 0, x: -100 }}
               transition={{ duration: 0.3 }}
             >
-              <VariantSelection
+              <LaptopVariantSelection
                 deviceId={flowState.deviceId}
-                onSelect={(variantId, storageGb, basePrice) => {
-                  updateFlowState({ variantId, storageGb, basePrice });
+                deviceName={flowState.deviceName || ""}
+                onSelect={(variantId, processor, ramGb, storageGb, screenSize) => {
+                  updateFlowState({ 
+                    variantId, 
+                    processor, 
+                    ramGb, 
+                    storageGb, 
+                    screenSize 
+                  });
                   setCurrentStep("condition");
                 }}
               />
             </motion.div>
           )}
 
-          {currentStep === "condition" && flowState.basePrice !== null && flowState.variantId && (
+          {currentStep === "condition" && flowState.variantId && (
             <motion.div
               key="condition"
               initial={{ opacity: 0, x: 100 }}
@@ -144,14 +175,12 @@ const SellLaptop = () => {
               exit={{ opacity: 0, x: -100 }}
               transition={{ duration: 0.3 }}
             >
-              <ConditionQuestions
+              <LaptopConditionQuestions
                 variantId={flowState.variantId}
-                basePrice={flowState.basePrice}
                 deviceName={flowState.deviceName || ""}
-                releaseDate={flowState.releaseDate || ""}
                 brandName={flowState.brandName || ""}
-                onComplete={(condition, finalPrice) => {
-                  updateFlowState({ condition, finalPrice });
+                onComplete={(ageRange, condition, finalPrice) => {
+                  updateFlowState({ ageRange, condition, finalPrice });
                   setCurrentStep("otp");
                 }}
               />

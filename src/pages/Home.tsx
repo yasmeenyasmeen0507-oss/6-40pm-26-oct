@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowRight, Star, CheckCircle, Shield, Clock, IndianRupee, Calculator, Truck, CreditCard, MessageCircle, Phone, Mail, MapPin } from "lucide-react";
+import { ArrowRight, Star, Calculator, Truck, CreditCard, MessageCircle, Phone, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Footer from "@/components/Footer";
 
@@ -41,6 +41,12 @@ const TypingText = ({ text }: { text: string }) => {
     </span>
   );
 };
+
+const PHONE_NUMBER = "7411329292";
+const WHATSAPP_NUMBER = "7411329292";
+const WHATSAPP_MESSAGE = "Hi! I'm interested in selling my gadget and would like to know more.";
+const LOCATION_ADDRESS =
+  "22, 2nd floor, Kothanur, Behind MCS Convention Hall, K Narayanapura Main Rd, Bengaluru, Nagareshwara - Nagenahalli, Karnataka 560077";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -80,15 +86,14 @@ const Home = () => {
   };
 
   const scrollToCategories = () => {
-    document.getElementById('categories-section')?.scrollIntoView({ 
-      behavior: 'smooth', 
-      block: 'start' 
+    document.getElementById('categories-section')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
     });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
     setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
   };
 
@@ -99,32 +104,39 @@ const Home = () => {
     });
   };
 
+  // WhatsApp Click Handler (NEW NUMBER)
   const whatsappClick = () => {
-    const message = "Hi! I'm interested in selling my gadget and would like to know more.";
-    // UPDATED PHONE NUMBER
-    const whatsappUrl = `https://wa.me/919620919351?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/91${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
     window.open(whatsappUrl, '_blank');
+  };
+
+  // Call Us Handler (opens dialer with number)
+  const callUsClick = () => {
+    window.open(`tel:${PHONE_NUMBER}`, '_self');
   };
 
   const steps = [
     {
       icon: Calculator,
       title: "Get a Quote",
-      description: "Select your device and condition to receive an instant price estimate using our advanced evaluation system.",
+      description:
+        "Select your device and condition to receive an instant price estimate using our advanced evaluation system.",
       color: "text-blue-700",
       gradient: "from-blue-700/20 to-blue-700/5"
     },
     {
       icon: Truck,
       title: "Schedule Pickup",
-      description: "Book a convenient time for our professional team to collect your device from your doorstep at no extra cost.",
+      description:
+        "Book a convenient time for our professional team to collect your device from your doorstep at no extra cost.",
       color: "text-gold",
       gradient: "from-gold/20 to-gold/5"
     },
     {
       icon: CreditCard,
       title: "Get Paid",
-      description: "After quick inspection and verification, receive immediate payment via your preferred method - cash, bank transfer, or UPI.",
+      description:
+        "After quick inspection and verification, receive immediate payment via your preferred method - cash, bank transfer, or UPI.",
       color: "text-blue-700",
       gradient: "from-blue-700/20 to-blue-700/5"
     }
@@ -135,7 +147,7 @@ const Home = () => {
       {/* Hero Section with Background Image */}
       <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-hero">
         <div className="absolute inset-0 z-0">
-          <img 
+          <img
             src="/assets/hero-gadgets.jpg"
             alt="Premium modern gadgets and electronics"
             className="w-full h-full object-cover opacity-60"
@@ -144,9 +156,8 @@ const Home = () => {
         </div>
 
         <div className="absolute top-20 left-10 w-32 h-32 bg-blue-600/20 rounded-full blur-3xl float-animation"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl float-animation" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl float-animation" style={{ animationDelay: '2s' }}></div>
 
-        {/* MODIFICATION: Removed the "-mt-16" class to bring the content down and center it better. */}
         <div className="relative z-10 text-center max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -165,18 +176,18 @@ const Home = () => {
                 <span className="block flex-1 h-0.5 bg-gradient-to-l from-transparent via-blue-600 to-blue-600"></span>
               </span>
             </h1>
-            
+
             <p className="text-xl sm:text-2xl lg:text-3xl text-black mb-4 font-light min-h-[2.5rem]">
               <TypingText text="Your Trusted Marketplace for Quality Electronics" />
             </p>
-            
+
             <p className="text-lg text-black mb-12 max-w-2xl mx-auto">
-              Get instant quotes, schedule convenient pickups, and receive immediate payment for your premium gadgets. 
+              Get instant quotes, schedule convenient pickups, and receive immediate payment for your premium gadgets.
               Professional, secure, and hassle-free.
             </p>
 
             <div className="flex justify-center">
-              <Button 
+              <Button
                 className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-12 py-6 rounded-lg font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
                 onClick={scrollToCategories}
               >
@@ -201,7 +212,7 @@ const Home = () => {
           </motion.div>
         </div>
 
-        <div 
+        <div
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce cursor-pointer"
           onClick={scrollToCategories}
         >
@@ -229,7 +240,7 @@ const Home = () => {
               <h3 className="text-2xl font-semibold text-center text-gray-900 mb-8">
                 What would you like to sell?
               </h3>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                 <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}>
                   <Card className="cursor-pointer group hover:scale-105 transition-all duration-300 hover:ring-2 hover:ring-blue-700" onClick={() => handleCategoryClick("phone")}>
@@ -272,7 +283,7 @@ const Home = () => {
                         <div className="text-center">
                           <h4 className="text-xl font-semibold text-foreground mb-2">Sell iPad</h4>
                           <p className="text-sm text-gray-900">Tablets & iPads</p>
-                      </div>
+                        </div>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -291,7 +302,7 @@ const Home = () => {
               How <span className="text-blue-700">It Works</span>
             </h2>
             <p className="text-xl text-black max-w-3xl mx-auto">
-              Our streamlined process makes selling your gadgets simple, secure, and hassle-free. 
+              Our streamlined process makes selling your gadgets simple, secure, and hassle-free.
               From quote to payment in just three easy steps.
             </p>
           </div>
@@ -304,7 +315,7 @@ const Home = () => {
                   {index < steps.length - 1 && (
                     <div className="hidden md:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-border to-transparent z-0"></div>
                   )}
-                  
+
                   <Card className="text-center relative z-10 group hover:shadow-2xl transition-all duration-300 bg-white border-2 hover:border-blue-700 cursor-pointer">
                     <CardContent className="p-8">
                       <div className="absolute -top-4 -left-4 w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
@@ -340,7 +351,7 @@ const Home = () => {
               What Our <span className="text-blue-700">Customers Say</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Join thousands of satisfied customers who have trusted SellkarIndia for their device selling needs. 
+              Join thousands of satisfied customers who have trusted SellkarIndia for their device selling needs.
               Real reviews from real customers across India.
             </p>
           </div>
@@ -405,22 +416,24 @@ const Home = () => {
               Contact <span className="text-blue-700">& Support</span>
             </h2>
             <p className="text-xl text-black max-w-3xl mx-auto">
-              Have questions? Need assistance? Our dedicated support team is here to help you 24/7. 
+              Have questions? Need assistance? Our dedicated support team is here to help you 24/7.
               Get in touch through your preferred channel.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* First column is now empty after removing 'Send us a Message' form */}
-            <div className="hidden lg:block"></div> 
+            <div className="hidden lg:block"></div>
 
             <div className="space-y-8 animate-slide-in-up">
               <Card className="bg-white border-2">
                 <CardContent className="p-8">
                   <h3 className="text-2xl font-semibold text-gray-900 mb-6">Quick Contact</h3>
-                  
+
                   <div className="space-y-4">
-                    <button onClick={whatsappClick} className="w-full flex items-center p-4 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl hover:from-green-700 hover:to-green-600 transition-all duration-300 hover:scale-[1.02] shadow-lg">
+                    <button
+                      onClick={whatsappClick}
+                      className="w-full flex items-center p-4 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl hover:from-green-700 hover:to-green-600 transition-all duration-300 hover:scale-[1.02] shadow-lg"
+                    >
                       <MessageCircle className="w-6 h-6 mr-3" />
                       <div className="text-left">
                         <div className="font-semibold">WhatsApp Chat</div>
@@ -428,15 +441,28 @@ const Home = () => {
                       </div>
                     </button>
 
-                    <div className="flex items-center p-4 bg-gray-50 rounded-xl border-2">
+                    <button
+                      onClick={callUsClick}
+                      className="flex items-center w-full p-4 bg-gray-50 rounded-xl border-2 hover:bg-blue-50 transition"
+                    >
                       <Phone className="w-6 h-6 text-blue-700 mr-3" />
                       <div>
                         <div className="font-semibold text-gray-900">Call Us</div>
-                        {/* UPDATED PHONE NUMBER */}
-                        <div className="text-blue-700">+91 7411329292</div>
+                        <div className="text-blue-700">+91 {PHONE_NUMBER}</div>
                       </div>
-                    </div>
+                    </button>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Location Card */}
+              <Card className="bg-white border-2">
+                <CardContent className="p-8">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <MapPin className="w-5 h-5 mr-2 text-blue-700" />
+                    Location
+                  </h4>
+                  <p className="text-sm text-gray-700 leading-relaxed">{LOCATION_ADDRESS}</p>
                 </CardContent>
               </Card>
 
@@ -454,7 +480,7 @@ const Home = () => {
                     </div>
                     <div className="flex items-center text-gray-700">
                       <div className="w-2 h-2 bg-blue-700 rounded-full mr-3"></div>
-                      Multilingual Support (Hindi, English)
+                      Multilingual Support (Hindi, English, Kannada, Malayalum)
                     </div>
                     <div className="flex items-center text-gray-700">
                       <div className="w-2 h-2 bg-gold rounded-full mr-3"></div>

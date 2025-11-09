@@ -13,10 +13,9 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import type { FlowState } from "@/pages/Index";
 
 interface Props {
-  flowState: FlowState;
+  flowState: any; // Can be FlowState or LaptopFlowState
 }
 
 const PickupScheduler = ({ flowState }: Props) => {
@@ -36,7 +35,7 @@ const PickupScheduler = ({ flowState }: Props) => {
   const verifiedPhone = localStorage.getItem('verified_phone');
   const isPhoneVerified = localStorage.getItem('is_phone_verified') === 'true';
   const phoneVerifiedAt = localStorage.getItem('phone_verified_at');
-  const leadId = localStorage.getItem('lead_id'); // ✅ Lead to convert
+  const leadId = localStorage.getItem('lead_id');
   const storedCustomerName = localStorage.getItem('customer_name');
 
   // Pre-fill customer name if available
@@ -100,52 +99,63 @@ const PickupScheduler = ({ flowState }: Props) => {
     setIsSubmitting(true);
 
     try {
+      // ✅ Build pickup request data based on category
+      const pickupData: any = {
+        // Phone Numbers
+        user_phone: flowState.phoneNumber!, 
+        verified_phone: verifiedPhone,
+        is_phone_verified: isPhoneVerified,
+        phone_verified_at: phoneVerifiedAt,
+        
+        // Device & Location
+        device_id: flowState.deviceId!,
+        variant_id: flowState.variantId!,
+        city_id: flowState.cityId!,
+        
+        // Pricing & Customer Details
+        final_price: flowState.finalPrice,
+        customer_name: customerName,
+        email: email,
+        address: address,
+        pincode: pincode,
+        pickup_date: format(pickupDate, "yyyy-MM-dd"),
+        pickup_time: pickupTime,
+        status: "pending",
+      };
+
+      // ✅ Add mobile-specific fields (if category is phone)
+      if (flowState.category === 'phone' || flowState.category === 'mobile') {
+        pickupData.condition = "good" as any;
+        pickupData.age_group = flowState.condition?.ageGroup as any;
+        pickupData.has_charger = flowState.condition?.hasCharger;
+        pickupData.has_bill = flowState.condition?.hasBill;
+        pickupData.has_box = flowState.condition?.hasBox;
+        pickupData.device_powers_on = true;
+        pickupData.display_condition = "good" as any;
+        pickupData.body_condition = "good" as any;
+        pickupData.can_make_calls = flowState.condition?.canMakeCalls;
+        pickupData.is_touch_working = flowState.condition?.isTouchWorking;
+        pickupData.is_screen_original = flowState.condition?.isScreenOriginal;
+        pickupData.is_battery_healthy = flowState.condition?.isBatteryHealthy;
+        pickupData.overall_condition = flowState.condition?.overallCondition;
+      }
+
+      // ✅ Add laptop-specific fields (if category is laptop)
+      if (flowState.category === 'laptop') {
+        pickupData.age_range = flowState.ageRange; // '<1yr', '1-3yrs', '>3yrs'
+        pickupData.condition = flowState.condition; // 'good', 'average', 'below_average'
+      }
+
       // ✅ Step 1: Create pickup request
-      const { data: pickupData, error: pickupError } = await supabase
+      const { data: pickupResponse, error: pickupError } = await supabase
         .from("pickup_requests")
-        .insert({
-          // Phone Numbers
-          user_phone: flowState.phoneNumber!, 
-          verified_phone: verifiedPhone,
-          is_phone_verified: isPhoneVerified,
-          phone_verified_at: phoneVerifiedAt,
-          
-          // Device & Location
-          device_id: flowState.deviceId!,
-          variant_id: flowState.variantId!,
-          city_id: flowState.cityId!,
-          
-          // Device Condition
-          condition: "good" as any,
-          age_group: flowState.condition!.ageGroup as any,
-          has_charger: flowState.condition!.hasCharger,
-          has_bill: flowState.condition!.hasBill,
-          has_box: flowState.condition!.hasBox,
-          device_powers_on: true,
-          display_condition: "good" as any,
-          body_condition: "good" as any,
-          can_make_calls: flowState.condition!.canMakeCalls,
-          is_touch_working: flowState.condition!.isTouchWorking,
-          is_screen_original: flowState.condition!.isScreenOriginal,
-          is_battery_healthy: flowState.condition!.isBatteryHealthy,
-          overall_condition: flowState.condition!.overallCondition,
-          
-          // Pricing & Customer Details
-          final_price: flowState.finalPrice,
-          customer_name: customerName,
-          email: email,
-          address: address,
-          pincode: pincode,
-          pickup_date: format(pickupDate, "yyyy-MM-dd"),
-          pickup_time: pickupTime,
-          status: "pending",
-        })
+        .insert(pickupData)
         .select()
         .single();
 
       if (pickupError) throw pickupError;
 
-      console.log('✅ Pickup request created:', pickupData);
+      console.log('✅ Pickup request created:', pickupResponse);
 
       // ✅ Step 2: Convert lead to pickup (if lead exists)
       if (leadId) {
@@ -153,14 +163,13 @@ const PickupScheduler = ({ flowState }: Props) => {
           .from('leads')
           .update({
             converted_to_pickup: true,
-            pickup_request_id: pickupData.id,
+            pickup_request_id: pickupResponse.id,
             lead_status: 'converted',
           })
           .eq('id', leadId);
 
         if (leadUpdateError) {
           console.error('❌ Error converting lead:', leadUpdateError);
-          // Don't fail the whole operation if lead update fails
         } else {
           console.log('✅ Lead converted to pickup:', leadId);
         }
@@ -194,7 +203,7 @@ const PickupScheduler = ({ flowState }: Props) => {
 
   const handleDateSelect = (date: Date | undefined) => {
     setPickupDate(date);
-    setCalendarOpen(false); // Close calendar after selection
+    setCalendarOpen(false);
   };
 
   if (isSuccess) {
@@ -245,10 +254,10 @@ const PickupScheduler = ({ flowState }: Props) => {
         </Card>
 
         <div className="space-y-3 text-sm text-muted-foreground">
-         <p className="flex items-center justify-center gap-2">
-  <CheckCircle2 className="w-4 h-4 text-[#4169E1]" />
-  Confirmation sent to {verifiedPhone || flowState.phoneNumber}
-</p>
+          <p className="flex items-center justify-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#4169E1]" />
+            Confirmation sent to {verifiedPhone || flowState.phoneNumber}
+          </p>
           <p className="flex items-center justify-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-[#4169E1]" />
             Our executive will contact you before pickup
@@ -301,7 +310,6 @@ const PickupScheduler = ({ flowState }: Props) => {
 
       <Card>
         <CardContent className="pt-6 space-y-6">
-          {/* ✅ Show Verified Phone Number */}
           {verifiedPhone && (
             <div className="bg-[#4169E1]/10 border border-[#4169E1]/30 rounded-lg p-4">
               <div className="flex items-center justify-between">
