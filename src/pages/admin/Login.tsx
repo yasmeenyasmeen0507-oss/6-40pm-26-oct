@@ -106,10 +106,10 @@ export default function AdminLogin() {
           </form>
 
           <div className="mt-6 text-center text-sm text-slate-500">
-            <p>Default credentials for testing:</p>
+            <p></p>
             <p className="font-mono text-xs mt-1">
-              Username: <span className="font-semibold">admin</span> / Password:{' '}
-              <span className="font-semibold">admin123</span>
+               <span className="font-semibold"></span> /{' '}
+              <span className="font-semibold"></span>
             </p>
           </div>
         </CardContent>
