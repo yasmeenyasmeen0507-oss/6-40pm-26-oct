@@ -47,14 +47,11 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
     },
   ];
 
-  const handleAnswer = (value: string) => {
-    if (currentQuestion === 0) {
-      setAgeRange(value);
-      setCurrentQuestion(1);
-    } else if (currentQuestion === 1) {
-      setCondition(value);
-      setCurrentQuestion(2);
-    }
+  const handleAgeSelect = (value: string) => setAgeRange(value);
+  const handleConditionSelect = (value: string) => setCondition(value);
+
+  const handleBothContinue = () => {
+    if (ageRange && condition) setCurrentQuestion(1);
   };
 
   const handleAccessoryChange = (accessory: string, checked: boolean) => {
@@ -85,9 +82,7 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
     bill: boolean
   ) => {
     setCalculating(true);
-
     try {
-      // Fetch laptop pricing
       const { data: pricingData, error } = await supabase
         .from("laptop_prices")
         .select("*")
@@ -100,7 +95,6 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
         return;
       }
 
-      // Get base price based on age
       let basePrice = 0;
       if (selectedAge === "<1yr") {
         basePrice = pricingData.price_less_than_1yr;
@@ -110,7 +104,6 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
         basePrice = pricingData.price_more_than_3yrs;
       }
 
-      // Apply condition deduction (percentage)
       let conditionDeduction = 0;
       if (selectedCondition === "good") {
         conditionDeduction = pricingData.condition_deduction_good || 0;
@@ -122,7 +115,6 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
 
       let priceAfterCondition = basePrice * (1 - conditionDeduction / 100);
 
-      // Apply accessory deductions (fixed amounts)
       let accessoryDeductions = 0;
       if (!charger) {
         accessoryDeductions += pricingData.charger_deduction_amount || 1500;
@@ -135,14 +127,6 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
       }
 
       const finalPrice = Math.round(priceAfterCondition - accessoryDeductions);
-
-      console.log("💰 Laptop Price Calculation:", {
-        basePrice,
-        conditionDeduction: `${conditionDeduction}%`,
-        priceAfterCondition,
-        accessoryDeductions,
-        finalPrice,
-      });
 
       onComplete(selectedAge, selectedCondition, finalPrice);
     } catch (error) {
@@ -160,7 +144,7 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
           Tell us about your <span style={{ color: "#4169E1" }}>{deviceName}</span>
         </h2>
         <p className="text-muted-foreground text-sm md:text-lg">
-          Question {currentQuestion + 1} of 3
+          Question {currentQuestion + 1} of 2
         </p>
       </div>
 
@@ -170,89 +154,91 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
           <motion.div
             className="h-full bg-[#4169E1]"
             initial={{ width: "0%" }}
-            animate={{ width: `${((currentQuestion + 1) / 3) * 100}%` }}
+            animate={{ width: `${((currentQuestion + 1) / 2) * 100}%` }}
             transition={{ duration: 0.3 }}
           />
         </div>
       </div>
 
       <AnimatePresence mode="wait">
-        {/* Age Question */}
+        {/* Combined Age & Condition Questions */}
         {currentQuestion === 0 && (
           <motion.div
-            key="age"
+            key="age-condition"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="p-6 md:p-8 shadow-lg">
-              <div className="mb-6">
-                <h3 className="text-xl md:text-2xl font-bold mb-2">{questions[0].title}</h3>
-                <p className="text-sm text-muted-foreground">{questions[0].subtitle}</p>
+            <Card className="p-6 md:p-8 shadow-lg space-y-8">
+              {/* Age Question */}
+              <div>
+                <div className="mb-3">
+                  <h3 className="text-xl md:text-2xl font-bold mb-2">{questions[0].title}</h3>
+                  <p className="text-sm text-muted-foreground">{questions[0].subtitle}</p>
+                </div>
+                <div className="space-y-3">
+                  {questions[0].options.map((option, index) => (
+                    <motion.button
+                      key={option.value}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      onClick={() => handleAgeSelect(option.value)}
+                      className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left
+                        ${option.color} hover:scale-[1.02] hover:shadow-md ${(ageRange === option.value ? "border-[#4169E1] ring-2 ring-[#4169E1]" : "")}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-base md:text-lg">{option.label}</span>
+                        {ageRange === option.value ? <CheckCircle2 className="w-5 h-5 text-[#4169E1]" /> : <ArrowRight className="w-5 h-5" />}
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
               </div>
 
-              <div className="space-y-3">
-                {questions[0].options.map((option, index) => (
-                  <motion.button
-                    key={option.value}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    onClick={() => handleAnswer(option.value)}
-                    className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left
-                      ${option.color} hover:scale-[1.02] hover:shadow-md`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-base md:text-lg">{option.label}</span>
-                      <ArrowRight className="w-5 h-5" />
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Condition Question */}
-        {currentQuestion === 1 && (
-          <motion.div
-            key="condition"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card className="p-6 md:p-8 shadow-lg">
-              <div className="mb-6">
-                <h3 className="text-xl md:text-2xl font-bold mb-2">{questions[1].title}</h3>
-                <p className="text-sm text-muted-foreground">{questions[1].subtitle}</p>
+              {/* Condition Question */}
+              <div>
+                <div className="mb-3 mt-6">
+                  <h3 className="text-xl md:text-2xl font-bold mb-2">{questions[1].title}</h3>
+                  <p className="text-sm text-muted-foreground">{questions[1].subtitle}</p>
+                </div>
+                <div className="space-y-3">
+                  {questions[1].options.map((option, index) => (
+                    <motion.button
+                      key={option.value}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      onClick={() => handleConditionSelect(option.value)}
+                      className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left
+                        ${option.color} hover:scale-[1.02] hover:shadow-md ${(condition === option.value ? "border-[#4169E1] ring-2 ring-[#4169E1]" : "")}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-base md:text-lg">{option.label}</span>
+                        {condition === option.value ? <CheckCircle2 className="w-5 h-5 text-[#4169E1]" /> : <ArrowRight className="w-5 h-5" />}
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
               </div>
 
-              <div className="space-y-3">
-                {questions[1].options.map((option, index) => (
-                  <motion.button
-                    key={option.value}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    onClick={() => handleAnswer(option.value)}
-                    className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left
-                      ${option.color} hover:scale-[1.02] hover:shadow-md`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-base md:text-lg">{option.label}</span>
-                      <ArrowRight className="w-5 h-5" />
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
+              {/* Continue Button */}
+              <Button
+                onClick={handleBothContinue}
+                size="lg"
+                disabled={!ageRange || !condition}
+                className="w-full mt-6 bg-[#4169E1] hover:bg-[#3557C1] text-lg py-6"
+              >
+                <ArrowRight className="w-5 h-5 mr-2" />
+                Continue
+              </Button>
             </Card>
           </motion.div>
         )}
 
         {/* Accessories Question */}
-        {currentQuestion === 2 && (
+        {currentQuestion === 1 && (
           <motion.div
             key="accessories"
             initial={{ opacity: 0, x: 50 }}
@@ -265,7 +251,6 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
                 <h3 className="text-xl md:text-2xl font-bold mb-2">Do you have the following accessories?</h3>
                 <p className="text-sm text-muted-foreground">Select the accessories you have.</p>
               </div>
-
               <div className="space-y-4">
                 {/* Charger */}
                 <div className="flex items-start space-x-3 p-4 rounded-lg border-2 hover:border-[#4169E1] transition-colors">
@@ -282,7 +267,6 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
                     <p className="text-sm text-muted-foreground">Original Charger of Device</p>
                   </div>
                 </div>
-
                 {/* Box */}
                 <div className="flex items-start space-x-3 p-4 rounded-lg border-2 hover:border-[#4169E1] transition-colors">
                   <Checkbox
@@ -298,7 +282,6 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
                     <p className="text-sm text-muted-foreground">Original Box with same IMEI</p>
                   </div>
                 </div>
-
                 {/* Bill */}
                 <div className="flex items-start space-x-3 p-4 rounded-lg border-2 hover:border-[#4169E1] transition-colors">
                   <Checkbox
@@ -314,7 +297,6 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
                     <p className="text-sm text-muted-foreground">Bill of the device is available</p>
                   </div>
                 </div>
-
                 {/* None */}
                 <div className="flex items-start space-x-3 p-4 rounded-lg border-2 hover:border-red-300 transition-colors">
                   <Checkbox
@@ -356,7 +338,7 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
       </AnimatePresence>
 
       {/* Summary of previous answers */}
-      {currentQuestion > 0 && (
+      {(ageRange || condition) && currentQuestion > 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
