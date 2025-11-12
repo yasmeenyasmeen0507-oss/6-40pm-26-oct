@@ -2,11 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-} from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
@@ -39,7 +35,6 @@ const ConditionQuestions = ({
   brandName,
   onComplete,
 }: Props) => {
-  // Steps and states
   const [currentStep, setCurrentStep] = useState<"yesno" | "condition" | "accessories">("yesno");
   const [canMakeCalls, setCanMakeCalls] = useState<boolean | null>(null);
   const [isTouchWorking, setIsTouchWorking] = useState<boolean | null>(null);
@@ -47,6 +42,7 @@ const ConditionQuestions = ({
   const [isBatteryHealthy, setIsBatteryHealthy] = useState<boolean | null>(null);
   const [overallCondition, setOverallCondition] = useState<string>("");
   const [ageGroup, setAgeGroup] = useState<string>("");
+
   const [hasOriginalCharger, setHasOriginalCharger] = useState<boolean | null>(null);
   const [hasOriginalBox, setHasOriginalBox] = useState<boolean | null>(null);
   const [hasPurchaseBill, setHasPurchaseBill] = useState<boolean | null>(null);
@@ -56,7 +52,6 @@ const ConditionQuestions = ({
   const [basePriceFromAge, setBasePriceFromAge] = useState(0);
   const [warrantyPrices, setWarrantyPrices] = useState<any>(null);
 
-  // Refs for scroll logic
   const callsRef = useRef<HTMLDivElement>(null);
   const touchRef = useRef<HTMLDivElement>(null);
   const screenRef = useRef<HTMLDivElement>(null);
@@ -65,42 +60,35 @@ const ConditionQuestions = ({
   const conditionRef = useRef<HTMLDivElement>(null);
   const accessoriesRef = useRef<HTMLDivElement>(null);
 
-  // Check if brand is Apple
   const isAppleBrand = brandName?.toLowerCase().includes("apple") || brandName?.toLowerCase().includes("iphone");
 
-  // ---- AUTO SCROLL LOGIC ----
   useEffect(() => {
-    if (canMakeCalls !== null) { touchRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }
+    if (canMakeCalls !== null) touchRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [canMakeCalls]);
   useEffect(() => {
-    if (isTouchWorking !== null) { screenRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }
+    if (isTouchWorking !== null) screenRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [isTouchWorking]);
   useEffect(() => {
-    if (isScreenOriginal !== null && isAppleBrand) { batteryRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }
+    if (isScreenOriginal !== null && isAppleBrand) batteryRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [isScreenOriginal, isAppleBrand]);
   useEffect(() => {
-    if (currentStep === "condition") { conditionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }
-    if (currentStep === "accessories") { accessoriesRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }
+    if (currentStep === "condition") conditionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (currentStep === "accessories") accessoriesRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [currentStep]);
-  // ---- END AUTO SCROLL ----
 
   useEffect(() => {
-    if (brandName && !isAppleBrand && isBatteryHealthy === null) {
-      setIsBatteryHealthy(true);
-    }
+    if (brandName && !isAppleBrand && isBatteryHealthy === null) setIsBatteryHealthy(true);
   }, [brandName, isAppleBrand, isBatteryHealthy]);
 
   useEffect(() => {
     const fetchWarrantyPrices = async () => {
       if (!variantId) return;
-      try {
-        const { data } = await supabase
-          .from("warranty_prices")
-          .select("*")
-          .eq("variant_id", variantId)
-          .maybeSingle();
-        if (data) setWarrantyPrices(data);
-      } catch (err) {}
+      const { data } = await supabase
+        .from("warranty_prices")
+        .select("*")
+        .eq("variant_id", variantId)
+        .maybeSingle();
+      if (data) setWarrantyPrices(data);
     };
     fetchWarrantyPrices();
   }, [variantId]);
@@ -112,9 +100,33 @@ const ConditionQuestions = ({
     hasOriginalCharger, hasOriginalBox, hasPurchaseBill, hasNoneSelected, basePriceFromAge, warrantyPrices,
   ]);
 
+  // Special OnePlus 12R hardcoded pricing logic
   function updatePrice() {
     if (!ageGroup || !warrantyPrices) return;
+    // OnePlus 12R variant (change variant ID below as needed)
+    const oneplus12RVariantId = "39623985-ea60-4d3d-9c07-92175072a827";
     let price = basePrice;
+
+    // Use specific pricing for OnePlus 12R
+    if (variantId === oneplus12RVariantId) {
+      switch (ageGroup) {
+        case "0-3": price = 24880; break;
+        case "3-6": price = 23150; break;
+        case "6-11": price = 22380; break;
+        case "12+": price = 20060; break;
+        default: price = 0;
+      }
+      let conditionPercent = 1;
+      if (overallCondition === "good") conditionPercent = 1; // 100%
+      else if (overallCondition === "average") conditionPercent = 0.88; // 88%
+      else if (overallCondition === "below-average") conditionPercent = 0.85; // 85%
+      price *= conditionPercent;
+      setBasePriceFromAge(Math.round(price));
+      setFinalPrice(Math.round(price));
+      return;
+    }
+
+    // Regular pricing for other variants
     switch (ageGroup) {
       case "0-3": price = parseFloat(warrantyPrices.price_0_3_months ?? basePrice); break;
       case "3-6": price = parseFloat(warrantyPrices.price_3_6_months ?? basePrice); break;
@@ -122,14 +134,12 @@ const ConditionQuestions = ({
       case "12+": price = parseFloat(warrantyPrices.price_11_plus_months ?? basePrice); break;
       default: price = basePrice;
     }
-    // YES/NO deduction
     let yesNoDeductionPercent = 0;
     if (canMakeCalls === false) yesNoDeductionPercent += parseFloat(warrantyPrices.call_deduction_percentage ?? "0");
     if (isTouchWorking === false) yesNoDeductionPercent += parseFloat(warrantyPrices.touch_deduction_percentage ?? "0");
     if (isScreenOriginal === false) yesNoDeductionPercent += parseFloat(warrantyPrices.screen_deduction_percentage ?? "0");
     if (isAppleBrand && isBatteryHealthy === false) yesNoDeductionPercent += parseFloat(warrantyPrices.battery_deduction_percentage ?? "0");
     if (yesNoDeductionPercent > 0) price = price * (1 - yesNoDeductionPercent / 100);
-    // Condition deduction
     let conditionPercent = 1;
     if (overallCondition === "good") conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_good ?? "100");
     else if (overallCondition === "average") conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_average ?? "100");
@@ -139,6 +149,7 @@ const ConditionQuestions = ({
     setBasePriceFromAge(Math.round(price));
     setFinalPrice(Math.round(price));
   }
+
   function calculateFinalPriceWithDeductions() {
     if (!warrantyPrices) return;
     let price = basePriceFromAge;
@@ -156,7 +167,6 @@ const ConditionQuestions = ({
     setFinalPrice(Math.round(price));
   }
 
-  // Navigation step logic
   const handleNextToCondition = () => {
     if (canMakeCalls === null || isTouchWorking === null || isScreenOriginal === null) {
       alert("Please answer all device condition questions"); return;}
@@ -164,30 +174,19 @@ const ConditionQuestions = ({
       alert("Please answer all device condition questions"); return;}
     setCurrentStep("condition");
   };
+
   const handleNextToAccessories = () => {
     if (!overallCondition) { alert("Please select the overall condition of your device"); return;}
     if (!ageGroup) { alert("Please select when you purchased your device"); return;}
     if (!finalPrice || finalPrice === 0) { alert("Price calculation error. Please refresh and try again."); return;}
     setCurrentStep("accessories");
   };
-  const handleComplete = () => {
-    const finalCharger = hasNoneSelected ? false : (hasOriginalCharger ?? false);
-    const finalBox = hasNoneSelected ? false : (hasOriginalBox ?? false);
-    const finalBill = hasNoneSelected ? false : (hasPurchaseBill ?? false);
-    onComplete(
-      {
-        canMakeCalls,
-        isTouchWorking,
-        isScreenOriginal,
-        isBatteryHealthy,
-        overallCondition,
-        ageGroup,
-        hasCharger: finalCharger,
-        hasBox: finalBox,
-        hasBill: finalBill,
-      },
-      finalPrice
-    );
+
+  const handleAccessoryToggle = (key: "charger" | "box" | "bill") => {
+    setHasNoneSelected(false);
+    if (key === "charger") setHasOriginalCharger((prev) => (prev === true ? null : true));
+    if (key === "box") setHasOriginalBox((prev) => (prev === true ? null : true));
+    if (key === "bill") setHasPurchaseBill((prev) => (prev === true ? null : true));
   };
 
   const handleNoneToggle = () => {
@@ -200,7 +199,23 @@ const ConditionQuestions = ({
     }
   };
 
-  // UI stepper logic
+  const handleComplete = () => {
+    const finalCharger = hasNoneSelected ? false : (hasOriginalCharger ?? false);
+    const finalBox = hasNoneSelected ? false : (hasOriginalBox ?? false);
+    const finalBill = hasNoneSelected ? false : (hasPurchaseBill ?? false);
+    onComplete({
+      canMakeCalls,
+      isTouchWorking,
+      isScreenOriginal,
+      isBatteryHealthy,
+      overallCondition,
+      ageGroup,
+      hasCharger: finalCharger,
+      hasBox: finalBox,
+      hasBill: finalBill,
+    }, finalPrice);
+  };
+
   const questions = [
     {
       question: "Are you able to make and receive calls?",
@@ -218,22 +233,19 @@ const ConditionQuestions = ({
     },
     {
       question: "Is your phone's screen original?",
-      description:
-        "Pick 'Yes' if screen was never changed or was changed by Authorized Service Center. Pick 'No' if screen was changed at local shop.",
+      description: "Pick 'Yes' if screen was never changed or was changed by Authorized Service Center. Pick 'No' if screen was changed at local shop.",
       value: isScreenOriginal,
       setter: setIsScreenOriginal,
       ref: screenRef,
     },
     ...(isAppleBrand
-      ? [
-          {
-            question: "Battery Health above 80%",
-            description: "Check if your device's battery health is above 80%.",
-            value: isBatteryHealthy,
-            setter: setIsBatteryHealthy,
-            ref: batteryRef,
-          },
-        ]
+      ? [{
+          question: "Battery Health above 80%",
+          description: "Check if your device's battery health is above 80%.",
+          value: isBatteryHealthy,
+          setter: setIsBatteryHealthy,
+          ref: batteryRef,
+        }]
       : []),
   ];
 
@@ -250,7 +262,8 @@ const ConditionQuestions = ({
   ];
 
   function getStepTitle() {
-    if (currentStep === "yesno") return <>Tell us more about your <span style={{ color: "#4169E1" }}>{deviceName}</span></>;
+    if (currentStep === "yesno")
+      return <>Tell us more about your <span style={{ color: "#4169E1" }}>{deviceName}</span></>;
     if (currentStep === "condition") return "Device Condition & Age";
     return "Do you have the following accessories?";
   }
@@ -286,24 +299,14 @@ const ConditionQuestions = ({
                   <div className="flex gap-4 justify-center">
                     <Button
                       onClick={() => question.setter(true)}
-                      className={`px-8 py-4 flex items-center gap-2 ${
-                        question.value !== true ? "opacity-50 hover:opacity-100" : ""
-                      }`}
+                      className={`px-8 py-4 flex items-center gap-2 ${question.value !== true ? "opacity-50 hover:opacity-100" : ""}`}
                       style={{ backgroundColor: "royalBlue", color: "white" }}
-                    >
-                      <CheckCircle size={20} /> Yes
-                    </Button>
+                    ><CheckCircle size={20} /> Yes</Button>
                     <Button
                       onClick={() => question.setter(false)}
                       variant="outline"
-                      className={`px-8 py-4 flex items-center gap-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground ${
-                        question.value === false
-                          ? "bg-destructive text-destructive-foreground"
-                          : ""
-                      }`}
-                    >
-                      <XCircle size={20} /> No
-                    </Button>
+                      className={`px-8 py-4 flex items-center gap-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground ${question.value === false ? "bg-destructive text-destructive-foreground" : ""}`}
+                    ><XCircle size={20} /> No</Button>
                   </div>
                 </div>
               </Card>
@@ -321,16 +324,9 @@ const ConditionQuestions = ({
                     <Button
                       key={option.value}
                       onClick={() => setAgeGroup(option.value)}
-                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${
-                        ageGroup !== option.value ? "bg-muted/30 hover:bg-muted" : ""
-                      }`}
+                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${ageGroup !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
                       style={{ backgroundColor: ageGroup === option.value ? "royalBlue" : "", color: ageGroup === option.value ? "white" : "black" }}
-                    >
-                      <div>
-                        <div className="font-semibold">{option.label}</div>
-                        <div className="text-sm opacity-75">{option.description}</div>
-                      </div>
-                    </Button>
+                    ><div><div className="font-semibold">{option.label}</div><div className="text-sm opacity-75">{option.description}</div></div></Button>
                   ))}
                 </div>
               </div>
@@ -343,20 +339,12 @@ const ConditionQuestions = ({
                     <Button
                       key={option.value}
                       onClick={() => setOverallCondition(option.value)}
-                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${
-                        overallCondition !== option.value ? "bg-muted/30 hover:bg-muted" : ""
-                      }`}
+                      className={`w-full px-6 py-4 text-left justify-start h-auto transition-all duration-200 ${overallCondition !== option.value ? "bg-muted/30 hover:bg-muted" : ""}`}
                       style={{
-                        backgroundColor:
-                          overallCondition === option.value ? "royalBlue" : "",
+                        backgroundColor: overallCondition === option.value ? "royalBlue" : "",
                         color: overallCondition === option.value ? "white" : "black",
                       }}
-                    >
-                      <div>
-                        <div className="font-semibold">{option.label}</div>
-                        <div className="text-sm opacity-75">{option.description}</div>
-                      </div>
-                    </Button>
+                    ><div><div className="font-semibold">{option.label}</div><div className="text-sm opacity-75">{option.description}</div></div></Button>
                   ))}
                 </div>
               </div>
@@ -369,9 +357,7 @@ const ConditionQuestions = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Card
                 onClick={() => handleAccessoryToggle("charger")}
-                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${
-                  hasOriginalCharger !== true ? "bg-muted/30 hover:bg-muted" : ""
-                }`}
+                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasOriginalCharger !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
                 style={{
                   backgroundColor: hasOriginalCharger === true ? "royalBlue" : "",
                   color: hasOriginalCharger === true ? "white" : "black",
@@ -382,9 +368,7 @@ const ConditionQuestions = ({
               </Card>
               <Card
                 onClick={() => handleAccessoryToggle("box")}
-                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${
-                  hasOriginalBox !== true ? "bg-muted/30 hover:bg-muted" : ""
-                }`}
+                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasOriginalBox !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
                 style={{
                   backgroundColor: hasOriginalBox === true ? "royalBlue" : "",
                   color: hasOriginalBox === true ? "white" : "black",
@@ -395,9 +379,7 @@ const ConditionQuestions = ({
               </Card>
               <Card
                 onClick={() => handleAccessoryToggle("bill")}
-                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${
-                  hasPurchaseBill !== true ? "bg-muted/30 hover:bg-muted" : ""
-                }`}
+                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${hasPurchaseBill !== true ? "bg-muted/30 hover:bg-muted" : ""}`}
                 style={{
                   backgroundColor: hasPurchaseBill === true ? "royalBlue" : "",
                   color: hasPurchaseBill === true ? "white" : "black",
@@ -408,9 +390,7 @@ const ConditionQuestions = ({
               </Card>
               <Card
                 onClick={handleNoneToggle}
-                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${
-                  !hasNoneSelected ? "bg-muted/30 hover:bg-muted" : ""
-                }`}
+                className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${!hasNoneSelected ? "bg-muted/30 hover:bg-muted" : ""}`}
                 style={{
                   backgroundColor: hasNoneSelected ? "royalBlue" : "",
                   color: hasNoneSelected ? "white" : "black",
@@ -432,9 +412,7 @@ const ConditionQuestions = ({
               }
               variant="outline"
               className="w-full sm:w-auto px-12 py-4 text-lg"
-            >
-              Back
-            </Button>
+            >Back</Button>
           )}
           {currentStep === "yesno" && (
             <Button
@@ -442,9 +420,7 @@ const ConditionQuestions = ({
               className="w-full sm:w-auto px-12 py-4 text-lg"
               style={{ backgroundColor: "royalBlue", color: "white" }}
               disabled={questions.some((q) => q.value === null)}
-            >
-              Next
-            </Button>
+            >Next</Button>
           )}
           {currentStep === "condition" && (
             <Button
@@ -452,19 +428,18 @@ const ConditionQuestions = ({
               className="w-full sm:w-auto px-12 py-4 text-lg"
               style={{ backgroundColor: "royalBlue", color: "white" }}
               disabled={!overallCondition || !ageGroup}
-            >
-              Next
-            </Button>
+            >Next</Button>
           )}
           {currentStep === "accessories" && (
             <Button
               onClick={handleComplete}
               className="w-full sm:w-auto px-12 py-4 text-lg"
               style={{ backgroundColor: "royalBlue", color: "white" }}
-            >
-              Continue to Verification
-            </Button>
+            >Continue to Verification</Button>
           )}
+        </div>
+        <div className="mt-6 text-center text-xl font-bold">
+          Price You’ll Get: ₹{finalPrice}
         </div>
       </div>
     </div>
