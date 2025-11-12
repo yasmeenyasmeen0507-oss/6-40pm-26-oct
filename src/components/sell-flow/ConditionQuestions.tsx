@@ -168,17 +168,34 @@ const ConditionQuestions = ({
   }
 
   const handleNextToCondition = () => {
-    if (canMakeCalls === null || isTouchWorking === null || isScreenOriginal === null) {
-      alert("Please answer all device condition questions"); return;}
+    if (
+      canMakeCalls === null ||
+      isTouchWorking === null ||
+      isScreenOriginal === null
+    ) {
+      alert("Please answer all device condition questions");
+      return;
+    }
     if (isAppleBrand && isBatteryHealthy === null) {
-      alert("Please answer all device condition questions"); return;}
+      alert("Please answer all device condition questions");
+      return;
+    }
     setCurrentStep("condition");
   };
 
   const handleNextToAccessories = () => {
-    if (!overallCondition) { alert("Please select the overall condition of your device"); return;}
-    if (!ageGroup) { alert("Please select when you purchased your device"); return;}
-    if (!finalPrice || finalPrice === 0) { alert("Price calculation error. Please refresh and try again."); return;}
+    if (!overallCondition) {
+      alert("Please select the overall condition of your device");
+      return;
+    }
+    if (!ageGroup) {
+      alert("Please select when you purchased your device");
+      return;
+    }
+    if (!finalPrice || finalPrice === 0) {
+      alert("Price calculation error. Please refresh and try again.");
+      return;
+    }
     setCurrentStep("accessories");
   };
 
@@ -438,9 +455,7 @@ const ConditionQuestions = ({
             >Continue to Verification</Button>
           )}
         </div>
-        <div className="mt-6 text-center text-xl font-bold">
-          Price You’ll Get: ₹{finalPrice}
-        </div>
+        {/* REMOVE public price from UI! */}
       </div>
     </div>
   );
