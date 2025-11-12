@@ -1,5 +1,6 @@
 // @ts-nocheck
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,9 @@ interface Props {
 }
 
 const PickupScheduler = ({ flowState }: Props) => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
   const [customerName, setCustomerName] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -37,6 +41,13 @@ const PickupScheduler = ({ flowState }: Props) => {
   const phoneVerifiedAt = localStorage.getItem('phone_verified_at');
   const leadId = localStorage.getItem('lead_id');
   const storedCustomerName = localStorage.getItem('customer_name');
+
+  // Check if URL has success parameter on component mount
+  useEffect(() => {
+    if (searchParams.get('status') === 'success') {
+      setIsSuccess(true);
+    }
+  }, [searchParams]);
 
   // Pre-fill customer name if available
   useState(() => {
@@ -182,6 +193,10 @@ const PickupScheduler = ({ flowState }: Props) => {
       localStorage.removeItem('phone_verified_at');
       localStorage.removeItem('verification_timestamp');
       localStorage.removeItem('lead_id');
+
+      // ✅ UPDATE URL WITH SUCCESS PARAMETER
+      const currentPath = window.location.pathname;
+      navigate(`${currentPath}?status=success&pickup_id=${pickupResponse.id}`, { replace: true });
 
       setIsSuccess(true);
       toast({
