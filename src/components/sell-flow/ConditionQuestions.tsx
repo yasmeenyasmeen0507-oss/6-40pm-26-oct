@@ -60,20 +60,27 @@ const ConditionQuestions = ({
   const conditionRef = useRef<HTMLDivElement>(null);
   const accessoriesRef = useRef<HTMLDivElement>(null);
 
-  const isAppleBrand = brandName?.toLowerCase().includes("apple") || brandName?.toLowerCase().includes("iphone");
+  const isAppleBrand =
+    brandName?.toLowerCase().includes("apple") ||
+    brandName?.toLowerCase().includes("iphone");
 
   useEffect(() => {
-    if (canMakeCalls !== null) touchRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (canMakeCalls !== null)
+      touchRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [canMakeCalls]);
   useEffect(() => {
-    if (isTouchWorking !== null) screenRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (isTouchWorking !== null)
+      screenRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [isTouchWorking]);
   useEffect(() => {
-    if (isScreenOriginal !== null && isAppleBrand) batteryRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (isScreenOriginal !== null && isAppleBrand)
+      batteryRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [isScreenOriginal, isAppleBrand]);
   useEffect(() => {
-    if (currentStep === "condition") conditionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    if (currentStep === "accessories") accessoriesRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (currentStep === "condition")
+      conditionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (currentStep === "accessories")
+      accessoriesRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [currentStep]);
 
   useEffect(() => {
@@ -93,21 +100,34 @@ const ConditionQuestions = ({
     fetchWarrantyPrices();
   }, [variantId]);
 
-  useEffect(() => { if (ageGroup && warrantyPrices) updatePrice(); }, [ageGroup, warrantyPrices]);
-  useEffect(() => { if (overallCondition && ageGroup && warrantyPrices) updatePrice(); }, [overallCondition, ageGroup, warrantyPrices]);
-  useEffect(() => { if (ageGroup && warrantyPrices) updatePrice(); }, [canMakeCalls, isTouchWorking, isScreenOriginal, isBatteryHealthy]);
-  useEffect(() => { if (basePriceFromAge && warrantyPrices) calculateFinalPriceWithDeductions(); }, [
-    hasOriginalCharger, hasOriginalBox, hasPurchaseBill, hasNoneSelected, basePriceFromAge, warrantyPrices,
+  useEffect(() => {
+    if (ageGroup && warrantyPrices) updatePrice();
+  }, [ageGroup, warrantyPrices]);
+  useEffect(() => {
+    if (overallCondition && ageGroup && warrantyPrices) updatePrice();
+  }, [overallCondition, ageGroup, warrantyPrices]);
+  useEffect(() => {
+    if (ageGroup && warrantyPrices) updatePrice();
+  }, [canMakeCalls, isTouchWorking, isScreenOriginal, isBatteryHealthy]);
+  useEffect(() => {
+    if (basePriceFromAge && warrantyPrices) calculateFinalPriceWithDeductions();
+  }, [
+    hasOriginalCharger,
+    hasOriginalBox,
+    hasPurchaseBill,
+    hasNoneSelected,
+    basePriceFromAge,
+    warrantyPrices,
   ]);
 
-  // Special OnePlus 12R hardcoded pricing logic
   function updatePrice() {
     if (!ageGroup || !warrantyPrices) return;
-    // OnePlus 12R variant (change variant ID below as needed)
+
+    // Hardcoded logic for OnePlus 12R and Vivo T3 5G for exact calculation
     const oneplus12RVariantId = "39623985-ea60-4d3d-9c07-92175072a827";
+    const vivoT3VariantId = "c9e98622-6aea-42e6-814a-d09e5311bc87";
     let price = basePrice;
 
-    // Use specific pricing for OnePlus 12R
     if (variantId === oneplus12RVariantId) {
       switch (ageGroup) {
         case "0-3": price = 24880; break;
@@ -117,16 +137,34 @@ const ConditionQuestions = ({
         default: price = 0;
       }
       let conditionPercent = 1;
-      if (overallCondition === "good") conditionPercent = 1; // 100%
-      else if (overallCondition === "average") conditionPercent = 0.88; // 88%
-      else if (overallCondition === "below-average") conditionPercent = 0.85; // 85%
+      if (overallCondition === "good") conditionPercent = 1;
+      else if (overallCondition === "average") conditionPercent = 0.88;
+      else if (overallCondition === "below-average") conditionPercent = 0.85;
       price *= conditionPercent;
       setBasePriceFromAge(Math.round(price));
       setFinalPrice(Math.round(price));
       return;
     }
 
-    // Regular pricing for other variants
+    if (variantId === vivoT3VariantId) {
+      switch (ageGroup) {
+        case "0-3": price = 11800; break;
+        case "3-6": price = 11215; break;
+        case "6-11": price = 9945; break;
+        case "12+": price = 8885; break;
+        default: price = 0;
+      }
+      let conditionPercent = 1;
+      if (overallCondition === "good") conditionPercent = 1;
+      else if (overallCondition === "average") conditionPercent = 0.85;
+      else if (overallCondition === "below-average") conditionPercent = 0.80;
+      price *= conditionPercent;
+      setBasePriceFromAge(Math.round(price));
+      setFinalPrice(Math.round(price));
+      return;
+    }
+
+    // Default logic for all other phones
     switch (ageGroup) {
       case "0-3": price = parseFloat(warrantyPrices.price_0_3_months ?? basePrice); break;
       case "3-6": price = parseFloat(warrantyPrices.price_3_6_months ?? basePrice); break;
@@ -163,6 +201,7 @@ const ConditionQuestions = ({
       if (hasOriginalBox !== true) totalDeduction += boxDeduction;
       if (hasPurchaseBill !== true) totalDeduction += billDeduction;
     }
+    // Deduct accessories from price after condition deduction
     if (totalDeduction > 0) price -= totalDeduction;
     setFinalPrice(Math.round(price));
   }
@@ -305,7 +344,6 @@ const ConditionQuestions = ({
           <h1 className="text-2xl font-bold mb-2" style={{ color: "black" }}>{getStepTitle()}</h1>
           <p className="text-lg" style={{ color: "black" }}>{getStepDescription()}</p>
         </div>
-        {/* Step 1: Yes/No */}
         {currentStep === "yesno" && (
           <div className="space-y-6">
             {questions.map((question, idx) => (
@@ -330,7 +368,6 @@ const ConditionQuestions = ({
             ))}
           </div>
         )}
-        {/* Step 2: Condition & Age */}
         {currentStep === "condition" && (
           <div className="space-y-6" ref={conditionRef}>
             <Card className="p-6" ref={ageRef}>
@@ -368,7 +405,6 @@ const ConditionQuestions = ({
             </Card>
           </div>
         )}
-        {/* Step 3: Accessories */}
         {currentStep === "accessories" && (
           <div ref={accessoriesRef}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -455,7 +491,7 @@ const ConditionQuestions = ({
             >Continue to Verification</Button>
           )}
         </div>
-        {/* REMOVE public price from UI! */}
+        {/* No public price visible! */}
       </div>
     </div>
   );
