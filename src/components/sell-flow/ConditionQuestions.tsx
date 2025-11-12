@@ -123,48 +123,8 @@ const ConditionQuestions = ({
   function updatePrice() {
     if (!ageGroup || !warrantyPrices) return;
 
-    // Hardcoded logic for OnePlus 12R and Vivo T3 5G for exact calculation
-    const oneplus12RVariantId = "39623985-ea60-4d3d-9c07-92175072a827";
-    const vivoT3VariantId = "c9e98622-6aea-42e6-814a-d09e5311bc87";
+    // Universal logic: always use table-driven numbers
     let price = basePrice;
-
-    if (variantId === oneplus12RVariantId) {
-      switch (ageGroup) {
-        case "0-3": price = 24880; break;
-        case "3-6": price = 23150; break;
-        case "6-11": price = 22380; break;
-        case "12+": price = 20060; break;
-        default: price = 0;
-      }
-      let conditionPercent = 1;
-      if (overallCondition === "good") conditionPercent = 1;
-      else if (overallCondition === "average") conditionPercent = 0.88;
-      else if (overallCondition === "below-average") conditionPercent = 0.85;
-      price *= conditionPercent;
-      setBasePriceFromAge(Math.round(price));
-      setFinalPrice(Math.round(price));
-      return;
-    }
-
-    if (variantId === vivoT3VariantId) {
-      switch (ageGroup) {
-        case "0-3": price = 11800; break;
-        case "3-6": price = 11215; break;
-        case "6-11": price = 9945; break;
-        case "12+": price = 8885; break;
-        default: price = 0;
-      }
-      let conditionPercent = 1;
-      if (overallCondition === "good") conditionPercent = 1;
-      else if (overallCondition === "average") conditionPercent = 0.85;
-      else if (overallCondition === "below-average") conditionPercent = 0.80;
-      price *= conditionPercent;
-      setBasePriceFromAge(Math.round(price));
-      setFinalPrice(Math.round(price));
-      return;
-    }
-
-    // Default logic for all other phones
     switch (ageGroup) {
       case "0-3": price = parseFloat(warrantyPrices.price_0_3_months ?? basePrice); break;
       case "3-6": price = parseFloat(warrantyPrices.price_3_6_months ?? basePrice); break;
@@ -172,18 +132,24 @@ const ConditionQuestions = ({
       case "12+": price = parseFloat(warrantyPrices.price_11_plus_months ?? basePrice); break;
       default: price = basePrice;
     }
-    let yesNoDeductionPercent = 0;
-    if (canMakeCalls === false) yesNoDeductionPercent += parseFloat(warrantyPrices.call_deduction_percentage ?? "0");
-    if (isTouchWorking === false) yesNoDeductionPercent += parseFloat(warrantyPrices.touch_deduction_percentage ?? "0");
-    if (isScreenOriginal === false) yesNoDeductionPercent += parseFloat(warrantyPrices.screen_deduction_percentage ?? "0");
-    if (isAppleBrand && isBatteryHealthy === false) yesNoDeductionPercent += parseFloat(warrantyPrices.battery_deduction_percentage ?? "0");
-    if (yesNoDeductionPercent > 0) price = price * (1 - yesNoDeductionPercent / 100);
+
+    // --- Condition deduction ---
     let conditionPercent = 1;
-    if (overallCondition === "good") conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_good ?? "100");
-    else if (overallCondition === "average") conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_average ?? "100");
-    else if (overallCondition === "below-average") conditionPercent = parseFloat(warrantyPrices.phoneConditionDeduction_belowAverage ?? "100");
+    if (overallCondition === "good") {
+      // Accept both camelCase and snake_case from DB
+      conditionPercent =
+        parseFloat(warrantyPrices.phoneConditionDeduction_good ?? warrantyPrices.phoneconditiondeduction_good ?? "100");
+    } else if (overallCondition === "average") {
+      conditionPercent =
+        parseFloat(warrantyPrices.phoneConditionDeduction_average ?? warrantyPrices.phoneconditiondeduction_average ?? "100");
+    } else if (overallCondition === "below-average") {
+      conditionPercent =
+        parseFloat(warrantyPrices.phoneConditionDeduction_belowAverage ?? warrantyPrices.phoneconditiondeduction_belowaverage ?? "100");
+    }
     conditionPercent = isNaN(conditionPercent) ? 1 : conditionPercent / 100;
-    if (overallCondition) price *= conditionPercent;
+
+    price = price * conditionPercent;
+
     setBasePriceFromAge(Math.round(price));
     setFinalPrice(Math.round(price));
   }
@@ -192,16 +158,18 @@ const ConditionQuestions = ({
     if (!warrantyPrices) return;
     let price = basePriceFromAge;
     let totalDeduction = 0;
-    const chargerDeduction = parseFloat(warrantyPrices.charger_deduction_amount ?? "0");
-    const boxDeduction = parseFloat(warrantyPrices.box_deduction_amount ?? "0");
-    const billDeduction = parseFloat(warrantyPrices.bill_deduction_amount ?? "0");
+
+    // Accept both camelCase and snake_case from DB to support all variant DB schema
+    const chargerDeduction = parseFloat(warrantyPrices.charger_deduction_amount ?? warrantyPrices.chargerdeductionamount ?? "0");
+    const boxDeduction = parseFloat(warrantyPrices.box_deduction_amount ?? warrantyPrices.boxdeductionamount ?? "0");
+    const billDeduction = parseFloat(warrantyPrices.bill_deduction_amount ?? warrantyPrices.billdeductionamount ?? "0");
+
     if (hasNoneSelected) totalDeduction = chargerDeduction + boxDeduction + billDeduction;
     else {
       if (hasOriginalCharger !== true) totalDeduction += chargerDeduction;
       if (hasOriginalBox !== true) totalDeduction += boxDeduction;
       if (hasPurchaseBill !== true) totalDeduction += billDeduction;
     }
-    // Deduct accessories from price after condition deduction
     if (totalDeduction > 0) price -= totalDeduction;
     setFinalPrice(Math.round(price));
   }
@@ -455,7 +423,6 @@ const ConditionQuestions = ({
             </div>
           </div>
         )}
-
         {/* Action Buttons */}
         <div className="mt-8 text-center flex flex-col sm:flex-row gap-4 justify-center">
           {currentStep !== "yesno" && (
