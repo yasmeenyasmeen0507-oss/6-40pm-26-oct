@@ -9,6 +9,8 @@ import NotFound from "./pages/NotFound";
 import SellMobiles from "./pages/SellMobiles";
 import SellLaptop from "./pages/SellLaptop";
 import SellIpad from "./pages/SellIpad";
+import ValuationPage from "./pages/ValuationPage";
+import PickupPage from "./pages/PickupPage";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Pricing from "./pages/Pricing";
@@ -46,6 +48,14 @@ const App = () => (
             <Route path="/sell/mobiles" element={<SellMobiles />} />
             <Route path="/sell/laptop" element={<SellLaptop />} />
             <Route path="/sell/ipad" element={<SellIpad />} />
+
+            {/* Valuation and Pickup pages - nested under sell routes */}
+            <Route path="/sell/mobiles/valuation" element={<ValuationPage />} />
+            <Route path="/sell/mobiles/pickup" element={<PickupPage />} />
+            <Route path="/sell/laptop/valuation" element={<ValuationPage />} />
+            <Route path="/sell/laptop/pickup" element={<PickupPage />} />
+            <Route path="/sell/ipad/valuation" element={<ValuationPage />} />
+            <Route path="/sell/ipad/pickup" element={<PickupPage />} />
 
             {/* Info pages */}
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />

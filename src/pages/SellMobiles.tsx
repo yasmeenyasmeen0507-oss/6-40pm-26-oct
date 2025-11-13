@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import BrandSelection from "@/components/sell-flow/BrandSelection";
@@ -7,8 +7,6 @@ import CitySelection from "@/components/sell-flow/CitySelection";
 import VariantSelection from "@/components/sell-flow/VariantSelection";
 import ConditionQuestions from "@/components/sell-flow/ConditionQuestions";
 import OTPVerification from "@/components/sell-flow/OTPVerification";
-import FinalValuation from "@/components/sell-flow/FinalValuation";
-import PickupScheduler from "@/components/sell-flow/PickupScheduler";
 import { FlowState } from "./Index";
 
 type Step = 
@@ -17,9 +15,7 @@ type Step =
   | "city" 
   | "variant" 
   | "condition" 
-  | "otp" 
-  | "valuation" 
-  | "pickup";
+  | "otp";
 
 const SellMobiles = () => {
   const navigate = useNavigate();
@@ -46,7 +42,7 @@ const SellMobiles = () => {
   };
 
   const goBack = () => {
-    const stepOrder: Step[] = ["brand", "device", "city", "variant", "condition", "otp", "valuation", "pickup"];
+    const stepOrder: Step[] = ["brand", "device", "city", "variant", "condition", "otp"];
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(stepOrder[currentIndex - 1]);
@@ -58,8 +54,6 @@ const SellMobiles = () => {
   const goHome = () => {
     navigate("/");
   };
-
-  const canGoBack = currentStep !== "valuation" && currentStep !== "pickup";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
@@ -169,38 +163,17 @@ const SellMobiles = () => {
               <OTPVerification
                 onVerify={(phoneNumber, leadId) => {
                   updateFlowState({ phoneNumber });
-                  setCurrentStep("valuation");
+                  
+                  // Store complete flowState in sessionStorage
+                  const completeFlowState = {
+                    ...flowState,
+                    phoneNumber: phoneNumber
+                  };
+                  sessionStorage.setItem('flowState', JSON.stringify(completeFlowState));
+                  
+                  // Navigate to valuation URL under /sell/mobiles
+                  navigate('/sell/mobiles/valuation');
                 }}
-              />
-            </motion.div>
-          )}
-
-          {currentStep === "valuation" && (
-            <motion.div
-              key="valuation"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.4 }}
-            >
-              <FinalValuation
-                finalPrice={flowState.finalPrice}
-                deviceName={flowState.deviceName || ""}
-                onContinue={() => setCurrentStep("pickup")}
-              />
-            </motion.div>
-          )}
-
-          {currentStep === "pickup" && flowState.phoneNumber && (
-            <motion.div
-              key="pickup"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <PickupScheduler
-                flowState={flowState}
               />
             </motion.div>
           )}

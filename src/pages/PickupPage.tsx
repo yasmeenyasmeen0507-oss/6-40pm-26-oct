@@ -1,53 +1,58 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import PickupScheduler from "@/components/sell-flow/PickupScheduler";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FlowState } from "@/pages/Index";
 
 const PickupPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-
-  const category = searchParams.get("category");
-  const brandId = searchParams.get("brandId");
-  const brandName = searchParams.get("brandName");
-  const deviceId = searchParams.get("deviceId");
-  const deviceName = searchParams.get("deviceName");
-  const releaseDate = searchParams.get("releaseDate");
-  const cityId = searchParams.get("cityId");
-  const cityName = searchParams.get("cityName");
-  const variantId = searchParams.get("variantId");
-  const storageGb = searchParams.get("storageGb");
-  const basePrice = searchParams.get("basePrice");
-  const finalPrice = searchParams.get("finalPrice");
-  const phoneNumber = searchParams.get("phoneNumber");
-  const condition = searchParams.get("condition");
+  const [flowState, setFlowState] = useState<FlowState | null>(null);
 
   useEffect(() => {
-    if (!category || !brandId || !brandName || !deviceId || !deviceName || !cityId || !cityName || !variantId || !storageGb || !basePrice || !finalPrice || !phoneNumber || !condition) {
+    // Check if coming from success redirect (has status param)
+    const status = searchParams.get("status");
+    if (status === "success") {
+      // Allow showing success page even without flowState
+      const storedFlowState = sessionStorage.getItem('flowState');
+      if (storedFlowState) {
+        try {
+          setFlowState(JSON.parse(storedFlowState));
+        } catch (error) {
+          console.error("Error parsing flowState:", error);
+        }
+      }
+      return;
+    }
+
+    // Get flowState from sessionStorage
+    const storedFlowState = sessionStorage.getItem('flowState');
+    
+    if (!storedFlowState) {
+      // If no data found, redirect to home
+      navigate("/");
+      return;
+    }
+
+    try {
+      const parsedFlowState = JSON.parse(storedFlowState);
+      setFlowState(parsedFlowState);
+    } catch (error) {
+      console.error("Error parsing flowState:", error);
       navigate("/");
     }
-  }, [category, brandId, brandName, deviceId, deviceName, cityId, cityName, variantId, storageGb, basePrice, finalPrice, phoneNumber, condition, navigate]);
+  }, [navigate, searchParams]);
 
-  if (!category || !brandId || !brandName || !deviceId || !deviceName || !cityId || !cityName || !variantId || !storageGb || !basePrice || !finalPrice || !phoneNumber || !condition) return null;
+  if (!flowState) {
+    return null;
+  }
 
-  const flowState: FlowState = {
-    category: category as any,
-    brandId,
-    brandName,
-    deviceId,
-    deviceName,
-    releaseDate,
-    cityId,
-    cityName,
-    variantId,
-    storageGb: parseInt(storageGb),
-    basePrice: parseFloat(basePrice),
-    condition: JSON.parse(condition),
-    phoneNumber,
-    finalPrice: parseFloat(finalPrice),
-  };
-
-  return <PickupScheduler flowState={flowState} />;
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      <main className="container mx-auto px-4 py-8">
+        <PickupScheduler flowState={flowState} />
+      </main>
+    </div>
+  );
 };
 
 export default PickupPage;
