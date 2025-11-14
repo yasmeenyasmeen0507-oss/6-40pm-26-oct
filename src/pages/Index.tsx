@@ -24,6 +24,7 @@ type Step =
 
 export type DeviceCategory = "phone" | "laptop" | "ipad";
 
+// ✅ FIXED: Updated condition interface to use snake_case (matches database)
 export interface FlowState {
   category: DeviceCategory | null;
   brandId: string | null;
@@ -37,12 +38,15 @@ export interface FlowState {
   storageGb: number | null;
   basePrice: number | null;
   condition: {
-    canMakeCalls: boolean;
-    isTouchWorking: boolean;
-    isScreenOriginal: boolean;
-    isBatteryHealthy: boolean;
-    overallCondition: string;
-    ageGroup: string;
+    can_make_calls: boolean;
+    is_touch_working: boolean;
+    is_screen_original: boolean;
+    is_battery_healthy: boolean;
+    overall_condition: string;
+    age_group: string;
+    has_charger: boolean;
+    has_box: boolean;
+    has_bill: boolean;
   } | null;
   phoneNumber: string | null;
   finalPrice: number;
@@ -96,7 +100,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <AnimatePresence mode="wait">
           {currentStep === "category" && (
@@ -202,7 +205,19 @@ const Index = () => {
                 releaseDate={flowState.releaseDate || ""}
                 brandName={flowState.brandName || ""}
                 onComplete={(condition, finalPrice) => {
+                  console.log("📦 Index received from ConditionQuestions:", { condition, finalPrice });
+                  
                   updateFlowState({ condition, finalPrice });
+                  
+                  // ✅ Persist to sessionStorage immediately
+                  const snapshot = {
+                    ...flowState,
+                    condition,
+                    finalPrice,
+                  };
+                  sessionStorage.setItem("flowState", JSON.stringify(snapshot));
+                  console.log("💾 Index saved to sessionStorage:", snapshot);
+                  
                   setCurrentStep("otp");
                 }}
               />
@@ -221,6 +236,13 @@ const Index = () => {
                 flowState={flowState}   
                 onVerify={(phoneNumber) => {
                   updateFlowState({ phoneNumber });
+                  
+                  const completeFlowState = {
+                    ...flowState,
+                    phoneNumber: phoneNumber,
+                  };
+                  sessionStorage.setItem("flowState", JSON.stringify(completeFlowState));
+                  
                   setCurrentStep("valuation");
                 }}
               />

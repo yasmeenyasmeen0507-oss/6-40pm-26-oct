@@ -13,15 +13,15 @@ interface Props {
   brandName?: string;
   onComplete: (
     condition: {
-      canMakeCalls: boolean;
-      isTouchWorking: boolean;
-      isScreenOriginal: boolean;
-      isBatteryHealthy: boolean;
-      overallCondition: string;
-      ageGroup: string;
-      hasCharger: boolean;
-      hasBox: boolean;
-      hasBill: boolean;
+      can_make_calls: boolean;
+      is_touch_working: boolean;
+      is_screen_original: boolean;
+      is_battery_healthy: boolean;
+      overall_condition: string;
+      age_group: string;
+      has_charger: boolean;
+      has_box: boolean;
+      has_bill: boolean;
     },
     finalPrice: number
   ) => void;
@@ -123,7 +123,6 @@ const ConditionQuestions = ({
   function updatePrice() {
     if (!ageGroup || !warrantyPrices) return;
 
-    // Universal logic: always use table-driven numbers
     let price = basePrice;
     switch (ageGroup) {
       case "0-3": price = parseFloat(warrantyPrices.price_0_3_months ?? basePrice); break;
@@ -133,40 +132,33 @@ const ConditionQuestions = ({
       default: price = basePrice;
     }
 
-    // --- NEW: Yes/No Question Deductions (Applied BEFORE condition deduction) ---
     let yesNoDeductionPercent = 0;
 
-    // If customer selected "No" for calls, deduct percentage
     if (canMakeCalls === false) {
       const callDeduction = parseFloat(warrantyPrices.call_deduction_percentage ?? "0");
       yesNoDeductionPercent += callDeduction;
     }
 
-    // If customer selected "No" for touch, deduct percentage
     if (isTouchWorking === false) {
       const touchDeduction = parseFloat(warrantyPrices.touch_deduction_percentage ?? "0");
       yesNoDeductionPercent += touchDeduction;
     }
 
-    // If customer selected "No" for original screen, deduct percentage
     if (isScreenOriginal === false) {
       const screenDeduction = parseFloat(warrantyPrices.screen_deduction_percentage ?? "0");
       yesNoDeductionPercent += screenDeduction;
     }
 
-    // If customer selected "No" for battery (Apple only), deduct percentage
     if (isAppleBrand && isBatteryHealthy === false) {
       const batteryDeduction = parseFloat(warrantyPrices.battery_deduction_percentage ?? "0");
       yesNoDeductionPercent += batteryDeduction;
     }
 
-    // Apply yes/no deductions
     if (yesNoDeductionPercent > 0) {
       const deductionMultiplier = 1 - (yesNoDeductionPercent / 100);
       price = price * deductionMultiplier;
     }
 
-    // --- Condition deduction (Applied AFTER yes/no deductions) ---
     let conditionPercent = 1;
     if (overallCondition === "good") {
       conditionPercent =
@@ -191,7 +183,6 @@ const ConditionQuestions = ({
     let price = basePriceFromAge;
     let totalDeduction = 0;
 
-    // Accept both camelCase and snake_case from DB to support all variant DB schema
     const chargerDeduction = parseFloat(warrantyPrices.charger_deduction_amount ?? warrantyPrices.chargerdeductionamount ?? "0");
     const boxDeduction = parseFloat(warrantyPrices.box_deduction_amount ?? warrantyPrices.boxdeductionamount ?? "0");
     const billDeduction = parseFloat(warrantyPrices.bill_deduction_amount ?? warrantyPrices.billdeductionamount ?? "0");
@@ -255,21 +246,27 @@ const ConditionQuestions = ({
     }
   };
 
+  // ✅ FIXED: Return snake_case field names matching database schema
   const handleComplete = () => {
     const finalCharger = hasNoneSelected ? false : (hasOriginalCharger ?? false);
     const finalBox = hasNoneSelected ? false : (hasOriginalBox ?? false);
     const finalBill = hasNoneSelected ? false : (hasPurchaseBill ?? false);
-    onComplete({
-      canMakeCalls,
-      isTouchWorking,
-      isScreenOriginal,
-      isBatteryHealthy,
-      overallCondition,
-      ageGroup,
-      hasCharger: finalCharger,
-      hasBox: finalBox,
-      hasBill: finalBill,
-    }, finalPrice);
+    
+    const conditionData = {
+      can_make_calls: canMakeCalls ?? false,
+      is_touch_working: isTouchWorking ?? false,
+      is_screen_original: isScreenOriginal ?? false,
+      is_battery_healthy: isBatteryHealthy ?? false,
+      overall_condition: overallCondition,
+      age_group: ageGroup,
+      has_charger: finalCharger,
+      has_box: finalBox,
+      has_bill: finalBill,
+    };
+
+    console.log("✅ ConditionQuestions sending data:", conditionData, "finalPrice:", finalPrice);
+    
+    onComplete(conditionData, finalPrice);
   };
 
   const questions = [
@@ -339,7 +336,6 @@ const ConditionQuestions = ({
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto py-8 px-4">
-        {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold mb-2" style={{ color: "black" }}>{getStepTitle()}</h1>
           <p className="text-lg" style={{ color: "black" }}>{getStepDescription()}</p>
@@ -455,7 +451,6 @@ const ConditionQuestions = ({
             </div>
           </div>
         )}
-        {/* Action Buttons */}
         <div className="mt-8 text-center flex flex-col sm:flex-row gap-4 justify-center">
           {currentStep !== "yesno" && (
             <Button
@@ -490,7 +485,6 @@ const ConditionQuestions = ({
             >Continue to Verification</Button>
           )}
         </div>
-        {/* No public price visible! */}
       </div>
     </div>
   );

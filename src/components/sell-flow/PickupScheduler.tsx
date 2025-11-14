@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
 interface Props {
-  flowState: any; // Can be FlowState or LaptopFlowState
+  flowState: any;
 }
 
 const PickupScheduler = ({ flowState }: Props) => {
@@ -35,28 +35,24 @@ const PickupScheduler = ({ flowState }: Props) => {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const { toast } = useToast();
 
-  // ✅ Get verified phone and lead ID from localStorage
   const verifiedPhone = localStorage.getItem('verified_phone');
   const isPhoneVerified = localStorage.getItem('is_phone_verified') === 'true';
   const phoneVerifiedAt = localStorage.getItem('phone_verified_at');
   const leadId = localStorage.getItem('lead_id');
   const storedCustomerName = localStorage.getItem('customer_name');
 
-  // Check if URL has success parameter on component mount
   useEffect(() => {
     if (searchParams.get('status') === 'success') {
       setIsSuccess(true);
     }
   }, [searchParams]);
 
-  // Pre-fill customer name if available
-  useState(() => {
+  useEffect(() => {
     if (storedCustomerName && !customerName) {
       setCustomerName(storedCustomerName);
     }
-  }, []);
+  }, [storedCustomerName]);
 
-  // Email validation
   const validateEmail = (value: string) => {
     setEmail(value);
     
@@ -77,6 +73,28 @@ const PickupScheduler = ({ flowState }: Props) => {
     }
 
     setEmailError("");
+  };
+
+  // ✅ Map frontend condition values to database ENUM values
+  const mapConditionToEnum = (condition: string): "excellent" | "good" | "fair" | "poor" => {
+    const lowerCondition = condition?.toLowerCase();
+    
+    if (lowerCondition === "good") return "good";
+    if (lowerCondition === "average") return "fair";
+    if (lowerCondition === "below-average" || lowerCondition === "below_average") return "poor";
+    
+    // Default to "good" if unknown
+    return "good";
+  };
+
+  // ✅ Validate age_group matches ENUM: '0-3', '3-6', '6-11', '12+'
+  const validateAgeGroup = (ageGroup: string): "0-3" | "3-6" | "6-11" | "12+" => {
+    const validAges = ["0-3", "3-6", "6-11", "12+"];
+    if (validAges.includes(ageGroup)) {
+      return ageGroup as "0-3" | "3-6" | "6-11" | "12+";
+    }
+    // Default to '12+' if invalid
+    return "12+";
   };
 
   const handleSubmit = async () => {
@@ -110,20 +128,20 @@ const PickupScheduler = ({ flowState }: Props) => {
     setIsSubmitting(true);
 
     try {
-      // ✅ Build pickup request data based on category
+      console.log("🎯 FlowState for pickup:", flowState);
+      console.log("🔍 Condition object:", flowState.condition);
+
+      // Build pickup request data
       const pickupData: any = {
-        // Phone Numbers
-        user_phone: flowState.phoneNumber!, 
+        user_phone: flowState.phoneNumber || verifiedPhone || "", 
         verified_phone: verifiedPhone,
         is_phone_verified: isPhoneVerified,
         phone_verified_at: phoneVerifiedAt,
         
-        // Device & Location
         device_id: flowState.deviceId!,
         variant_id: flowState.variantId!,
         city_id: flowState.cityId!,
         
-        // Pricing & Customer Details
         final_price: flowState.finalPrice,
         customer_name: customerName,
         email: email,
@@ -134,41 +152,87 @@ const PickupScheduler = ({ flowState }: Props) => {
         status: "pending",
       };
 
-      // ✅ Add mobile-specific fields (if category is phone)
+      // ✅ FIXED: Add phone-specific fields with ENUM value mapping
       if (flowState.category === 'phone' || flowState.category === 'mobile') {
-        pickupData.condition = "good" as any;
-        pickupData.age_group = flowState.condition?.ageGroup as any;
-        pickupData.has_charger = flowState.condition?.hasCharger;
-        pickupData.has_bill = flowState.condition?.hasBill;
-        pickupData.has_box = flowState.condition?.hasBox;
-        pickupData.device_powers_on = true;
-        pickupData.display_condition = "good" as any;
-        pickupData.body_condition = "good" as any;
-        pickupData.can_make_calls = flowState.condition?.canMakeCalls;
-        pickupData.is_touch_working = flowState.condition?.isTouchWorking;
-        pickupData.is_screen_original = flowState.condition?.isScreenOriginal;
-        pickupData.is_battery_healthy = flowState.condition?.isBatteryHealthy;
-        pickupData.overall_condition = flowState.condition?.overallCondition;
+        const cond = flowState.condition;
+        
+        if (cond) {
+          console.log("📋 Extracting condition fields for pickup:", cond);
+          
+          // ✅ Map overall_condition to ENUM (excellent/good/fair/poor)
+          const mappedCondition = mapConditionToEnum(cond.overall_condition);
+          
+          // ✅ Validate age_group (0-3, 3-6, 6-11, 12+)
+          const validatedAgeGroup = validateAgeGroup(cond.age_group);
+          
+          // Required ENUM fields
+          pickupData.condition = mappedCondition;
+          pickupData.age_group = validatedAgeGroup;
+          pickupData.display_condition = mappedCondition;
+          pickupData.body_condition = mappedCondition;
+          
+          // Boolean fields
+          pickupData.device_powers_on = true;  // Assumed true
+          pickupData.has_charger = cond.has_charger ?? false;
+          pickupData.has_box = cond.has_box ?? false;
+          pickupData.has_bill = cond.has_bill ?? false;
+          pickupData.can_make_calls = cond.can_make_calls ?? true;
+          pickupData.is_touch_working = cond.is_touch_working ?? true;
+          pickupData.is_screen_original = cond.is_screen_original ?? true;
+          pickupData.is_battery_healthy = cond.is_battery_healthy ?? true;
+          
+          // Text field (optional)
+          pickupData.overall_condition = cond.overall_condition || "good";
+          
+          console.log("✅ Mapped condition:", cond.overall_condition, "→", mappedCondition);
+          console.log("✅ Validated age_group:", cond.age_group, "→", validatedAgeGroup);
+        } else {
+          console.warn("⚠️ No condition object found, using defaults");
+          // Use safe defaults
+          pickupData.condition = "good";
+          pickupData.age_group = "12+";
+          pickupData.display_condition = "good";
+          pickupData.body_condition = "good";
+          pickupData.device_powers_on = true;
+          pickupData.has_charger = false;
+          pickupData.has_box = false;
+          pickupData.has_bill = false;
+          pickupData.can_make_calls = true;
+          pickupData.is_touch_working = true;
+          pickupData.is_screen_original = true;
+          pickupData.is_battery_healthy = true;
+          pickupData.overall_condition = "good";
+        }
       }
 
-      // ✅ Add laptop-specific fields (if category is laptop)
+      // Add laptop-specific fields
       if (flowState.category === 'laptop') {
-        pickupData.age_range = flowState.ageRange; // '<1yr', '1-3yrs', '>3yrs'
-        pickupData.condition = flowState.condition; // 'good', 'average', 'below_average'
+        pickupData.age_range = flowState.ageRange;
+        const laptopCondition = mapConditionToEnum(flowState.condition);
+        pickupData.condition = laptopCondition;
+        pickupData.display_condition = laptopCondition;
+        pickupData.body_condition = laptopCondition;
+        pickupData.age_group = "12+"; // Default for laptops
+        pickupData.device_powers_on = true;
       }
 
-      // ✅ Step 1: Create pickup request
+      console.log("💾 Final pickup request payload:", JSON.stringify(pickupData, null, 2));
+
+      // Create pickup request
       const { data: pickupResponse, error: pickupError } = await supabase
         .from("pickup_requests")
         .insert(pickupData)
         .select()
         .single();
 
-      if (pickupError) throw pickupError;
+      if (pickupError) {
+        console.error("❌ Pickup request error:", pickupError);
+        throw pickupError;
+      }
 
       console.log('✅ Pickup request created:', pickupResponse);
 
-      // ✅ Step 2: Convert lead to pickup (if lead exists)
+      // Convert lead to pickup (if lead exists)
       if (leadId) {
         const { error: leadUpdateError } = await supabase
           .from('leads')
@@ -186,7 +250,7 @@ const PickupScheduler = ({ flowState }: Props) => {
         }
       }
 
-      // ✅ Clear all localStorage data after successful submission
+      // Clear localStorage
       localStorage.removeItem('verified_phone');
       localStorage.removeItem('customer_name');
       localStorage.removeItem('is_phone_verified');
@@ -194,7 +258,7 @@ const PickupScheduler = ({ flowState }: Props) => {
       localStorage.removeItem('verification_timestamp');
       localStorage.removeItem('lead_id');
 
-      // ✅ UPDATE URL WITH SUCCESS PARAMETER
+      // Navigate to success
       const currentPath = window.location.pathname;
       navigate(`${currentPath}?status=success&pickup_id=${pickupResponse.id}`, { replace: true });
 
@@ -205,10 +269,10 @@ const PickupScheduler = ({ flowState }: Props) => {
       });
 
     } catch (error) {
-      console.error("Error submitting pickup request:", error);
+      console.error("❌ Error submitting pickup request:", error);
       toast({
         title: "Error",
-        description: "Failed to schedule pickup. Please try again.",
+        description: error.message || "Failed to schedule pickup. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -493,4 +557,4 @@ const PickupScheduler = ({ flowState }: Props) => {
   );
 };
 
-export default PickupScheduler;  
+export default PickupScheduler;

@@ -9,12 +9,12 @@ import ConditionQuestions from "@/components/sell-flow/ConditionQuestions";
 import OTPVerification from "@/components/sell-flow/OTPVerification";
 import { FlowState } from "./Index";
 
-type Step = 
-  | "brand" 
-  | "device" 
-  | "city" 
-  | "variant" 
-  | "condition" 
+type Step =
+  | "brand"
+  | "device"
+  | "city"
+  | "variant"
+  | "condition"
   | "otp";
 
 const SellMobiles = () => {
@@ -38,7 +38,7 @@ const SellMobiles = () => {
   });
 
   const updateFlowState = (updates: Partial<FlowState>) => {
-    setFlowState(prev => ({ ...prev, ...updates }));
+    setFlowState((prev) => ({ ...prev, ...updates }));
   };
 
   const goBack = () => {
@@ -49,10 +49,6 @@ const SellMobiles = () => {
     } else {
       navigate("/");
     }
-  };
-
-  const goHome = () => {
-    navigate("/");
   };
 
   return (
@@ -145,7 +141,19 @@ const SellMobiles = () => {
                 releaseDate={flowState.releaseDate || ""}
                 brandName={flowState.brandName || ""}
                 onComplete={(condition, finalPrice) => {
+                  console.log("📦 SellMobiles received from ConditionQuestions:", { condition, finalPrice });
+                  
                   updateFlowState({ condition, finalPrice });
+                  
+                  // ✅ Persist to sessionStorage immediately
+                  const snapshot = {
+                    ...flowState,
+                    condition,
+                    finalPrice,
+                  };
+                  sessionStorage.setItem("flowState", JSON.stringify(snapshot));
+                  console.log("💾 SellMobiles saved to sessionStorage:", snapshot);
+                  
                   setCurrentStep("otp");
                 }}
               />
@@ -161,18 +169,17 @@ const SellMobiles = () => {
               transition={{ duration: 0.3 }}
             >
               <OTPVerification
+                flowState={flowState}
                 onVerify={(phoneNumber, leadId) => {
                   updateFlowState({ phoneNumber });
-                  
-                  // Store complete flowState in sessionStorage
+
                   const completeFlowState = {
                     ...flowState,
-                    phoneNumber: phoneNumber
+                    phoneNumber: phoneNumber,
                   };
-                  sessionStorage.setItem('flowState', JSON.stringify(completeFlowState));
-                  
-                  // Navigate to valuation URL under /sell/mobiles
-                  navigate('/sell/mobiles/valuation');
+                  sessionStorage.setItem("flowState", JSON.stringify(completeFlowState));
+
+                  navigate("/sell/mobiles/valuation");
                 }}
               />
             </motion.div>

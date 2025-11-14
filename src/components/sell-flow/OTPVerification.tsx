@@ -6,20 +6,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Phone, Lock, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useSearchParams } from "react-router-dom";
-import { 
-  RecaptchaVerifier, 
+import {
+  RecaptchaVerifier,
   signInWithPhoneNumber,
-  ConfirmationResult 
-} from 'firebase/auth';
-import { auth } from '@/firebase';
-import { supabase } from '@/lib/supabase';
+  ConfirmationResult,
+} from "firebase/auth";
+import { auth } from "@/firebase";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   onVerify: (phoneNumber: string, leadId: string) => void;
+  flowState?: {
+    category: string | null;
+    brandId: string | null;
+    brandName: string | null;
+    deviceId: string | null;
+    deviceName: string | null;
+    releaseDate: string | null;
+    cityId: string | null;
+    cityName: string | null;
+    variantId: string | null;
+    storageGb: number | null;
+    basePrice: number | null;
+    finalPrice: number;
+    condition?: any;
+    phoneNumber?: string | null;
+  };
 }
 
-// Window type declaration
 declare global {
   interface Window {
     recaptchaVerifier?: RecaptchaVerifier;
@@ -27,8 +41,7 @@ declare global {
   }
 }
 
-const OTPVerification = ({ onVerify }: Props) => {
-  const [searchParams] = useSearchParams();
+const OTPVerification = ({ onVerify, flowState }: Props) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -39,23 +52,22 @@ const OTPVerification = ({ onVerify }: Props) => {
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const { toast } = useToast();
 
-  // Extract flow state from URL params
-  const flowState = {
-    category: searchParams.get("category"),
-    brandId: searchParams.get("brandId"),
-    brandName: searchParams.get("brandName"),
-    deviceId: searchParams.get("deviceId"),
-    deviceName: searchParams.get("deviceName"),
-    cityId: searchParams.get("cityId"),
-    cityName: searchParams.get("cityName"),
-    variantId: searchParams.get("variantId"),
-    storageGb: searchParams.get("storageGb"),
-    basePrice: parseFloat(searchParams.get("basePrice") || "0"),
-    finalPrice: parseFloat(searchParams.get("finalPrice") || "0"),
-    condition: searchParams.get("condition"),
-  };
+  // Debug log on mount
+  useEffect(() => {
+    console.log("🔍 OTPVerification mounted");
+    console.log("📊 Incoming flowState prop:", flowState);
+    try {
+      const stored = sessionStorage.getItem("flowState");
+      if (stored) {
+        console.log("📦 SessionStorage flowState:", JSON.parse(stored));
+      } else {
+        console.log("⚠️ No flowState in sessionStorage");
+      }
+    } catch (e) {
+      console.warn("Error reading sessionStorage:", e);
+    }
+  }, []);
 
-  // Timer countdown
   useEffect(() => {
     if (timer > 0) {
       const interval = setInterval(() => {
@@ -65,7 +77,6 @@ const OTPVerification = ({ onVerify }: Props) => {
     }
   }, [timer]);
 
-  // Auto-verify when OTP is complete
   useEffect(() => {
     const isOtpComplete = otp.every((digit) => digit !== "");
     if (isOtpComplete && !isVerifying && confirmationResult) {
@@ -76,247 +87,191 @@ const OTPVerification = ({ onVerify }: Props) => {
     }
   }, [otp]);
 
-  // ✅ COMPLETE FIX: Proper cleanup with DOM recreation
   const cleanupRecaptcha = () => {
     try {
-      console.log("🧹 Cleaning up reCAPTCHA...");
-      
-      // Step 1: Clear the verifier
       if (window.recaptchaVerifier) {
         try {
           window.recaptchaVerifier.clear();
-        } catch (e) {
-          console.warn("Verifier clear error (expected):", e);
-        }
+        } catch {}
         delete window.recaptchaVerifier;
       }
-
-      // Step 2: Remove and recreate the container element
-      const oldContainer = document.getElementById('recaptcha-container');
-      if (oldContainer) {
-        // Remove the old element completely
-        oldContainer.remove();
-      }
-
-      // Create a fresh new container
-      const newContainer = document.createElement('div');
-      newContainer.id = 'recaptcha-container';
-      
-      // Find the parent and add the new container
-      const parent = document.querySelector('.max-w-md');
-      if (parent) {
-        parent.insertBefore(newContainer, parent.firstChild);
-      }
-
-      // Step 3: Hide reCAPTCHA badge (optional)
-      const badge = document.querySelector('.grecaptcha-badge');
-      if (badge && badge.parentElement) {
-        badge.parentElement.style.visibility = 'hidden';
-      }
-
-      console.log("✅ reCAPTCHA cleanup complete");
+      const oldContainer = document.getElementById("recaptcha-container");
+      if (oldContainer) oldContainer.remove();
+      const newContainer = document.createElement("div");
+      newContainer.id = "recaptcha-container";
+      const parent = document.querySelector(".max-w-md");
+      if (parent) parent.insertBefore(newContainer, parent.firstChild);
+      const badge = document.querySelector(".grecaptcha-badge");
+      if (badge && badge.parentElement) badge.parentElement.style.visibility = "hidden";
     } catch (error) {
-      console.error("❌ Cleanup error:", error);
+      console.error("recaptcha cleanup error", error);
     }
   };
 
-  // ✅ COMPLETE FIX: Setup with fresh container
   const setupRecaptcha = async () => {
     try {
-      console.log("🔧 Setting up reCAPTCHA...");
-      
-      // Always cleanup first
       cleanupRecaptcha();
-
-      // Wait for DOM to update
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      // Verify container exists
-      const container = document.getElementById('recaptcha-container');
-      if (!container) {
-        throw new Error("reCAPTCHA container not found");
-      }
-
-      // Create new verifier
-      const verifier = new RecaptchaVerifier(
-        auth,
-        'recaptcha-container',
-        {
-          size: 'invisible',
-          callback: () => {
-            console.log("✅ reCAPTCHA solved");
-          },
-          'expired-callback': () => {
-            console.log("⏰ reCAPTCHA expired");
-            cleanupRecaptcha();
-            toast({
-              title: "reCAPTCHA Expired",
-              description: "Please try again",
-              variant: "destructive",
-            });
-          }
-        }
-      );
-
+      await new Promise((r) => setTimeout(r, 300));
+      const container = document.getElementById("recaptcha-container");
+      if (!container) throw new Error("reCAPTCHA container not found");
+      const verifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+        size: "invisible",
+        callback: () => {},
+        "expired-callback": () => {
+          cleanupRecaptcha();
+          toast({ title: "reCAPTCHA Expired", description: "Please try again", variant: "destructive" });
+        },
+      });
       window.recaptchaVerifier = verifier;
-      console.log("✅ reCAPTCHA setup complete");
-      
       return verifier;
     } catch (error) {
-      console.error("❌ Setup error:", error);
       cleanupRecaptcha();
       throw error;
     }
   };
 
-  // Format phone to E.164
   const formatPhone = (phone: string) => `+91${phone}`;
 
-  // Send OTP
   const handleSendOTP = async () => {
     if (phoneNumber.length !== 10) {
-      toast({
-        title: "Invalid Phone Number",
-        description: "Please enter a valid 10-digit phone number",
-        variant: "destructive",
-      });
+      toast({ title: "Invalid Phone Number", description: "Please enter a valid 10-digit phone number", variant: "destructive" });
       return;
     }
-
     if (!customerName.trim()) {
-      toast({
-        title: "Name Required",
-        description: "Please enter your name",
-        variant: "destructive",
-      });
+      toast({ title: "Name Required", description: "Please enter your name", variant: "destructive" });
       return;
     }
 
     setIsSending(true);
-
     try {
       const formattedPhone = formatPhone(phoneNumber);
-      
-      console.log("📱 Sending OTP to:", formattedPhone);
-
-      // Setup fresh reCAPTCHA
       const appVerifier = await setupRecaptcha();
-
-      const confirmation = await signInWithPhoneNumber(
-        auth,
-        formattedPhone,
-        appVerifier
-      );
-
-      console.log("✅ OTP sent successfully");
-
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
       setConfirmationResult(confirmation);
       window.confirmationResult = confirmation;
-
-      // Store temporarily
       localStorage.setItem("pending_verification_phone", formattedPhone);
       localStorage.setItem("pending_customer_name", customerName);
       localStorage.setItem("verification_timestamp", new Date().toISOString());
-
       setOtpSent(true);
       setTimer(60);
-
-      toast({
-        title: "OTP Sent! 📱",
-        description: `Verification code sent to ${formattedPhone}`,
-      });
+      toast({ title: "OTP Sent! 📱", description: `Verification code sent to ${formattedPhone}` });
     } catch (error: any) {
-      console.error("❌ Send OTP failed:", error);
-      
+      console.error("Send OTP failed:", error);
       let errorMessage = "Please try again";
-      
-      if (error.code === 'auth/too-many-requests') {
-        errorMessage = "Too many attempts. Please try again later.";
-      } else if (error.code === 'auth/invalid-phone-number') {
-        errorMessage = "Invalid phone number format";
-      } else if (error.message?.includes('reCAPTCHA')) {
-        errorMessage = "reCAPTCHA error. Please refresh the page.";
-      }
-      
-      toast({
-        title: "Failed to Send OTP",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      
+      if (error.code === "auth/too-many-requests") errorMessage = "Too many attempts. Please try again later.";
+      if (error.code === "auth/invalid-phone-number") errorMessage = "Invalid phone number format";
+      toast({ title: "Failed to Send OTP", description: errorMessage, variant: "destructive" });
       cleanupRecaptcha();
     } finally {
       setIsSending(false);
     }
   };
 
-  // Verify OTP with Firebase
   const handleVerifyOTP = async () => {
     const otpCode = otp.join("");
-
     if (!otpCode || otpCode.length !== 6) {
-      toast({
-        title: "Invalid OTP",
-        description: "Please enter a valid 6-digit OTP",
-        variant: "destructive",
-      });
+      toast({ title: "Invalid OTP", description: "Please enter a valid 6-digit OTP", variant: "destructive" });
       return;
     }
-
     if (!confirmationResult) {
-      toast({
-        title: "Error",
-        description: "Please request OTP first",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Please request OTP first", variant: "destructive" });
       return;
     }
-
     if (isVerifying) return;
-
     setIsVerifying(true);
 
     try {
       const formattedPhone = formatPhone(phoneNumber);
-
-      console.log("🔍 Verifying OTP...");
-
       const result = await confirmationResult.confirm(otpCode);
       const user = result.user;
 
-      console.log("✅ Firebase verification successful");
+      // Get effective flowState (prop or sessionStorage fallback)
+      const effectiveFlowState = (() => {
+        if (flowState) return flowState;
+        try {
+          const stored = sessionStorage.getItem("flowState");
+          if (stored) return JSON.parse(stored);
+        } catch (e) {
+          console.warn("Failed to parse sessionStorage flowState", e);
+        }
+        return null;
+      })();
 
+      console.log("🎯 Using effectiveFlowState:", effectiveFlowState);
+      console.log("🔍 Condition object:", effectiveFlowState?.condition);
+
+      // Build lead data with proper condition field extraction
       const leadData: any = {
         customer_name: customerName,
-        phone_number: formattedPhone, 
+        phone_number: formattedPhone,
         verified_phone: formattedPhone,
         is_phone_verified: true,
-        lead_status: 'otp-verified',
+        lead_status: "new",
+        converted_to_pickup: false,
+        final_price: typeof effectiveFlowState?.finalPrice === "number"
+          ? effectiveFlowState.finalPrice
+          : effectiveFlowState?.finalPrice
+          ? Number(effectiveFlowState.finalPrice)
+          : null,
+        device_id: effectiveFlowState?.deviceId ?? null,
+        variant_id: effectiveFlowState?.variantId ?? null,
+        city_id: effectiveFlowState?.cityId ?? null,
       };
-      
-      if (flowState.deviceId) leadData.device_id = flowState.deviceId;
-      if (flowState.variantId) leadData.variant_id = flowState.variantId;
-      if (flowState.cityId) leadData.city_id = flowState.cityId;
-      if (flowState.condition) leadData.condition = flowState.condition;
-      if (flowState.finalPrice) leadData.final_price = flowState.finalPrice;
+
+      // CRITICAL FIX: Properly extract condition fields
+      if (effectiveFlowState?.condition) {
+        const cond = effectiveFlowState.condition;
+        console.log("📋 Extracting condition fields:", cond);
+
+        // Add each field individually (safer than spreading)
+        if (typeof cond.can_make_calls === "boolean") {
+          leadData.can_make_calls = cond.can_make_calls;
+        }
+        if (typeof cond.is_touch_working === "boolean") {
+          leadData.is_touch_working = cond.is_touch_working;
+        }
+        if (typeof cond.is_screen_original === "boolean") {
+          leadData.is_screen_original = cond.is_screen_original;
+        }
+        if (typeof cond.is_battery_healthy === "boolean") {
+          leadData.is_battery_healthy = cond.is_battery_healthy;
+        }
+        if (cond.overall_condition) {
+          leadData.overall_condition = cond.overall_condition;
+        }
+        if (cond.age_group) {
+          leadData.age_group = cond.age_group;
+        }
+        if (typeof cond.has_charger === "boolean") {
+          leadData.has_charger = cond.has_charger;
+        }
+        if (typeof cond.has_box === "boolean") {
+          leadData.has_box = cond.has_box;
+        }
+        if (typeof cond.has_bill === "boolean") {
+          leadData.has_bill = cond.has_bill;
+        }
+
+        console.log("✅ Condition fields added to leadData");
+      } else {
+        console.warn("⚠️ No condition object found in effectiveFlowState");
+      }
+
+      console.log("💾 Final lead payload to insert:", JSON.stringify(leadData, null, 2));
 
       const { data: savedLead, error: dbError } = await supabase
-        .from('leads') 
+        .from("leads")
         .insert(leadData)
         .select()
         .single();
 
       if (dbError) {
         console.error("❌ Database error:", dbError);
-        toast({
-          title: "Verification Successful",
-          description: `Phone verified but couldn't save lead. Error code: ${dbError.code}. Please contact support.`,
-          variant: "destructive",
-        });
+        toast({ title: "Database Error", description: dbError.message ?? "Failed to save lead", variant: "destructive" });
         return;
       }
 
-      console.log("✅ Lead saved:", savedLead.id);
+      console.log("✅ Lead saved successfully:", savedLead);
 
       localStorage.setItem("verified_phone", formattedPhone);
       localStorage.setItem("customer_name", customerName);
@@ -324,40 +279,21 @@ const OTPVerification = ({ onVerify }: Props) => {
       localStorage.setItem("is_phone_verified", "true");
       localStorage.setItem("user_id", user.uid);
       localStorage.setItem("lead_id", savedLead.id);
-
       localStorage.removeItem("pending_verification_phone");
       localStorage.removeItem("pending_customer_name");
 
-      toast({
-        title: "Success! ✅",
-        description: "Phone verified successfully",
-      });
-
+      toast({ title: "Success! ✅", description: "Phone verified successfully" });
       cleanupRecaptcha();
 
-      setTimeout(() => {
-        onVerify(formattedPhone, savedLead.id);
-      }, 1000);
-
+      setTimeout(() => onVerify(formattedPhone, savedLead.id), 800);
     } catch (error: any) {
       console.error("❌ Verification failed:", error);
-      
       setOtp(["", "", "", "", "", ""]);
       document.getElementById("otp-0")?.focus();
-
       let errorMessage = "Please check your OTP and try again";
-      
-      if (error.code === 'auth/invalid-verification-code') {
-        errorMessage = "Invalid OTP. Please check and try again.";
-      } else if (error.code === 'auth/code-expired') {
-        errorMessage = "OTP has expired. Please request a new one.";
-      }
-
-      toast({
-        title: "Verification Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      if (error.code === "auth/invalid-verification-code") errorMessage = "Invalid OTP. Please check and try again.";
+      if (error.code === "auth/code-expired") errorMessage = "OTP has expired. Please request a new one.";
+      toast({ title: "Verification Failed", description: errorMessage, variant: "destructive" });
     } finally {
       setIsVerifying(false);
     }
@@ -365,42 +301,27 @@ const OTPVerification = ({ onVerify }: Props) => {
 
   const handleOtpChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
-
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-
-    if (value && index < 5) {
-      document.getElementById(`otp-${index + 1}`)?.focus();
-    }
+    if (value && index < 5) document.getElementById(`otp-${index + 1}`)?.focus();
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      document.getElementById(`otp-${index - 1}`)?.focus();
-    }
+    if (e.key === "Backspace" && !otp[index] && index > 0) document.getElementById(`otp-${index - 1}`)?.focus();
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, 6);
-
+    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
     const newOtp = [...otp];
-    pastedData.split("").forEach((char, index) => {
-      if (index < 6) newOtp[index] = char;
-    });
-
+    pastedData.split("").forEach((c, i) => { if (i < 6) newOtp[i] = c; });
     setOtp(newOtp);
-
     const lastIndex = Math.min(pastedData.length - 1, 5);
     document.getElementById(`otp-${lastIndex}`)?.focus();
   };
 
   const handleResetOTP = () => {
-    console.log("🔄 Resetting OTP...");
     setOtpSent(false);
     setOtp(["", "", "", "", "", ""]);
     setTimer(0);
@@ -412,36 +333,28 @@ const OTPVerification = ({ onVerify }: Props) => {
   };
 
   const handleResendOTP = async () => {
-    console.log("🔄 Resending OTP...");
     setOtpSent(false);
     setOtp(["", "", "", "", "", ""]);
     setTimer(0);
     setConfirmationResult(null);
     cleanupRecaptcha();
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
+    await new Promise((r) => setTimeout(r, 500));
     await handleSendOTP();
   };
 
   useEffect(() => {
-    return () => {
-      cleanupRecaptcha();
-    };
+    return () => cleanupRecaptcha();
   }, []);
 
   return (
     <div className="max-w-md mx-auto animate-fade-in-up">
-      {/* Hidden reCAPTCHA container */}
       <div id="recaptcha-container"></div>
 
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold mb-4">
           Verify Your <span style={{ color: "#4169E1" }}>Number</span>
         </h2>
-        <p className="text-muted-foreground">
-          We'll send you an OTP to verify your phone number
-        </p>
+        <p className="text-muted-foreground">We'll send you an OTP to verify your phone number</p>
       </div>
 
       <Card className="border-2 shadow-xl">
@@ -468,17 +381,13 @@ const OTPVerification = ({ onVerify }: Props) => {
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
             <div className="flex gap-2">
-              <span className="flex items-center px-4 bg-muted rounded-lg border">
-                +91
-              </span>
+              <span className="flex items-center px-4 bg-muted rounded-lg border">+91</span>
               <Input
                 id="phone"
                 type="tel"
                 placeholder="Enter 10-digit number"
                 value={phoneNumber}
-                onChange={(e) =>
-                  setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
-                }
+                onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
                 maxLength={10}
                 disabled={otpSent}
                 className="flex-1 focus:ring-[#4169E1] focus:border-[#4169E1]"
@@ -528,9 +437,7 @@ const OTPVerification = ({ onVerify }: Props) => {
                     />
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground text-center">
-                  OTP sent to +91 {phoneNumber}
-                </p>
+                <p className="text-xs text-muted-foreground text-center">OTP sent to +91 {phoneNumber}</p>
               </div>
 
               <Button
@@ -560,10 +467,7 @@ const OTPVerification = ({ onVerify }: Props) => {
               <div className="text-center">
                 {timer > 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    Resend OTP in{" "}
-                    <span className="font-semibold text-[#4169E1]">
-                      {timer}s
-                    </span>
+                    Resend OTP in <span className="font-semibold text-[#4169E1]">{timer}s</span>
                   </p>
                 ) : (
                   <button
@@ -582,9 +486,7 @@ const OTPVerification = ({ onVerify }: Props) => {
 
       <div className="mt-6 flex items-start gap-2 text-sm text-muted-foreground bg-blue-50 p-4 rounded-lg border border-blue-100">
         <AlertCircle className="w-4 h-4 text-[#4169E1] mt-0.5 flex-shrink-0" />
-        <p>
-          Your number is safe with us. We'll only use it for pickup coordination.
-        </p>
+        <p>Your number is safe with us. We'll only use it for pickup coordination.</p>
       </div>
     </div>
   );
