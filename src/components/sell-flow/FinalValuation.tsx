@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +13,34 @@ interface Props {
 }
 
 const FinalValuation = ({ finalPrice, deviceName, onContinue }: Props) => {
+  const navigate = useNavigate();
+
   useEffect(() => {
+    // ✅ Mark that user is on valuation page
+    sessionStorage.setItem("on_valuation_page", "true");
+    sessionStorage.setItem("valuation_timestamp", Date.now().toString());
+
+    // ✅ Detect back button press
+    const handlePopState = (event: PopStateEvent) => {
+      console.log("🔙 Back button pressed on valuation page");
+      
+      // Clear valuation flag
+      sessionStorage.removeItem("on_valuation_page");
+      sessionStorage.removeItem("valuation_timestamp");
+      
+      // Navigate to home
+      navigate("/", { replace: true });
+    };
+
+    // ✅ Detect page refresh (user is staying)
+    const handleBeforeUnload = () => {
+      sessionStorage.setItem("valuation_refreshed", "true");
+    };
+
+    // Add listeners
+    window.addEventListener("popstate", handlePopState);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     // Trigger confetti animation
     const duration = 3000;
     const animationEnd = Date.now() + duration;
@@ -53,7 +81,23 @@ const FinalValuation = ({ finalPrice, deviceName, onContinue }: Props) => {
       });
     }, 250);
 
-    return () => clearInterval(interval);
+    // Cleanup
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [navigate]);
+
+  // ✅ Check if this is a page refresh (restore state)
+  useEffect(() => {
+    const wasRefreshed = sessionStorage.getItem("valuation_refreshed") === "true";
+    const wasOnValuation = sessionStorage.getItem("on_valuation_page") === "true";
+
+    if (wasRefreshed && wasOnValuation) {
+      console.log("🔄 Valuation page refreshed - staying on page");
+      sessionStorage.removeItem("valuation_refreshed");
+    }
   }, []);
 
   return (

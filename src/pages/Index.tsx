@@ -8,7 +8,6 @@ import CitySelection from "@/components/sell-flow/CitySelection";
 import VariantSelection from "@/components/sell-flow/VariantSelection";
 import ConditionQuestions from "@/components/sell-flow/ConditionQuestions";
 import OTPVerification from "@/components/sell-flow/OTPVerification";
-import FinalValuation from "@/components/sell-flow/FinalValuation";
 import PickupScheduler from "@/components/sell-flow/PickupScheduler";
 
 type Step = 
@@ -19,12 +18,10 @@ type Step =
   | "variant" 
   | "condition" 
   | "otp" 
-  | "valuation" 
   | "pickup";
 
 export type DeviceCategory = "phone" | "laptop" | "ipad";
 
-// ✅ FIXED: Updated condition interface to use snake_case (matches database)
 export interface FlowState {
   category: DeviceCategory | null;
   brandId: string | null;
@@ -85,7 +82,7 @@ const Index = () => {
   };
 
   const goBack = () => {
-    const stepOrder: Step[] = ["category", "brand", "device", "city", "variant", "condition", "otp", "valuation", "pickup"];
+    const stepOrder: Step[] = ["category", "brand", "device", "city", "variant", "condition", "otp", "pickup"];
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(stepOrder[currentIndex - 1]);
@@ -96,7 +93,7 @@ const Index = () => {
     navigate("/");
   };
 
-  const canGoBack = currentStep !== "category" && currentStep !== "valuation" && currentStep !== "pickup";
+  const canGoBack = currentStep !== "category" && currentStep !== "pickup";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
@@ -209,7 +206,6 @@ const Index = () => {
                   
                   updateFlowState({ condition, finalPrice });
                   
-                  // ✅ Persist to sessionStorage immediately
                   const snapshot = {
                     ...flowState,
                     condition,
@@ -243,24 +239,17 @@ const Index = () => {
                   };
                   sessionStorage.setItem("flowState", JSON.stringify(completeFlowState));
                   
-                  setCurrentStep("valuation");
+                  // ✅ Navigate to valuation route based on category
+                  if (flowState.category === "phone") {
+                    navigate("/sell/mobiles/valuation");
+                  } else if (flowState.category === "laptop") {
+                    navigate("/sell/laptop/valuation");
+                  } else if (flowState.category === "ipad") {
+                    navigate("/sell/ipad/valuation");
+                  } else {
+                    navigate("/sell/mobiles/valuation"); // fallback
+                  }
                 }}
-              />
-            </motion.div>
-          )}
-
-          {currentStep === "valuation" && (
-            <motion.div
-              key="valuation"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.4 }}
-            >
-              <FinalValuation
-                finalPrice={flowState.finalPrice}
-                deviceName={flowState.deviceName || ""}
-                onContinue={() => setCurrentStep("pickup")}
               />
             </motion.div>
           )}

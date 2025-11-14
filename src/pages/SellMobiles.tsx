@@ -145,7 +145,6 @@ const SellMobiles = () => {
                   
                   updateFlowState({ condition, finalPrice });
                   
-                  // ✅ Persist to sessionStorage immediately
                   const snapshot = {
                     ...flowState,
                     condition,
@@ -179,6 +178,7 @@ const SellMobiles = () => {
                   };
                   sessionStorage.setItem("flowState", JSON.stringify(completeFlowState));
 
+                  // ✅ Navigate to valuation route
                   navigate("/sell/mobiles/valuation");
                 }}
               />

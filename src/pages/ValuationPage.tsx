@@ -7,23 +7,47 @@ const ValuationPage = () => {
   const navigate = useNavigate();
   const [flowState, setFlowState] = useState<FlowState | null>(null);
 
+  // ✅ Restore flowState from sessionStorage (for refresh)
   useEffect(() => {
-    // Get flowState from sessionStorage
     const storedFlowState = sessionStorage.getItem('flowState');
     
     if (!storedFlowState) {
-      // If no data found, redirect to home
+      console.warn("⚠️ No flowState found, redirecting to home");
       navigate("/");
       return;
     }
 
     try {
       const parsedFlowState = JSON.parse(storedFlowState);
+      console.log("🔄 ValuationPage: Restored flowState:", parsedFlowState);
       setFlowState(parsedFlowState);
     } catch (error) {
       console.error("Error parsing flowState:", error);
       navigate("/");
     }
+  }, [navigate]);
+
+  // ✅ NEW: Override browser history to make back button go to home
+  useEffect(() => {
+    // Push a state to mark we're on valuation page
+    window.history.pushState({ page: 'valuation' }, '', window.location.pathname);
+
+    const handlePopState = (event: PopStateEvent) => {
+      console.log("🔙 Back button pressed on valuation page");
+      
+      // Prevent default back behavior and go to home
+      event.preventDefault();
+      window.history.pushState({ page: 'valuation' }, '', window.location.pathname);
+      
+      // Navigate to home
+      navigate("/", { replace: true });
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
   }, [navigate]);
 
   const handleContinue = () => {
@@ -34,7 +58,11 @@ const ValuationPage = () => {
   };
 
   if (!flowState) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading valuation...</p>
+      </div>
+    );
   }
 
   return (
@@ -42,7 +70,7 @@ const ValuationPage = () => {
       <main className="container mx-auto px-4 py-8">
         <FinalValuation
           finalPrice={flowState.finalPrice}
-          deviceName={flowState.deviceName || ""}
+          deviceName={flowState.deviceName || "Your Device"}
           onContinue={handleContinue}
         />
       </main>
