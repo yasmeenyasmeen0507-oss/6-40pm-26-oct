@@ -133,10 +133,42 @@ const ConditionQuestions = ({
       default: price = basePrice;
     }
 
-    // --- Condition deduction ---
+    // --- NEW: Yes/No Question Deductions (Applied BEFORE condition deduction) ---
+    let yesNoDeductionPercent = 0;
+
+    // If customer selected "No" for calls, deduct percentage
+    if (canMakeCalls === false) {
+      const callDeduction = parseFloat(warrantyPrices.call_deduction_percentage ?? "0");
+      yesNoDeductionPercent += callDeduction;
+    }
+
+    // If customer selected "No" for touch, deduct percentage
+    if (isTouchWorking === false) {
+      const touchDeduction = parseFloat(warrantyPrices.touch_deduction_percentage ?? "0");
+      yesNoDeductionPercent += touchDeduction;
+    }
+
+    // If customer selected "No" for original screen, deduct percentage
+    if (isScreenOriginal === false) {
+      const screenDeduction = parseFloat(warrantyPrices.screen_deduction_percentage ?? "0");
+      yesNoDeductionPercent += screenDeduction;
+    }
+
+    // If customer selected "No" for battery (Apple only), deduct percentage
+    if (isAppleBrand && isBatteryHealthy === false) {
+      const batteryDeduction = parseFloat(warrantyPrices.battery_deduction_percentage ?? "0");
+      yesNoDeductionPercent += batteryDeduction;
+    }
+
+    // Apply yes/no deductions
+    if (yesNoDeductionPercent > 0) {
+      const deductionMultiplier = 1 - (yesNoDeductionPercent / 100);
+      price = price * deductionMultiplier;
+    }
+
+    // --- Condition deduction (Applied AFTER yes/no deductions) ---
     let conditionPercent = 1;
     if (overallCondition === "good") {
-      // Accept both camelCase and snake_case from DB
       conditionPercent =
         parseFloat(warrantyPrices.phoneConditionDeduction_good ?? warrantyPrices.phoneconditiondeduction_good ?? "100");
     } else if (overallCondition === "average") {
