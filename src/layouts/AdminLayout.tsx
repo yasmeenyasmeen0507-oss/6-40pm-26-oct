@@ -33,7 +33,7 @@ const menuItems = [
 ];
 
 export default function AdminLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Changed default to false for mobile-first
   const { session, logout } = useAdminAuth();
   const location = useLocation();
   
@@ -46,18 +46,46 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-40 h-screen bg-white border-r border-slate-200 transition-all duration-300',
-          sidebarOpen ? 'w-64' : 'w-0'
+          'fixed left-0 top-0 z-40 h-screen bg-white border-r border-slate-200 transition-transform duration-300',
+          'w-64',
+          // Mobile: slide in/out from left
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          // Desktop: always visible
+          'lg:translate-x-0'
         )}
       >
         <div className="flex flex-col h-full">
+          {/* Header */}
           <div className="p-6 border-b border-slate-200">
-            <h1 className="text-xl font-bold text-slate-900">SellKar Admin</h1>
-            <p className="text-sm text-slate-500 mt-1">Management Portal</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-bold text-slate-900">SellKar Admin</h1>
+                <p className="text-sm text-slate-500 mt-1">Management Portal</p>
+              </div>
+              {/* Close button - only visible on mobile */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
 
+          {/* Navigation Menu */}
           <ScrollArea className="flex-1 px-3 py-4">
             <nav className="space-y-1">
               {menuItems.map((item) => {
@@ -65,7 +93,7 @@ export default function AdminLayout() {
                 const isActive = location.pathname === item.path;
 
                 return (
-                  <Link key={item.path} to={item.path}>
+                  <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)}>
                     <Button
                       variant={isActive ? 'secondary' : 'ghost'}
                       className={cn(
@@ -82,9 +110,10 @@ export default function AdminLayout() {
             </nav>
           </ScrollArea>
 
+          {/* User Info & Logout */}
           <div className="p-4 border-t border-slate-200">
             <div className="flex items-center space-x-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
                 <User className="h-5 w-5 text-slate-600" />
               </div>
               <div className="flex-1 min-w-0">
@@ -102,23 +131,36 @@ export default function AdminLayout() {
         </div>
       </aside>
 
+      {/* Main Content */}
       <div
         className={cn(
           'transition-all duration-300',
-          sidebarOpen ? 'ml-64' : 'ml-0'
+          'lg:ml-64' // Only add margin on desktop
         )}
       >
+        {/* Header */}
         <header className="sticky top-0 z-30 bg-white border-b border-slate-200">
-          <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden" // Only show hamburger on mobile
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+
+            {/* Desktop toggle (optional - hide on mobile) */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="hidden lg:flex"
             >
               {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               {/* Notification Bell with Alarm status */}
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className={cn("h-5 w-5", isAlarmPlaying && 'text-red-500 animate-pulse')} />
@@ -130,7 +172,8 @@ export default function AdminLayout() {
           </div>
         </header>
 
-        <main className="p-6">
+        {/* Main Content Area */}
+        <main className="p-4 sm:p-6">
           {/* 2. GLOBAL NOTIFICATION COMPONENT: Renders pop-up over all content */}
           <NewPickupNotification
             request={newRequest}
