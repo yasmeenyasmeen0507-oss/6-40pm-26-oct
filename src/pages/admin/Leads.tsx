@@ -246,8 +246,9 @@ export default function AdminLeads() {
     }
 
     try {
-      const headers = ["Customer", "Phone", "Verified", "Device", "Price", "Status", "Notes", "Created"];
-      const rows = filteredLeads.map((lead) => [
+      const headers = ["#", "Customer", "Phone", "Verified", "Device", "Price", "Status", "Notes", "Created"];
+      const rows = filteredLeads.map((lead, idx) => [
+        idx + 1, // Serial number
         lead.customer_name,
         lead.phone_number,
         lead.is_phone_verified ? "Yes" : "No",
@@ -391,6 +392,7 @@ export default function AdminLeads() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[60px]">#</TableHead>
                     <TableHead>Device</TableHead>
                     <TableHead>Phone Number</TableHead>
                     <TableHead>Notes</TableHead>
@@ -398,8 +400,12 @@ export default function AdminLeads() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredLeads.map((lead) => (
+                  {filteredLeads.map((lead, index) => (
                     <TableRow key={lead.id}>
+                      <TableCell className="font-mono text-sm text-slate-500">
+                        {index + 1}
+                      </TableCell>
+                      
                       <TableCell>
                         <button onClick={() => handleOpenDetails(lead)} className="text-left hover:bg-slate-50 p-2 rounded transition-colors w-full">
                           <div className="flex items-center gap-3">
