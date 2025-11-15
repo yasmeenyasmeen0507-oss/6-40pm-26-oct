@@ -102,7 +102,6 @@ interface PickupRequest {
   display_condition?: string;
   body_condition?: string;
   overall_condition?: string;
-  // ...add others as needed
 }
 
 export default function AdminPickupRequests() {
@@ -199,7 +198,6 @@ export default function AdminPickupRequests() {
     },
   });
 
-  // FIX: define updateNotesMutation for notes dialog
   const updateNotesMutation = useMutation({
     mutationFn: async ({ id, notes }: { id: string; notes: string }) => {
       const updateData: any = { notes };
@@ -288,12 +286,13 @@ export default function AdminPickupRequests() {
     }
     try {
       const headers = [
-        'ID','Customer Name','Phone','Email','Device','Storage','City','Address','Pincode',
+        '#','ID','Customer Name','Phone','Email','Device','Storage','City','Address','Pincode',
         'Request Time','Pickup Date','Pickup Time','Status','Final Price',
         'Condition','Age Group/Age Range','Overall Condition','Can Make Calls','Touch Working','Screen Original','Battery Healthy',
         'Display Condition','Body Condition','Has Charger','Has Box','Has Bill','Notes','Updated By','Updated At','Created At'
       ];
-      const rows = filteredRequests.map((req) => [
+      const rows = filteredRequests.map((req, idx) => [
+        idx + 1, // Serial number
         req.id,
         req.customer_name,
         req.user_phone,
@@ -443,6 +442,7 @@ export default function AdminPickupRequests() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[60px]">#</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Device</TableHead>
                     <TableHead>City</TableHead>
@@ -455,8 +455,12 @@ export default function AdminPickupRequests() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRequests.map((request) => (
+                  {filteredRequests.map((request, index) => (
                     <TableRow key={request.id}>
+                      <TableCell className="font-mono text-sm text-slate-500">
+                        {index + 1}
+                      </TableCell>
+                      
                       <TableCell>
                         <div>
                           <button
@@ -593,6 +597,7 @@ export default function AdminPickupRequests() {
         </CardContent>
       </Card>
 
+      {/* Details Dialog */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -687,14 +692,13 @@ export default function AdminPickupRequests() {
                 </div>
               </div>
               <Separator />
-              {/* Device Condition Assessment (COMPLETE & UPDATED) */}
+              {/* Device Condition Assessment */}
               <div>
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                   <Package className="h-5 w-5 text-purple-600" />
                   Device Condition Assessment
                 </h3>
                 <div className="bg-slate-50 p-4 rounded-lg space-y-3">
-                  {/* Device Age / Age Group / Age Range */}
                   {(selectedRequest.age_group || selectedRequest.age_range) && (
                     <div className="flex justify-between items-center">
                       <span className="text-slate-700">Device Age:</span>
@@ -707,7 +711,6 @@ export default function AdminPickupRequests() {
                       </Badge>
                     </div>
                   )}
-                  {/* Overall Condition */}
                   {selectedRequest.overall_condition && (
                     <div className="flex justify-between items-center">
                       <span className="text-slate-700">Overall Condition:</span>
@@ -725,7 +728,6 @@ export default function AdminPickupRequests() {
                       </Badge>
                     </div>
                   )}
-                  {/* Display Condition / Body Condition if used */}
                   {selectedRequest.display_condition && (
                     <div className="flex justify-between items-center">
                       <span className="text-slate-700">Display Condition:</span>
@@ -742,7 +744,6 @@ export default function AdminPickupRequests() {
                       </Badge>
                     </div>
                   )}
-                  {/* Functional assessment */}
                   <Separator className="my-2" />
                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                     {typeof selectedRequest.can_make_calls !== "undefined" && (
@@ -787,7 +788,6 @@ export default function AdminPickupRequests() {
                     )}
                   </div>
                   <Separator className="my-2" />
-                  {/* Accessories */}
                   <div className="grid grid-cols-3 gap-3">
                     <div className="flex items-center gap-2">
                       {selectedRequest.has_charger ? (
@@ -913,6 +913,7 @@ export default function AdminPickupRequests() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       {/* Notes Dialog */}
       <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
