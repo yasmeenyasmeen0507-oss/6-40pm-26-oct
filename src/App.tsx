@@ -9,6 +9,11 @@ import NotFound from "./pages/NotFound";
 import SellMobiles from "./pages/SellMobiles";
 import SellLaptop from "./pages/SellLaptop";
 import SellIpad from "./pages/SellIpad";
+import DevicePage from "./pages/DevicePage";
+import CityPage from "./pages/CityPage";
+import VariantPage from "./pages/VariantPage";
+import ConditionPage from "./pages/ConditionPage";
+import VerifyPage from "./pages/VerifyPage";
 import ValuationPage from "./pages/ValuationPage";
 import PickupPage from "./pages/PickupPage";
 import TermsAndConditions from "./pages/TermsAndConditions";
@@ -44,18 +49,38 @@ const App = () => (
             {/* Redirect /sell to homepage */}
             <Route path="/sell" element={<Navigate to="/" replace />} />
 
-            {/* Category-specific routes */}
+            {/* ========== MOBILES FLOW ========== */}
             <Route path="/sell/mobiles" element={<SellMobiles />} />
-            <Route path="/sell/laptop" element={<SellLaptop />} />
-            <Route path="/sell/ipad" element={<SellIpad />} />
+            <Route path="/sell/mobiles/:brandSlug" element={<DevicePage category="phone" />} />
+            <Route path="/sell/mobiles/:brandSlug/:deviceSlug" element={<CityPage category="phone" />} />
+            <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug" element={<VariantPage category="phone" />} />
+            <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug" element={<ConditionPage category="phone" />} />
+            <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification" element={<VerifyPage />} />
+            <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success" element={<ValuationPage />} />
+            <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup" element={<PickupPage />} />
+            <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup/success" element={<PickupPage />} />
 
-            {/* Valuation and Pickup pages - nested under sell routes */}
-            <Route path="/sell/mobiles/valuation" element={<ValuationPage />} />
-            <Route path="/sell/mobiles/pickup" element={<PickupPage />} />
-            <Route path="/sell/laptop/valuation" element={<ValuationPage />} />
-            <Route path="/sell/laptop/pickup" element={<PickupPage />} />
-            <Route path="/sell/ipad/valuation" element={<ValuationPage />} />
-            <Route path="/sell/ipad/pickup" element={<PickupPage />} />
+            {/* ========== LAPTOP FLOW ========== */}
+            <Route path="/sell/laptop" element={<SellLaptop />} />
+            <Route path="/sell/laptop/:brandSlug" element={<DevicePage category="laptop" />} />
+            <Route path="/sell/laptop/:brandSlug/:deviceSlug" element={<CityPage category="laptop" />} />
+            <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug" element={<VariantPage category="laptop" />} />
+            <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug" element={<ConditionPage category="laptop" />} />
+            <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification" element={<VerifyPage />} />
+            <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success" element={<ValuationPage />} />
+            <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup" element={<PickupPage />} />
+            <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup/success" element={<PickupPage />} />
+
+            {/* ========== IPAD FLOW ========== */}
+            <Route path="/sell/ipad" element={<SellIpad />} />
+            <Route path="/sell/ipad/:brandSlug" element={<DevicePage category="ipad" />} />
+            <Route path="/sell/ipad/:brandSlug/:deviceSlug" element={<CityPage category="ipad" />} />
+            <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug" element={<VariantPage category="ipad" />} />
+            <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug" element={<ConditionPage category="ipad" />} />
+            <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification" element={<VerifyPage />} />
+            <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success" element={<ValuationPage />} />
+            <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup" element={<PickupPage />} />
+            <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup/success" element={<PickupPage />} />
 
             {/* Info pages */}
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />

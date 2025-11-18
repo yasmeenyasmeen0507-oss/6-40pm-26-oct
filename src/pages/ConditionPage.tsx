@@ -1,95 +1,96 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import ConditionQuestions from "@/components/sell-flow/ConditionQuestions";
-import { useEffect } from "react";
-import { Loader2 } from "lucide-react"; // ✅ Add loading spinner
+import { DeviceCategory } from "@/pages/Index";
+import { FlowState } from "@/pages/Index";
+import { Loader2 } from "lucide-react";
 
-const ConditionPage = () => {
+interface ConditionPageProps {
+  category: DeviceCategory;
+}
+
+const ConditionPage = ({ category }: ConditionPageProps) => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  
-  // Get all params from URL
-  const category = searchParams.get("category");
-  const brandId = searchParams.get("brandId");
-  const brandName = searchParams.get("brandName");
-  const deviceId = searchParams.get("deviceId");
-  const deviceName = searchParams.get("deviceName");
-  const cityId = searchParams.get("cityId");
-  const cityName = searchParams.get("cityName");
-  const variantId = searchParams.get("variantId");
-  const storageGb = searchParams.get("storageGb");
-  const basePrice = searchParams.get("basePrice");
+  const { brandSlug, deviceSlug, citySlug, variantSlug } = useParams<{ 
+    brandSlug: string; 
+    deviceSlug: string; 
+    citySlug: string;
+    variantSlug: string;
+  }>();
+  const [flowState, setFlowState] = useState<FlowState | null>(null);
 
-  // 🔍 DEBUG: Log all URL params
-  console.log('🔍 ConditionPage URL params:', {
-    category,
-    brandId,
-    brandName,
-    deviceId,
-    deviceName,
-    cityId,
-    cityName,
-    variantId,
-    storageGb,
-    basePrice,
-    fullURL: window.location.href
-  });
-
-  // Redirect if required params are missing
   useEffect(() => {
-    if (!category || !brandId || !brandName || !deviceId || !deviceName || 
-        !cityId || !cityName || !variantId || !storageGb || !basePrice) {
-      console.error('❌ Missing required parameters, redirecting to home');
-      navigate("/", { replace: true }); // ✅ Added replace: true to prevent back navigation
+    // Get flowState from sessionStorage
+    const storedFlowState = sessionStorage.getItem("flowState");
+    
+    if (!storedFlowState) {
+      // No flow state, redirect to start
+      const categoryPath = category === "phone" ? "mobiles" : category;
+      navigate(`/sell/${categoryPath}`);
+      return;
     }
-  }, [category, brandId, brandName, deviceId, deviceName, cityId, cityName, variantId, storageGb, basePrice, navigate]);
 
-  // Don't render if missing params
-  if (!category || !brandId || !brandName || !deviceId || !deviceName || 
-      !cityId || !cityName || !variantId || !storageGb || !basePrice) {
+    try {
+      const parsedState = JSON.parse(storedFlowState);
+      
+      // Validate that variant is selected
+      if (!parsedState.variantId || !parsedState.basePrice) {
+        const categoryPath = category === "phone" ? "mobiles" : category;
+        navigate(`/sell/${categoryPath}/${brandSlug}/${deviceSlug}/${citySlug}`);
+        return;
+      }
+      
+      console.log('🔍 ConditionPage loaded with flowState:', parsedState);
+      setFlowState(parsedState);
+    } catch (error) {
+      console.error("Error parsing flowState:", error);
+      const categoryPath = category === "phone" ? "mobiles" : category;
+      navigate(`/sell/${categoryPath}`);
+    }
+  }, [navigate, category, brandSlug, deviceSlug, citySlug]);
+
+  const handleComplete = (condition: any, finalPrice: number) => {
+    console.log('✅ Condition questions completed:', { condition, finalPrice });
+
+    // Update flowState with condition and final price
+    const updatedFlowState = {
+      ...flowState,
+      condition,
+      finalPrice,
+    };
+    
+    sessionStorage.setItem("flowState", JSON.stringify(updatedFlowState));
+    console.log('💾 Updated flowState saved to sessionStorage:', updatedFlowState);
+    
+    // Navigate to verification (OTP) page
+    const categoryPath = category === "phone" ? "mobiles" : category;
+    navigate(`/sell/${categoryPath}/${brandSlug}/${deviceSlug}/${citySlug}/${variantSlug}/verification`);
+  };
+
+  if (!flowState) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
           <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
-          <h2 className="text-2xl font-bold">Missing Information</h2>
-          <p className="text-muted-foreground">Required parameters are missing. Redirecting...</p>
+          <h2 className="text-2xl font-bold">Loading...</h2>
         </div>
       </div>
     );
   }
 
-  const handleComplete = (condition: any, finalPrice: number) => {
-    console.log('✅ Condition questions completed:', {
-      condition,
-      finalPrice
-    });
-
-    const params = new URLSearchParams({
-      category,
-      brandId,
-      brandName,
-      deviceId,
-      deviceName,
-      cityId,
-      cityName,
-      variantId,
-      storageGb,
-      basePrice,
-      finalPrice: finalPrice.toString(),
-      condition: JSON.stringify(condition),
-    });
-
-    console.log('🔄 Navigating to verify page with params:', params.toString());
-    navigate(`/verify?${params.toString()}`);
-  };
-
   return (
-    <ConditionQuestions
-      variantId={variantId}
-      basePrice={parseFloat(basePrice)}
-      deviceName={`${deviceName} ${storageGb}GB`}
-      releaseDate=""
-      onComplete={handleComplete}
-    />
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      <main className="container mx-auto px-4 py-8">
+        <ConditionQuestions
+          variantId={flowState.variantId!}
+          basePrice={flowState.basePrice!}
+          deviceName={flowState.deviceName || ""}
+          releaseDate={flowState.releaseDate || ""}
+          brandName={flowState.brandName || ""}
+          onComplete={handleComplete}
+        />
+      </main>
+    </div>
   );
 };
 

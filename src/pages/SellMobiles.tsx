@@ -1,190 +1,66 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import BrandSelection from "@/components/sell-flow/BrandSelection";
-import DeviceSelection from "@/components/sell-flow/DeviceSelection";
-import CitySelection from "@/components/sell-flow/CitySelection";
-import VariantSelection from "@/components/sell-flow/VariantSelection";
-import ConditionQuestions from "@/components/sell-flow/ConditionQuestions";
-import OTPVerification from "@/components/sell-flow/OTPVerification";
-import { FlowState } from "./Index";
-
-type Step =
-  | "brand"
-  | "device"
-  | "city"
-  | "variant"
-  | "condition"
-  | "otp";
+import { FlowState } from "@/pages/Index";
 
 const SellMobiles = () => {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState<Step>("brand");
-  const [flowState, setFlowState] = useState<FlowState>({
-    category: "phone",
-    brandId: null,
-    brandName: null,
-    deviceId: null,
-    deviceName: null,
-    releaseDate: null,
-    cityId: null,
-    cityName: null,
-    variantId: null,
-    storageGb: null,
-    basePrice: null,
-    condition: null,
-    phoneNumber: null,
-    finalPrice: 0,
-  });
 
-  const updateFlowState = (updates: Partial<FlowState>) => {
-    setFlowState((prev) => ({ ...prev, ...updates }));
+  useEffect(() => {
+    // Initialize flowState for new flow
+    const flowState: FlowState = {
+      category: "phone",
+      brandId: null,
+      brandName: null,
+      deviceId: null,
+      deviceName: null,
+      releaseDate: null,
+      cityId: null,
+      cityName: null,
+      variantId: null,
+      storageGb: null,
+      basePrice: null,
+      condition: null,
+      phoneNumber: null,
+      finalPrice: 0,
+    };
+    
+    sessionStorage.setItem("flowState", JSON.stringify(flowState));
+  }, []);
+
+  // Helper function to create URL-friendly slug
+  const createSlug = (text: string): string => {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
   };
 
-  const goBack = () => {
-    const stepOrder: Step[] = ["brand", "device", "city", "variant", "condition", "otp"];
-    const currentIndex = stepOrder.indexOf(currentStep);
-    if (currentIndex > 0) {
-      setCurrentStep(stepOrder[currentIndex - 1]);
-    } else {
-      navigate("/");
-    }
+  const handleBrandSelect = (brandId: string, brandName: string) => {
+    // Get current flow state
+    const storedFlowState = sessionStorage.getItem("flowState");
+    const flowState = storedFlowState ? JSON.parse(storedFlowState) : {};
+
+    // Update flowState with selected brand
+    const updatedFlowState = {
+      ...flowState,
+      brandId,
+      brandName,
+    };
+    
+    sessionStorage.setItem("flowState", JSON.stringify(updatedFlowState));
+    
+    // Create slug from brand name
+    const brandSlug = createSlug(brandName);
+    
+    // Navigate to device selection with brand in URL
+    navigate(`/sell/mobiles/${brandSlug}`);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
       <main className="container mx-auto px-4 py-8">
-        <AnimatePresence mode="wait">
-          {currentStep === "brand" && (
-            <motion.div
-              key="brand"
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.3 }}
-            >
-              <BrandSelection
-                category="phone"
-                onSelect={(brandId, brandName) => {
-                  updateFlowState({ brandId, brandName });
-                  setCurrentStep("device");
-                }}
-              />
-            </motion.div>
-          )}
-
-          {currentStep === "device" && flowState.brandId && (
-            <motion.div
-              key="device"
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.3 }}
-            >
-              <DeviceSelection
-                brandId={flowState.brandId}
-                onSelect={(deviceId, deviceName, releaseDate) => {
-                  updateFlowState({ deviceId, deviceName, releaseDate });
-                  setCurrentStep("city");
-                }}
-              />
-            </motion.div>
-          )}
-
-          {currentStep === "city" && (
-            <motion.div
-              key="city"
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.3 }}
-            >
-              <CitySelection
-                onSelect={(cityId, cityName) => {
-                  updateFlowState({ cityId, cityName });
-                  setCurrentStep("variant");
-                }}
-              />
-            </motion.div>
-          )}
-
-          {currentStep === "variant" && flowState.deviceId && (
-            <motion.div
-              key="variant"
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.3 }}
-            >
-              <VariantSelection
-                deviceId={flowState.deviceId}
-                onSelect={(variantId, storageGb, basePrice) => {
-                  updateFlowState({ variantId, storageGb, basePrice });
-                  setCurrentStep("condition");
-                }}
-              />
-            </motion.div>
-          )}
-
-          {currentStep === "condition" && flowState.basePrice !== null && flowState.variantId && (
-            <motion.div
-              key="condition"
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.3 }}
-            >
-              <ConditionQuestions
-                variantId={flowState.variantId}
-                basePrice={flowState.basePrice}
-                deviceName={flowState.deviceName || ""}
-                releaseDate={flowState.releaseDate || ""}
-                brandName={flowState.brandName || ""}
-                onComplete={(condition, finalPrice) => {
-                  console.log("📦 SellMobiles received from ConditionQuestions:", { condition, finalPrice });
-                  
-                  updateFlowState({ condition, finalPrice });
-                  
-                  const snapshot = {
-                    ...flowState,
-                    condition,
-                    finalPrice,
-                  };
-                  sessionStorage.setItem("flowState", JSON.stringify(snapshot));
-                  console.log("💾 SellMobiles saved to sessionStorage:", snapshot);
-                  
-                  setCurrentStep("otp");
-                }}
-              />
-            </motion.div>
-          )}
-
-          {currentStep === "otp" && (
-            <motion.div
-              key="otp"
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.3 }}
-            >
-              <OTPVerification
-                flowState={flowState}
-                onVerify={(phoneNumber, leadId) => {
-                  updateFlowState({ phoneNumber });
-
-                  const completeFlowState = {
-                    ...flowState,
-                    phoneNumber: phoneNumber,
-                  };
-                  sessionStorage.setItem("flowState", JSON.stringify(completeFlowState));
-
-                  // ✅ Navigate to valuation route
-                  navigate("/sell/mobiles/valuation");
-                }}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <BrandSelection category="phone" onSelect={handleBrandSelect} />
       </main>
     </div>
   );
