@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, MapPin, User, Home, CheckCircle2, Mail, AlertCircle, Phone, ShieldCheck } from "lucide-react";
+import { CalendarIcon, MapPin, User, Home, CheckCircle2, Mail, AlertCircle, Phone, ShieldCheck, Hash } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +32,7 @@ const PickupScheduler = ({ flowState }: Props) => {
   const [pickupTime, setPickupTime] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [generatedOrderId, setGeneratedOrderId] = useState<string>("");
   const [calendarOpen, setCalendarOpen] = useState(false);
   const { toast } = useToast();
 
@@ -43,6 +44,10 @@ const PickupScheduler = ({ flowState }: Props) => {
 
   useEffect(() => {
     if (searchParams.get('status') === 'success') {
+      const orderId = searchParams.get('order_id');
+      if (orderId) {
+        setGeneratedOrderId(orderId);
+      }
       setIsSuccess(true);
     }
   }, [searchParams]);
@@ -75,6 +80,34 @@ const PickupScheduler = ({ flowState }: Props) => {
     setEmailError("");
   };
 
+  // ✅ Generate unique Order ID in format #2025-0001
+  const generateOrderId = async (): Promise<string> => {
+    const currentYear = new Date().getFullYear();
+    
+    // Get the latest order ID for current year
+    const { data: latestOrder } = await supabase
+      .from('pickup_requests')
+      .select('order_id')
+      .like('order_id', `#${currentYear}-%`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    let nextNumber = 1;
+    
+    if (latestOrder?.order_id) {
+      // Extract number from #2025-0001 format
+      const match = latestOrder.order_id.match(/#\d{4}-(\d+)/);
+      if (match && match[1]) {
+        nextNumber = parseInt(match[1]) + 1;
+      }
+    }
+
+    // Format: #2025-0001, #2025-0002, etc.
+    const orderId = `#${currentYear}-${String(nextNumber).padStart(4, '0')}`;
+    return orderId;
+  };
+
   // ✅ Map frontend condition values to database ENUM values
   const mapConditionToEnum = (condition: string): "excellent" | "good" | "fair" | "poor" => {
     const lowerCondition = condition?.toLowerCase();
@@ -83,7 +116,6 @@ const PickupScheduler = ({ flowState }: Props) => {
     if (lowerCondition === "average") return "fair";
     if (lowerCondition === "below-average" || lowerCondition === "below_average") return "poor";
     
-    // Default to "good" if unknown
     return "good";
   };
 
@@ -93,7 +125,6 @@ const PickupScheduler = ({ flowState }: Props) => {
     if (validAges.includes(ageGroup)) {
       return ageGroup as "0-3" | "3-6" | "6-11" | "12+";
     }
-    // Default to '12+' if invalid
     return "12+";
   };
 
@@ -131,8 +162,13 @@ const PickupScheduler = ({ flowState }: Props) => {
       console.log("🎯 FlowState for pickup:", flowState);
       console.log("🔍 Condition object:", flowState.condition);
 
+      // ✅ Generate unique Order ID
+      const orderId = await generateOrderId();
+      console.log("✅ Generated Order ID:", orderId);
+
       // Build pickup request data
       const pickupData: any = {
+        order_id: orderId, // ✅ Add order ID
         user_phone: flowState.phoneNumber || verifiedPhone || "", 
         verified_phone: verifiedPhone,
         is_phone_verified: isPhoneVerified,
@@ -258,14 +294,15 @@ const PickupScheduler = ({ flowState }: Props) => {
       localStorage.removeItem('verification_timestamp');
       localStorage.removeItem('lead_id');
 
-      // Navigate to success
+      // Navigate to success with order ID
       const currentPath = window.location.pathname;
-      navigate(`${currentPath}?status=success&pickup_id=${pickupResponse.id}`, { replace: true });
+      navigate(`${currentPath}?status=success&order_id=${orderId}`, { replace: true });
 
+      setGeneratedOrderId(orderId);
       setIsSuccess(true);
       toast({
         title: "Success!",
-        description: "Your pickup has been scheduled successfully",
+        description: `Pickup scheduled successfully! Order ID: ${orderId}`,
       });
 
     } catch (error) {
@@ -301,10 +338,32 @@ const PickupScheduler = ({ flowState }: Props) => {
           <p className="text-xl text-muted-foreground">
             Your device pickup has been successfully scheduled
           </p>
+          
+          {/* ✅ Display Order ID prominently */}
+          {generatedOrderId && (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#4169E1] to-[#5B7FE8] text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg"
+            >
+              <Hash className="w-6 h-6" />
+              Order ID: {generatedOrderId}
+            </motion.div>
+          )}
         </div>
 
         <Card className="border-2 border-[#4169E1]/20">
           <CardContent className="pt-6 space-y-4">
+            {generatedOrderId && (
+              <div className="flex items-center justify-between bg-[#4169E1]/5 p-3 rounded-lg">
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <Hash className="w-4 h-4" />
+                  Order ID:
+                </span>
+                <span className="font-bold text-[#4169E1] text-lg">{generatedOrderId}</span>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Pickup Date:</span>
               <span className="font-semibold">{pickupDate ? format(pickupDate, "PPP") : ""}</span>
@@ -333,6 +392,10 @@ const PickupScheduler = ({ flowState }: Props) => {
         </Card>
 
         <div className="space-y-3 text-sm text-muted-foreground">
+          <p className="flex items-center justify-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#4169E1]" />
+            Save your Order ID: <strong className="text-[#4169E1]">{generatedOrderId}</strong> for tracking
+          </p>
           <p className="flex items-center justify-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-[#4169E1]" />
             Confirmation sent to {verifiedPhone || flowState.phoneNumber}

@@ -48,7 +48,8 @@ import {
   Smartphone,
   CheckCircle,
   XCircle,
-  Package
+  Package,
+  Hash
 } from 'lucide-react';
 import { logAdminActivity } from '@/lib/admin/auth';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
@@ -56,6 +57,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 
 interface PickupRequest {
   id: string;
+  order_id?: string; // ✅ Added Order ID
   customer_name: string;
   user_phone: string;
   email?: string;
@@ -253,6 +255,7 @@ export default function AdminPickupRequests() {
     return (
       request.customer_name?.toLowerCase().includes(search) ||
       request.user_phone?.includes(search) ||
+      request.order_id?.toLowerCase().includes(search) || // ✅ Search by Order ID
       request.device?.model_name?.toLowerCase().includes(search) ||
       request.device?.brand?.name?.toLowerCase().includes(search)
     );
@@ -286,13 +289,14 @@ export default function AdminPickupRequests() {
     }
     try {
       const headers = [
-        '#','ID','Customer Name','Phone','Email','Device','Storage','City','Address','Pincode',
+        '#','Order ID','ID','Customer Name','Phone','Email','Device','Storage','City','Address','Pincode',
         'Request Time','Pickup Date','Pickup Time','Status','Final Price',
         'Condition','Age Group/Age Range','Overall Condition','Can Make Calls','Touch Working','Screen Original','Battery Healthy',
         'Display Condition','Body Condition','Has Charger','Has Box','Has Bill','Notes','Updated By','Updated At','Created At'
       ];
       const rows = filteredRequests.map((req, idx) => [
-        idx + 1, // Serial number
+        idx + 1,
+        req.order_id || '', // ✅ Export Order ID
         req.id,
         req.customer_name,
         req.user_phone,
@@ -403,7 +407,7 @@ export default function AdminPickupRequests() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                placeholder="Search by name, phone, or device..."
+                placeholder="Search by name, phone, order ID, or device..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -443,6 +447,7 @@ export default function AdminPickupRequests() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[60px]">#</TableHead>
+                    <TableHead className="w-[120px]">Order ID</TableHead> {/* ✅ Added Order ID column */}
                     <TableHead>Customer</TableHead>
                     <TableHead>Device</TableHead>
                     <TableHead>City</TableHead>
@@ -459,6 +464,18 @@ export default function AdminPickupRequests() {
                     <TableRow key={request.id}>
                       <TableCell className="font-mono text-sm text-slate-500">
                         {index + 1}
+                      </TableCell>
+                      
+                      {/* ✅ Display Order ID */}
+                      <TableCell>
+                        {request.order_id ? (
+                          <Badge variant="outline" className="font-mono text-xs bg-blue-50 text-blue-700 border-blue-300">
+                            <Hash className="w-3 h-3 mr-1" />
+                            {request.order_id.replace('#', '')}
+                          </Badge>
+                        ) : (
+                          <span className="text-slate-400 text-xs">No ID</span>
+                        )}
                       </TableCell>
                       
                       <TableCell>
@@ -608,6 +625,21 @@ export default function AdminPickupRequests() {
           </DialogHeader>
           {selectedRequest && (
             <div className="space-y-6">
+              {/* ✅ Show Order ID in Details Dialog */}
+              {selectedRequest.order_id && (
+                <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-blue-700 flex items-center gap-2">
+                      <Hash className="w-4 h-4" />
+                      Order ID
+                    </span>
+                    <Badge className="text-lg font-bold bg-blue-600 text-white px-4 py-2">
+                      {selectedRequest.order_id}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+              
               {/* Customer Information */}
               <div>
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
@@ -883,6 +915,9 @@ export default function AdminPickupRequests() {
               {/* Metadata */}
               <div className="text-xs text-slate-500 bg-slate-100 p-3 rounded space-y-1">
                 <p><strong>Request ID:</strong> {selectedRequest.id}</p>
+                {selectedRequest.order_id && (
+                  <p><strong>Order ID:</strong> {selectedRequest.order_id}</p>
+                )}
                 <p>
                   <strong>Created:</strong> {selectedRequest.created_at ? format(new Date(selectedRequest.created_at), 'MMM dd, yyyy HH:mm:ss') : 'N/A'} UTC
                 </p>
@@ -922,6 +957,9 @@ export default function AdminPickupRequests() {
             <DialogDescription>
               {selectedRequest && (
                 <div className="space-y-1 mt-2">
+                  {selectedRequest.order_id && (
+                    <div><strong>Order ID:</strong> {selectedRequest.order_id}</div>
+                  )}
                   <div><strong>Customer:</strong> {selectedRequest.customer_name}</div>
                   <div><strong>Phone:</strong> {selectedRequest.user_phone}</div>
                   <div><strong>Device:</strong> {selectedRequest.device?.brand?.name} {selectedRequest.device?.model_name}</div>
