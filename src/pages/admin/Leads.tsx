@@ -44,6 +44,7 @@ import {
   IndianRupee,
   Users,
   Clock,
+  Laptop,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { useState } from "react";
@@ -52,6 +53,7 @@ import { toast } from "sonner";
 interface Lead {
   id: string;
   customer_name: string;
+  brand_name?: string | null;
   phone_number: string;
   verified_phone?: string | null;
   is_phone_verified: boolean;
@@ -97,6 +99,7 @@ export default function AdminLeads() {
         .select(`
           id,
           customer_name,
+          brand_name,
           phone_number,
           verified_phone,
           is_phone_verified,
@@ -222,6 +225,7 @@ export default function AdminLeads() {
     const search = searchQuery.toLowerCase();
     return (
       lead.customer_name?.toLowerCase().includes(search) ||
+      lead.brand_name?.toLowerCase().includes(search) ||
       lead.phone_number?.includes(search) ||
       lead.verified_phone?.includes(search) ||
       lead.device?.model_name?.toLowerCase().includes(search)
@@ -246,10 +250,11 @@ export default function AdminLeads() {
     }
 
     try {
-      const headers = ["#", "Customer", "Phone", "Verified", "Device", "Price", "Status", "Notes", "Created"];
+      const headers = ["#", "Customer", "Brand", "Phone", "Verified", "Device", "Price", "Status", "Notes", "Created"];
       const rows = filteredLeads.map((lead, idx) => [
-        idx + 1, // Serial number
+        idx + 1,
         lead.customer_name,
+        lead.brand_name || "N/A",
         lead.phone_number,
         lead.is_phone_verified ? "Yes" : "No",
         `${lead.device?.brand?.name || ""} ${lead.device?.model_name || ""} ${lead.variant?.storage_gb || ""}GB`,
@@ -282,6 +287,11 @@ export default function AdminLeads() {
       completed: "bg-green-100 text-green-800 border-green-300",
     };
     return (status && colors[status]) || "bg-slate-100 text-slate-800 border-slate-300";
+  };
+
+  // Helper function to check if lead is simplified laptop lead
+  const isSimplifiedLaptopLead = (lead: Lead) => {
+    return lead.brand_name && !lead.device?.model_name;
   };
 
   return (
@@ -370,7 +380,7 @@ export default function AdminLeads() {
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input placeholder="Search by name, phone, or device..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+              <Input placeholder="Search by name, brand, phone, or device..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
             </div>
           </div>
         </CardHeader>
@@ -400,72 +410,96 @@ export default function AdminLeads() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredLeads.map((lead, index) => (
-                    <TableRow key={lead.id}>
-                      <TableCell className="font-mono text-sm text-slate-500">
-                        {index + 1}
-                      </TableCell>
-                      
-                      <TableCell>
-                        <button onClick={() => handleOpenDetails(lead)} className="text-left hover:bg-slate-50 p-2 rounded transition-colors w-full">
-                          <div className="flex items-center gap-3">
-                            <Smartphone className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                            <div className="min-w-0">
-                              <div className="font-medium text-blue-600 hover:text-blue-800 hover:underline truncate">{lead.device?.brand?.name} {lead.device?.model_name}</div>
-                              <div className="text-xs text-slate-500">{lead.variant?.storage_gb}GB • ₹{(lead.final_price ?? 0).toLocaleString("en-IN")}</div>
-                              <div className="text-xs text-slate-400 mt-0.5 truncate">{lead.customer_name}</div>
-                            </div>
-                          </div>
-                        </button>
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                          <div className="min-w-0">
-                            <div className="font-mono font-medium flex items-center gap-2">
-                              <span>{lead.verified_phone || lead.phone_number}</span>
-                              {lead.is_phone_verified && (
-                                <span title="Verified">
-                                  <ShieldCheck className="h-3 w-3 text-green-600 flex-shrink-0" />
-                                </span>
+                  {filteredLeads.map((lead, index) => {
+                    const isSimplified = isSimplifiedLaptopLead(lead);
+                    
+                    return (
+                      <TableRow key={lead.id}>
+                        <TableCell className="font-mono text-sm text-slate-500">
+                          {index + 1}
+                        </TableCell>
+                        
+                        <TableCell>
+                          <button onClick={() => handleOpenDetails(lead)} className="text-left hover:bg-slate-50 p-2 rounded transition-colors w-full">
+                            <div className="flex items-center gap-3">
+                              {isSimplified ? (
+                                <Laptop className="h-5 w-5 text-purple-600 flex-shrink-0" />
+                              ) : (
+                                <Smartphone className="h-5 w-5 text-blue-600 flex-shrink-0" />
                               )}
+                              <div className="min-w-0">
+                                {isSimplified ? (
+                                  <>
+                                    <div className="font-medium text-purple-600 hover:text-purple-800 hover:underline truncate flex items-center gap-2">
+                                      {lead.brand_name} Laptop
+                                      <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-300">Quick Lead</Badge>
+                                    </div>
+                                    <div className="text-xs text-slate-500">Brand only • Needs follow-up</div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <div className="font-medium text-blue-600 hover:text-blue-800 hover:underline truncate">
+                                      {lead.device?.brand?.name} {lead.device?.model_name}
+                                    </div>
+                                    <div className="text-xs text-slate-500">
+                                      {lead.variant?.storage_gb}GB • ₹{(lead.final_price ?? 0).toLocaleString("en-IN")}
+                                    </div>
+                                  </>
+                                )}
+                                <div className="text-xs text-slate-400 mt-0.5 truncate">{lead.customer_name}</div>
+                              </div>
                             </div>
-                            <div className="text-xs text-slate-400 mt-0.5">{lead.created_at ? formatDistanceToNow(new Date(lead.created_at), { addSuffix: true }) : "N/A"}</div>
+                          </button>
+                        </TableCell>
+
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                            <div className="min-w-0">
+                              <div className="font-mono font-medium flex items-center gap-2">
+                                <span>{lead.verified_phone || lead.phone_number}</span>
+                                {lead.is_phone_verified && (
+                                  <span title="Verified">
+                                    <ShieldCheck className="h-3 w-3 text-green-600 flex-shrink-0" />
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-slate-400 mt-0.5">{lead.created_at ? formatDistanceToNow(new Date(lead.created_at), { addSuffix: true }) : "N/A"}</div>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
+                        </TableCell>
 
-                      <TableCell>
-                        <Button variant="ghost" size="sm" onClick={() => handleOpenNotes(lead)} className="h-9">
-                          <FileText className={`h-4 w-4 ${lead.lead_notes ? "text-blue-600" : "text-slate-400"}`} />
-                          {lead.lead_notes && <span className="ml-2 text-xs">View</span>}
-                        </Button>
-                      </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm" onClick={() => handleOpenNotes(lead)} className="h-9">
+                            <FileText className={`h-4 w-4 ${lead.lead_notes ? "text-blue-600" : "text-slate-400"}`} />
+                            {lead.lead_notes && <span className="ml-2 text-xs">View</span>}
+                          </Button>
+                        </TableCell>
 
-                      <TableCell>
-                        <Select value={lead.lead_status ?? ""} onValueChange={(value) => { updateLeadStatusMutation.mutate({ id: lead.id, status: value }); }}>
-                          <SelectTrigger className="w-[140px]">
-                            <Badge variant="secondary" className={getStatusColor(lead.lead_status)}><SelectValue /></Badge>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="new">
-                              <div className="flex items-center gap-2"><Clock className="w-3 h-3 text-yellow-600" />New</div>
-                            </SelectItem>
-                            <SelectItem value="contacted">
-                              <div className="flex items-center gap-2"><PhoneCall className="w-3 h-3 text-blue-600" />Contacted</div>
-                            </SelectItem>
-                            <SelectItem value="rejected">
-                              <div className="flex items-center gap-2"><XCircle className="w-3 h-3 text-red-600" />Rejected</div>
-                            </SelectItem>
-                            <SelectItem value="completed">
-                              <div className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-green-600" />Completed</div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        <TableCell>
+                          <Select value={lead.lead_status ?? ""} onValueChange={(value) => { updateLeadStatusMutation.mutate({ id: lead.id, status: value }); }}>
+                            <SelectTrigger className="w-[140px]">
+                              <Badge variant="secondary" className={getStatusColor(lead.lead_status)}><SelectValue /></Badge>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="new">
+                                <div className="flex items-center gap-2"><Clock className="w-3 h-3 text-yellow-600" />New</div>
+                              </SelectItem>
+                              <SelectItem value="contacted">
+                                <div className="flex items-center gap-2"><PhoneCall className="w-3 h-3 text-blue-600" />Contacted</div>
+                              </SelectItem>
+                              <SelectItem value="rejected">
+                                <div className="flex items-center gap-2"><XCircle className="w-3 h-3 text-red-600" />Rejected</div>
+                              </SelectItem>
+                              <SelectItem value="completed">
+                                <div className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-green-600" />Completed</div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -482,74 +516,102 @@ export default function AdminLeads() {
 
           {selectedLead && (
             <div className="space-y-6">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border">
-                <div className="flex items-center gap-3 mb-3">
-                  <Smartphone className="h-6 w-6 text-blue-600" />
-                  <div>
-                    <h3 className="font-semibold text-lg">{selectedLead.device?.brand?.name} {selectedLead.device?.model_name}</h3>
-                    <p className="text-sm text-slate-600">{selectedLead.variant?.storage_gb}GB • {selectedLead.customer_name}</p>
+              {/* ✅ Show different UI for simplified laptop leads - NO WARNING */}
+              {isSimplifiedLaptopLead(selectedLead) ? (
+                <>
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-200">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Laptop className="h-6 w-6 text-purple-600" />
+                      <div>
+                        <h3 className="font-semibold text-lg">{selectedLead.brand_name} Laptop</h3>
+                        <p className="text-sm text-slate-600">{selectedLead.customer_name}</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300">
+                      Quick Lead - Brand Only
+                    </Badge>
                   </div>
-                </div>
-                <div className="text-2xl font-bold text-blue-700">₹{(selectedLead.final_price ?? 0).toLocaleString("en-IN")}</div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Device Condition</h3>
-                <div className="space-y-3 bg-slate-50 p-4 rounded-lg">
-                  {selectedLead.condition && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-700">Condition:</span>
-                      <Badge variant="outline" className="capitalize">{selectedLead.condition}</Badge>
+                </>
+              ) : (
+                <>
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Smartphone className="h-6 w-6 text-blue-600" />
+                      <div>
+                        <h3 className="font-semibold text-lg">{selectedLead.device?.brand?.name} {selectedLead.device?.model_name}</h3>
+                        <p className="text-sm text-slate-600">{selectedLead.variant?.storage_gb}GB • {selectedLead.customer_name}</p>
+                      </div>
                     </div>
-                  )}
-                  {selectedLead.age_group && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-700">Age:</span>
-                      <Badge variant="outline">{selectedLead.age_group}</Badge>
-                    </div>
-                  )}
-                  {selectedLead.display_condition && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-700">Display:</span>
-                      <Badge variant="outline" className="capitalize">{selectedLead.display_condition}</Badge>
-                    </div>
-                  )}
-                  {selectedLead.body_condition && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-700">Body:</span>
-                      <Badge variant="outline" className="capitalize">{selectedLead.body_condition}</Badge>
-                    </div>
-                  )}
+                    <div className="text-2xl font-bold text-blue-700">₹{(selectedLead.final_price ?? 0).toLocaleString("en-IN")}</div>
+                  </div>
 
                   <Separator />
 
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { label: "Powers On", value: selectedLead.device_powers_on },
-                      { label: "Can Call", value: selectedLead.can_make_calls },
-                      { label: "Touch Works", value: selectedLead.is_touch_working },
-                      { label: "Original Screen", value: selectedLead.is_screen_original },
-                      { label: "Battery OK", value: selectedLead.is_battery_healthy },
-                      { label: "Has Charger", value: selectedLead.has_charger },
-                      { label: "Has Box", value: selectedLead.has_box },
-                      { label: "Has Bill", value: selectedLead.has_bill },
-                    ].map((item) => (
-                      <div key={item.label} className="flex items-center gap-2">
-                        {item.value ? <CheckCircle className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-red-600" />}
-                        <span className="text-sm">{item.label}</span>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Device Condition</h3>
+                    <div className="space-y-3 bg-slate-50 p-4 rounded-lg">
+                      {selectedLead.condition && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-700">Condition:</span>
+                          <Badge variant="outline" className="capitalize">{selectedLead.condition}</Badge>
+                        </div>
+                      )}
+                      {selectedLead.age_group && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-700">Age:</span>
+                          <Badge variant="outline">{selectedLead.age_group}</Badge>
+                        </div>
+                      )}
+                      {selectedLead.display_condition && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-700">Display:</span>
+                          <Badge variant="outline" className="capitalize">{selectedLead.display_condition}</Badge>
+                        </div>
+                      )}
+                      {selectedLead.body_condition && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-700">Body:</span>
+                          <Badge variant="outline" className="capitalize">{selectedLead.body_condition}</Badge>
+                        </div>
+                      )}
+
+                      <Separator />
+
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { label: "Powers On", value: selectedLead.device_powers_on },
+                          { label: "Can Call", value: selectedLead.can_make_calls },
+                          { label: "Touch Works", value: selectedLead.is_touch_working },
+                          { label: "Original Screen", value: selectedLead.is_screen_original },
+                          { label: "Battery OK", value: selectedLead.is_battery_healthy },
+                          { label: "Has Charger", value: selectedLead.has_charger },
+                          { label: "Has Box", value: selectedLead.has_box },
+                          { label: "Has Bill", value: selectedLead.has_bill },
+                        ].map((item) => (
+                          <div key={item.label} className="flex items-center gap-2">
+                            {item.value ? <CheckCircle className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-red-600" />}
+                            <span className="text-sm">{item.label}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
 
               <div className="text-xs text-slate-500 bg-slate-100 p-3 rounded">
                 <p><strong>Created:</strong> {selectedLead.created_at ? format(new Date(selectedLead.created_at), "MMM dd, yyyy HH:mm:ss") : "N/A"}</p>
                 <p><strong>Phone:</strong> {selectedLead.verified_phone || selectedLead.phone_number}</p>
                 {selectedLead.city && <p><strong>City:</strong> {selectedLead.city.name}</p>}
+                {selectedLead.brand_name && <p><strong>Brand:</strong> {selectedLead.brand_name}</p>}
               </div>
+
+              {selectedLead.lead_notes && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-900 mb-2">📝 Notes</h3>
+                  <p className="text-sm text-blue-800 whitespace-pre-wrap">{selectedLead.lead_notes}</p>
+                </div>
+              )}
             </div>
           )}
 

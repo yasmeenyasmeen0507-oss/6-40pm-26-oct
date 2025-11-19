@@ -61,8 +61,20 @@ const App = () => (
             <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup/success" element={<PickupPage />} />
 
             {/* ========== LAPTOP FLOW ========== */}
+            {/* Main laptop brand selection page */}
             <Route path="/sell/laptop" element={<SellLaptop />} />
-            <Route path="/sell/laptop/:brandSlug" element={<DevicePage category="laptop" />} />
+            
+            {/* Simplified flow for specific brands (Dell, HP, Samsung, etc.) */}
+            {/* Format: /sell/laptop/:brandSlug (city selection handled by SellLaptop) */}
+            <Route path="/sell/laptop/:brandSlug" element={<SellLaptop />} />
+            
+            {/* Format: /sell/laptop/:brandSlug/:citySlug/verify (OTP verification) */}
+            <Route path="/sell/laptop/:brandSlug/:citySlug/verify" element={<SellLaptop />} />
+            
+            {/* Format: /sell/laptop/:brandSlug/:citySlug/success (Success message) */}
+            <Route path="/sell/laptop/:brandSlug/:citySlug/success" element={<SellLaptop />} />
+            
+            {/* Full detailed flow for Apple and other premium brands */}
             <Route path="/sell/laptop/:brandSlug/:deviceSlug" element={<CityPage category="laptop" />} />
             <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug" element={<VariantPage category="laptop" />} />
             <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug" element={<ConditionPage category="laptop" />} />

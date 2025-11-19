@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { CheckCircle2, ArrowRight, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -18,16 +17,16 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [ageRange, setAgeRange] = useState<string | null>(null);
   const [condition, setCondition] = useState<string | null>(null);
-  const [hasCharger, setHasCharger] = useState(false);
-  const [hasBox, setHasBox] = useState(false);
-  const [hasBill, setHasBill] = useState(false);
+  const [hasCharger, setHasCharger] = useState<boolean | null>(null);
+  const [hasBox, setHasBox] = useState<boolean | null>(null);
+  const [hasBill, setHasBill] = useState<boolean | null>(null);
   const [hasNone, setHasNone] = useState(false);
   const [calculating, setCalculating] = useState(false);
 
   const questions = [
     {
       id: "age",
-      title: "How old is your MacBook?",
+      title: `How old is your ${deviceName}?`,
       subtitle: "Select the age range of your device",
       options: [
         { value: "<1yr", label: "Less than 1 year", color: "bg-green-100 border-green-300 text-green-800" },
@@ -54,24 +53,25 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
     if (ageRange && condition) setCurrentQuestion(1);
   };
 
-  const handleAccessoryChange = (accessory: string, checked: boolean) => {
-    if (accessory === "none") {
-      setHasNone(checked);
-      if (checked) {
-        setHasCharger(false);
-        setHasBox(false);
-        setHasBill(false);
-      }
-    } else {
-      setHasNone(false);
-      if (accessory === "charger") setHasCharger(checked);
-      if (accessory === "box") setHasBox(checked);
-      if (accessory === "bill") setHasBill(checked);
+  const handleAccessoryToggle = (accessory: "charger" | "box" | "bill") => {
+    setHasNone(false);
+    if (accessory === "charger") setHasCharger((prev) => (prev === true ? null : true));
+    if (accessory === "box") setHasBox((prev) => (prev === true ? null : true));
+    if (accessory === "bill") setHasBill((prev) => (prev === true ? null : true));
+  };
+
+  const handleNoneToggle = () => {
+    const newNoneState = !hasNone;
+    setHasNone(newNoneState);
+    if (newNoneState) {
+      setHasCharger(null);
+      setHasBox(null);
+      setHasBill(null);
     }
   };
 
   const handleAccessoryContinue = () => {
-    calculateFinalPrice(ageRange!, condition!, hasCharger, hasBox, hasBill);
+    calculateFinalPrice(ageRange!, condition!, hasCharger ?? false, hasBox ?? false, hasBill ?? false);
   };
 
   const calculateFinalPrice = async (
@@ -237,7 +237,7 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
           </motion.div>
         )}
 
-        {/* Accessories Question */}
+        {/* Accessories Question - SAME UI AS PHONE */}
         {currentQuestion === 1 && (
           <motion.div
             key="accessories"
@@ -247,71 +247,76 @@ const LaptopConditionQuestions = ({ variantId, deviceName, brandName, onComplete
             transition={{ duration: 0.3 }}
           >
             <Card className="p-6 md:p-8 shadow-lg">
-              <div className="mb-6">
+              <div className="mb-6 text-center">
                 <h3 className="text-xl md:text-2xl font-bold mb-2">Do you have the following accessories?</h3>
                 <p className="text-sm text-muted-foreground">Select the accessories you have.</p>
               </div>
-              <div className="space-y-4">
-                {/* Charger */}
-                <div className="flex items-start space-x-3 p-4 rounded-lg border-2 hover:border-[#4169E1] transition-colors">
-                  <Checkbox
-                    id="charger"
-                    checked={hasCharger}
-                    onCheckedChange={(checked) => handleAccessoryChange("charger", checked as boolean)}
-                    className="mt-1"
-                  />
-                  <div className="flex-1">
-                    <label htmlFor="charger" className="font-semibold text-base cursor-pointer">
-                      Charger
-                    </label>
-                    <p className="text-sm text-muted-foreground">Original Charger of Device</p>
-                  </div>
-                </div>
-                {/* Box */}
-                <div className="flex items-start space-x-3 p-4 rounded-lg border-2 hover:border-[#4169E1] transition-colors">
-                  <Checkbox
-                    id="box"
-                    checked={hasBox}
-                    onCheckedChange={(checked) => handleAccessoryChange("box", checked as boolean)}
-                    className="mt-1"
-                  />
-                  <div className="flex-1">
-                    <label htmlFor="box" className="font-semibold text-base cursor-pointer">
-                      Box
-                    </label>
-                    <p className="text-sm text-muted-foreground">Original Box with same IMEI</p>
-                  </div>
-                </div>
-                {/* Bill */}
-                <div className="flex items-start space-x-3 p-4 rounded-lg border-2 hover:border-[#4169E1] transition-colors">
-                  <Checkbox
-                    id="bill"
-                    checked={hasBill}
-                    onCheckedChange={(checked) => handleAccessoryChange("bill", checked as boolean)}
-                    className="mt-1"
-                  />
-                  <div className="flex-1">
-                    <label htmlFor="bill" className="font-semibold text-base cursor-pointer">
-                      Bill
-                    </label>
-                    <p className="text-sm text-muted-foreground">Bill of the device is available</p>
-                  </div>
-                </div>
-                {/* None */}
-                <div className="flex items-start space-x-3 p-4 rounded-lg border-2 hover:border-red-300 transition-colors">
-                  <Checkbox
-                    id="none"
-                    checked={hasNone}
-                    onCheckedChange={(checked) => handleAccessoryChange("none", checked as boolean)}
-                    className="mt-1"
-                  />
-                  <div className="flex-1">
-                    <label htmlFor="none" className="font-semibold text-base cursor-pointer">
-                      None
-                    </label>
-                    <p className="text-sm text-muted-foreground">I don't have any of the following</p>
-                  </div>
-                </div>
+              
+              {/* Grid Layout - Same as Phone */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                {/* Charger Card */}
+                <Card
+                  onClick={() => handleAccessoryToggle("charger")}
+                  className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${
+                    hasCharger !== true ? "bg-muted/30 hover:bg-muted" : ""
+                  }`}
+                  style={{
+                    backgroundColor: hasCharger === true ? "royalBlue" : "",
+                    color: hasCharger === true ? "white" : "black",
+                  }}
+                >
+                  <img src="/assets/charger.jpg" alt="Charger" className="w-16 h-16 object-contain" />
+                  <span className="font-semibold">Original Charger of Device</span>
+                  {hasCharger === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
+                </Card>
+
+                {/* Box Card */}
+                <Card
+                  onClick={() => handleAccessoryToggle("box")}
+                  className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${
+                    hasBox !== true ? "bg-muted/30 hover:bg-muted" : ""
+                  }`}
+                  style={{
+                    backgroundColor: hasBox === true ? "royalBlue" : "",
+                    color: hasBox === true ? "white" : "black",
+                  }}
+                >
+                  <img src="/assets/box.jpg" alt="Box" className="w-16 h-16 object-contain" />
+                  <span className="font-semibold">Original Box with same IMEI</span>
+                  {hasBox === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
+                </Card>
+
+                {/* Bill Card */}
+                <Card
+                  onClick={() => handleAccessoryToggle("bill")}
+                  className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${
+                    hasBill !== true ? "bg-muted/30 hover:bg-muted" : ""
+                  }`}
+                  style={{
+                    backgroundColor: hasBill === true ? "royalBlue" : "",
+                    color: hasBill === true ? "white" : "black",
+                  }}
+                >
+                  <img src="/assets/bill.jpg" alt="Bill" className="w-16 h-16 object-contain" />
+                  <span className="font-semibold">Bill of the device is available</span>
+                  {hasBill === true && <CheckCircle size={20} className="absolute top-2 right-2" />}
+                </Card>
+
+                {/* None Card */}
+                <Card
+                  onClick={handleNoneToggle}
+                  className={`p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all duration-200 relative h-full ${
+                    !hasNone ? "bg-muted/30 hover:bg-muted" : ""
+                  }`}
+                  style={{
+                    backgroundColor: hasNone ? "royalBlue" : "",
+                    color: hasNone ? "white" : "black",
+                  }}
+                >
+                  <img src="/assets/none.jpg" alt="None" className="w-16 h-16 object-contain" />
+                  <span className="font-semibold">I don't have any of the following</span>
+                  {hasNone && <CheckCircle size={20} className="absolute top-2 right-2" />}
+                </Card>
               </div>
 
               <Button
