@@ -1,4 +1,4 @@
-import { Smartphone, ChevronDown } from "lucide-react";
+import { Smartphone, ChevronDown, Instagram, Facebook, Twitter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 
@@ -14,6 +14,13 @@ const Footer = () => {
   const whatsappNumber = "917411329292";
   const whatsappMessage = "Hi, SellkarIndia. I am interested in partnership with you.";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+
+  // Social media links
+  const socialLinks = {
+    instagram: "https://www.instagram.com/sellkarindia/",
+    facebook: "https://www.facebook.com/profile.php?id=61583412548776",
+    twitter: "https://x.com/sellkarindia"
+  };
 
   return (
     <footer className="bg-slate-900 text-slate-300 border-t border-slate-800">
@@ -31,6 +38,37 @@ const Footer = () => {
             <p className="text-xs sm:text-sm mb-4 max-w-xs mx-auto sm:mx-0">
               India's most trusted platform for selling old phones, laptops, and tablets. Get instant cash with doorstep pickup.
             </p>
+            
+            {/* Social Media Links */}
+            <div className="flex items-center gap-4 justify-center sm:justify-start">
+              <a
+                href={socialLinks.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-slate-800 hover:bg-gradient-to-br hover:from-purple-600 hover:to-pink-600 p-2 rounded-lg transition-all duration-300"
+                aria-label="Follow us on Instagram"
+              >
+                <Instagram className="w-5 h-5 text-white" />
+              </a>
+              <a
+                href={socialLinks.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-slate-800 hover:bg-blue-600 p-2 rounded-lg transition-all duration-300"
+                aria-label="Follow us on Facebook"
+              >
+                <Facebook className="w-5 h-5 text-white" />
+              </a>
+              <a
+                href={socialLinks.twitter}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-slate-800 hover:bg-sky-500 p-2 rounded-lg transition-all duration-300"
+                aria-label="Follow us on Twitter"
+              >
+                <Twitter className="w-5 h-5 text-white" />
+              </a>
+            </div>
           </div>
 
           {/* Desktop Grid Layout */}
