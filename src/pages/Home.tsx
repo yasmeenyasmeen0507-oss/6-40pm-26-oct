@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowRight, Star, Calculator, Truck, CreditCard, MessageCircle, Phone, MapPin } from "lucide-react";
+import { ArrowRight, Star, Calculator, Truck, CreditCard, MessageCircle, Phone, MapPin, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Footer from "@/components/Footer";
 
@@ -44,9 +44,8 @@ const TypingText = ({ text }: { text: string }) => {
 
 const PHONE_NUMBER = "7411329292";
 const WHATSAPP_NUMBER = "7411329292";
-const WHATSAPP_MESSAGE = "Hi! I'm interested in selling my gadget and would like to know more.";
-const LOCATION_ADDRESS =
-  "22, 2nd floor, Kothanur, Behind MCS Convention Hall, K Narayanapura Main Rd, Bengaluru, Nagareshwara - Nagenahalli, Karnataka 560077";
+const WHATSAPP_MESSAGE = "Hi!  I'm interested in selling my gadget and would like to know more. ";
+const LOCATION_ADDRESS = "22, 2nd floor, Kothanur, Behind MCS Convention Hall, K Narayanapura Main Rd, Bengaluru, Nagareshwara - Nagenahalli, Karnataka 560077";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -71,7 +70,7 @@ const Home = () => {
       .order("created_at", { ascending: false })
       .limit(6);
 
-    if (!error && data) {
+    if (! error && data) {
       setReviews(data);
     }
   };
@@ -104,13 +103,11 @@ const Home = () => {
     });
   };
 
-  // WhatsApp Click Handler (NEW NUMBER)
   const whatsappClick = () => {
-    const whatsappUrl = `https://wa.me/91${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+    const whatsappUrl = `https://wa.me/91${WHATSAPP_NUMBER}? text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
     window.open(whatsappUrl, '_blank');
   };
 
-  // Call Us Handler (opens dialer with number)
   const callUsClick = () => {
     window.open(`tel:${PHONE_NUMBER}`, '_self');
   };
@@ -119,24 +116,21 @@ const Home = () => {
     {
       icon: Calculator,
       title: "Get a Quote",
-      description:
-        "Select your device and condition to receive an instant price estimate using our advanced evaluation system.",
+      description: "Select your device and condition to receive an instant price estimate using our advanced evaluation system.",
       color: "text-blue-700",
       gradient: "from-blue-700/20 to-blue-700/5"
     },
     {
       icon: Truck,
       title: "Schedule Pickup",
-      description:
-        "Book a convenient time for our professional team to collect your device from your doorstep at no extra cost.",
+      description: "Book a convenient time for our professional team to collect your device from your doorstep at no extra cost.",
       color: "text-gold",
       gradient: "from-gold/20 to-gold/5"
     },
     {
       icon: CreditCard,
       title: "Get Paid",
-      description:
-        "After quick inspection and verification, receive immediate payment via your preferred method - cash, bank transfer, or UPI.",
+      description: "After quick inspection and verification, receive immediate payment via your preferred method - cash, bank transfer, or UPI.",
       color: "text-blue-700",
       gradient: "from-blue-700/20 to-blue-700/5"
     }
@@ -144,7 +138,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-[#f5f0e8]">
-      {/* Hero Section with Background Image */}
       <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-hero">
         <div className="absolute inset-0 z-0">
           <img
@@ -177,13 +170,12 @@ const Home = () => {
               </span>
             </h1>
 
-            <p className="text-xl sm:text-2xl lg:text-3xl text-black mb-4 font-light min-h-[2.5rem]">
+            <p className="text-xl sm:text-2xl lg:text-3xl text-black mb-4 font-light min-h-[2. 5rem]">
               <TypingText text="Your Trusted Marketplace for Quality Electronics" />
             </p>
 
             <p className="text-lg text-black mb-12 max-w-2xl mx-auto">
-              Get instant quotes, schedule convenient pickups, and receive immediate payment for your premium gadgets.
-              Professional, secure, and hassle-free.
+              Get instant quotes, schedule convenient pickups, and receive immediate payment for your premium gadgets. Professional, secure, and hassle-free. 
             </p>
 
             <div className="flex justify-center">
@@ -199,15 +191,15 @@ const Home = () => {
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.6 }}>
                 <div className="text-3xl font-bold text-blue-600">10,000+</div>
                 <div className="text-black">Devices Purchased</div>
-              </motion.div>
+              </motion. div>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.6 }}>
-                <div className="text-3xl font-bold text-blue-600">4.9★</div>
+                <div className="text-3xl font-bold text-blue-600">4. 9★</div>
                 <div className="text-black">Customer Rating</div>
               </motion.div>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 0.6 }}>
                 <div className="text-3xl font-bold text-blue-600">24/7</div>
                 <div className="text-black">Support Available</div>
-              </motion.div>
+              </motion. div>
             </div>
           </motion.div>
         </div>
@@ -222,7 +214,6 @@ const Home = () => {
         </div>
       </main>
 
-      {/* Categories Section */}
       <section id="categories-section" className="py-20 bg-[#faf7f2]">
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center mb-16 animate-fade-in-scale">
@@ -294,7 +285,41 @@ const Home = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      <section className="py-16 bg-gradient-to-br from-blue-50 to-white">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4">
+              Sell Your Phone in <span className="text-blue-700">Major Cities</span>
+            </h2>
+            <p className="text-center text-gray-700 mb-8 max-w-2xl mx-auto text-lg">
+              Get instant cash with free home pickup in your city
+            </p>
+            <div className="flex flex-wrap justify-center gap-6 max-w-3xl mx-auto">
+              <a 
+                href="/sell-phone-in-bangalore" 
+                className="inline-flex items-center gap-2 text-lg text-blue-600 hover:text-blue-800 hover:underline transition-colors font-medium"
+              >
+                <CheckCircle className="w-5 h-5" />
+                Sell Old Phones in Bangalore
+              </a>
+              <span className="text-gray-300 text-2xl">|</span>
+              <a 
+                href="/sell-phone-in-hyderabad" 
+                className="inline-flex items-center gap-2 text-lg text-blue-600 hover:text-blue-800 hover:underline transition-colors font-medium"
+              >
+                <CheckCircle className="w-5 h-5" />
+                Sell Old Phones in Hyderabad
+              </a>
+            </div>
+          </motion. div>
+        </div>
+      </section>
+
       <section className="py-20 bg-[#f5f0e8]">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-16 animate-fade-in-scale">
@@ -302,8 +327,7 @@ const Home = () => {
               How <span className="text-blue-700">It Works</span>
             </h2>
             <p className="text-xl text-black max-w-3xl mx-auto">
-              Our streamlined process makes selling your gadgets simple, secure, and hassle-free.
-              From quote to payment in just three easy steps.
+              Our streamlined process makes selling your gadgets simple, secure, and hassle-free. From quote to payment in just three easy steps.
             </p>
           </div>
 
@@ -322,7 +346,7 @@ const Home = () => {
                         {index + 1}
                       </div>
                       <div className={`w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${step.gradient} flex items-center justify-center transition-all duration-300 group-hover:scale-110`}>
-                        <IconComponent className={`w-10 h-10 ${step.color}`} />
+                        <IconComponent className={`w-10 h-10 ${step. color}`} />
                       </div>
                       <h3 className="text-2xl font-semibold text-gray-900 mb-4">{step.title}</h3>
                       <p className="text-gray-700 leading-relaxed">{step.description}</p>
@@ -335,7 +359,7 @@ const Home = () => {
           </div>
 
           <div className="text-center mt-16 animate-fade-in-scale">
-            <p className="text-lg text-black mb-6">Ready to sell your device? Start the process now!</p>
+            <p className="text-lg text-black mb-6">Ready to sell your device? Start the process now! </p>
             <Button onClick={scrollToCategories} className="bg-blue-700 hover:bg-blue-800 text-white px-10 py-4 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-xl">
               Get Started Today
             </Button>
@@ -343,7 +367,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
       <section className="py-20 bg-[#faf7f2]">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16 animate-fade-in-scale">
@@ -351,8 +374,7 @@ const Home = () => {
               What Our <span className="text-blue-700">Customers Say</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Join thousands of satisfied customers who have trusted SellkarIndia for their device selling needs.
-              Real reviews from real customers across India.
+              Join thousands of satisfied customers who have trusted SellkarIndia for their device selling needs.  Real reviews from real customers across India.
             </p>
           </div>
 
@@ -360,7 +382,7 @@ const Home = () => {
             <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
               <div className="text-4xl font-bold text-blue-700 mb-2">4.9/5</div>
               <div className="text-black">Average Rating</div>
-            </motion.div>
+            </motion. div>
             <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}>
               <div className="text-4xl font-bold text-blue-700 mb-2">10,000+</div>
               <div className="text-black">Happy Customers</div>
@@ -368,11 +390,11 @@ const Home = () => {
             <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.2 }}>
               <div className="text-4xl font-bold text-blue-700 mb-2">₹50Cr+</div>
               <div className="text-black">Paid to Customers</div>
-            </motion.div>
+            </motion. div>
             <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.3 }}>
               <div className="text-4xl font-bold text-blue-700 mb-2">25+</div>
               <div className="text-black">Cities Covered</div>
-            </motion.div>
+            </motion. div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -386,21 +408,21 @@ const Home = () => {
                 <blockquote className="text-gray-700 mb-6 leading-relaxed">"{review.review_text}"</blockquote>
                 <div className="flex items-center">
                   <div className="w-12 h-12 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold text-lg mr-4 border-2 border-blue-700">
-                    {review.customer_name.charAt(0)}
+                    {review.customer_name. charAt(0)}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">{review.customer_name}</div>
+                    <div className="font-semibold text-gray-900">{review. customer_name}</div>
                     <div className="text-sm text-gray-500">Sold {review.device_name}</div>
                     <div className="text-xs text-blue-700">{review.location}</div>
                   </div>
                 </div>
                 <div className="absolute top-4 right-4 text-6xl text-blue-700/10 font-serif">"</div>
-              </motion.div>
+              </motion. div>
             ))}
           </div>
 
           <div className="text-center mt-16 animate-fade-in-scale">
-            <p className="text-lg text-black mb-6">Ready to join our community of satisfied customers?</p>
+            <p className="text-lg text-black mb-6">Ready to join our community of satisfied customers? </p>
             <Button onClick={scrollToCategories} className="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-8 rounded-full transition duration-300">
               Start Selling Today
             </Button>
@@ -408,7 +430,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Contact & Support Section */}
       <section id="contact" className="py-20 bg-[#f5f0e8]">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16 animate-fade-in-scale">
@@ -416,8 +437,7 @@ const Home = () => {
               Contact <span className="text-blue-700">& Support</span>
             </h2>
             <p className="text-xl text-black max-w-3xl mx-auto">
-              Have questions? Need assistance? Our dedicated support team is here to help you 24/7.
-              Get in touch through your preferred channel.
+              Have questions?  Need assistance? Our dedicated support team is here to help you 24/7.  Get in touch through your preferred channel.
             </p>
           </div>
 
@@ -455,7 +475,6 @@ const Home = () => {
                 </CardContent>
               </Card>
 
-              {/* Location Card */}
               <Card className="bg-white border-2">
                 <CardContent className="p-8">
                   <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
