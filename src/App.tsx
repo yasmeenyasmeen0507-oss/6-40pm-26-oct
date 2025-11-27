@@ -11,7 +11,7 @@ import SellLaptop from "./pages/SellLaptop";
 import SellIpad from "./pages/SellIpad";
 import DevicePage from "./pages/DevicePage";
 import CityPage from "./pages/CityPage";
-import CityLandingPage from "./pages/CityLandingPage"; // ✅ NEW IMPORT
+import CityLandingPage from "./pages/CityLandingPage";
 import VariantPage from "./pages/VariantPage";
 import ConditionPage from "./pages/ConditionPage";
 import VerifyPage from "./pages/VerifyPage";
@@ -50,6 +50,28 @@ const App = () => (
             {/* Redirect /sell to homepage */}
             <Route path="/sell" element={<Navigate to="/" replace />} />
 
+            {/* ========== SEO CITY LANDING PAGES ========== */}
+            {/* ✅ EXPLICIT ROUTES FOR ALL 19 CITIES */}
+            <Route path="/sell-phone-in-bangalore" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-delhi" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-mumbai" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-chennai" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-hyderabad" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-thane" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-jaipur" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-pune" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-agra" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-kolkata" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-gorakhpur" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-mathura" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-varanasi" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-lucknow" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-kanpur" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-chandigarh" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-amritsar" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-patna" element={<CityLandingPage />} />
+            <Route path="/sell-phone-in-ludhiana" element={<CityLandingPage />} />
+
             {/* ========== MOBILES FLOW ========== */}
             <Route path="/sell/mobiles" element={<SellMobiles />} />
             <Route path="/sell/mobiles/:brandSlug" element={<DevicePage category="phone" />} />
@@ -62,20 +84,10 @@ const App = () => (
             <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup/success" element={<PickupPage />} />
 
             {/* ========== LAPTOP FLOW ========== */}
-            {/* Main laptop brand selection page */}
             <Route path="/sell/laptop" element={<SellLaptop />} />
-            
-            {/* Simplified flow for specific brands (Dell, HP, Samsung, etc.) */}
-            {/* Format: /sell/laptop/:brandSlug (city selection handled by SellLaptop) */}
             <Route path="/sell/laptop/:brandSlug" element={<SellLaptop />} />
-            
-            {/* Format: /sell/laptop/:brandSlug/:citySlug/verify (OTP verification) */}
             <Route path="/sell/laptop/:brandSlug/:citySlug/verify" element={<SellLaptop />} />
-            
-            {/* Format: /sell/laptop/:brandSlug/:citySlug/success (Success message) */}
             <Route path="/sell/laptop/:brandSlug/:citySlug/success" element={<SellLaptop />} />
-            
-            {/* Full detailed flow for Apple and other premium brands */}
             <Route path="/sell/laptop/:brandSlug/:deviceSlug" element={<CityPage category="laptop" />} />
             <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug" element={<VariantPage category="laptop" />} />
             <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug" element={<ConditionPage category="laptop" />} />
@@ -94,10 +106,6 @@ const App = () => (
             <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success" element={<ValuationPage />} />
             <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup" element={<PickupPage />} />
             <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup/success" element={<PickupPage />} />
-
-            {/* ========== SEO CITY LANDING PAGES ========== */}
-            {/* ✅ NEW ROUTE - SEO landing pages for cities */}
-            <Route path="/sell-phone-in-:city" element={<CityLandingPage />} />
 
             {/* Info pages */}
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />

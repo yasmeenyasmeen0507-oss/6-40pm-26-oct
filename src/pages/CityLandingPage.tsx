@@ -1,8 +1,9 @@
-import { useParams, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Truck, IndianRupee, Shield, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface CityData {
   name: string;
@@ -15,7 +16,7 @@ const cityData: Record<string, CityData> = {
   'bangalore': {
     name: 'Bangalore',
     state: 'Karnataka',
-    description: 'Sell your old phone in Bangalore and get instant cash.  We offer the best prices for used mobiles with free doorstep pickup across Bangalore, including Koramangala, Whitefield, Indiranagar, and all areas.',
+    description: 'Sell your old phone in Bangalore and get instant cash. We offer the best prices for used mobiles with free doorstep pickup across Bangalore, including Koramangala, Whitefield, Indiranagar, and all areas.',
     areas: ['Koramangala', 'Whitefield', 'Indiranagar', 'Electronic City', 'HSR Layout', 'Marathahalli']
   },
   'delhi': {
@@ -39,7 +40,7 @@ const cityData: Record<string, CityData> = {
   'hyderabad': {
     name: 'Hyderabad',
     state: 'Telangana',
-    description: 'Sell your old phone in Hyderabad and get instant cash.  We offer the best prices for used mobiles with free doorstep pickup across Hyderabad, including Hitech City, Gachibowli, Secunderabad, and all areas.',
+    description: 'Sell your old phone in Hyderabad and get instant cash. We offer the best prices for used mobiles with free doorstep pickup across Hyderabad, including Hitech City, Gachibowli, Secunderabad, and all areas.',
     areas: ['Hitech City', 'Gachibowli', 'Secunderabad', 'Madhapur', 'Banjara Hills', 'Kukatpally']
   },
   'thane': {
@@ -51,7 +52,7 @@ const cityData: Record<string, CityData> = {
   'jaipur': {
     name: 'Jaipur',
     state: 'Rajasthan',
-    description: 'Sell your old phone in Jaipur and get instant cash.  We offer the best prices for used mobiles with free doorstep pickup across Jaipur, including Malviya Nagar, Vaishali Nagar, Mansarovar, and all areas.',
+    description: 'Sell your old phone in Jaipur and get instant cash. We offer the best prices for used mobiles with free doorstep pickup across Jaipur, including Malviya Nagar, Vaishali Nagar, Mansarovar, and all areas.',
     areas: ['Malviya Nagar', 'Vaishali Nagar', 'Mansarovar', 'C-Scheme', 'Jagatpura', 'Raja Park']
   },
   'pune': {
@@ -105,7 +106,7 @@ const cityData: Record<string, CityData> = {
   'chandigarh': {
     name: 'Chandigarh',
     state: 'Chandigarh',
-    description: 'Sell your old phone in Chandigarh and get instant cash.  We offer the best prices for used mobiles with free doorstep pickup across Chandigarh, including Sector 17, Sector 35, Panchkula, and all areas.',
+    description: 'Sell your old phone in Chandigarh and get instant cash. We offer the best prices for used mobiles with free doorstep pickup across Chandigarh, including Sector 17, Sector 35, Panchkula, and all areas.',
     areas: ['Sector 17', 'Sector 35', 'Sector 22', 'Mohali', 'Panchkula', 'Sector 43']
   },
   'amritsar': {
@@ -129,16 +130,31 @@ const cityData: Record<string, CityData> = {
 };
 
 const CityLandingPage = () => {
-  const { city } = useParams<{ city: string }>();
-  const currentCity = city ?  cityData[city] : cityData['bangalore'];
+  const location = useLocation();
+  const [currentCity, setCurrentCity] = useState<CityData | null>(null);
+  const [citySlug, setCitySlug] = useState<string>('');
+
+  useEffect(() => {
+    const path = location.pathname;
+    const cityFromPath = path.replace('/sell-phone-in-', '');
+    setCitySlug(cityFromPath);
+    const city = cityData[cityFromPath] || cityData['bangalore'];
+    setCurrentCity(city);
+  }, [location. pathname]);
 
   if (!currentCity) {
-    return <div>City not found</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading... </h1>
+        </div>
+      </div>
+    );
   }
 
   const pageTitle = `Sell Phone in ${currentCity.name} - Get Instant Cash | SellKar India`;
   const pageDescription = currentCity.description;
-  const canonicalUrl = `https://www.sellkarindia.com/sell-phone-in-${city}`;
+  const canonicalUrl = `https://www.sellkarindia.com/sell-phone-in-${citySlug}`;
 
   return (
     <>
@@ -176,18 +192,18 @@ const CityLandingPage = () => {
       </Helmet>
 
       {/* Page Content */}
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50">
         <div className="container mx-auto px-4 py-16">
           {/* Hero Section */}
           <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
               Sell Your Phone in {currentCity. name}
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
               {currentCity.description}
             </p>
             <Link to="/sell/mobiles">
-              <Button size="lg" className="text-lg px-8 py-6">
+              <Button size="lg" className="text-lg px-8 py-6 bg-blue-600 hover:bg-blue-700 text-white">
                 Get Instant Quote →
               </Button>
             </Link>
@@ -195,9 +211,9 @@ const CityLandingPage = () => {
 
           {/* Features Section */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="hover:shadow-lg transition-shadow border-blue-100">
               <CardContent className="pt-6 text-center">
-                <Truck className="w-12 h-12 mx-auto mb-4 text-primary" />
+                <Truck className="w-12 h-12 mx-auto mb-4 text-blue-600" />
                 <h3 className="font-semibold mb-2">Free Doorstep Pickup</h3>
                 <p className="text-sm text-muted-foreground">
                   We pick up from anywhere in {currentCity.name} - absolutely free!
@@ -205,9 +221,9 @@ const CityLandingPage = () => {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="hover:shadow-lg transition-shadow border-blue-100">
               <CardContent className="pt-6 text-center">
-                <IndianRupee className="w-12 h-12 mx-auto mb-4 text-primary" />
+                <IndianRupee className="w-12 h-12 mx-auto mb-4 text-blue-600" />
                 <h3 className="font-semibold mb-2">Best Price Guaranteed</h3>
                 <p className="text-sm text-muted-foreground">
                   Get the highest cash value for your old phone
@@ -215,9 +231,9 @@ const CityLandingPage = () => {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="hover:shadow-lg transition-shadow border-blue-100">
               <CardContent className="pt-6 text-center">
-                <Clock className="w-12 h-12 mx-auto mb-4 text-primary" />
+                <Clock className="w-12 h-12 mx-auto mb-4 text-blue-600" />
                 <h3 className="font-semibold mb-2">Instant Payment</h3>
                 <p className="text-sm text-muted-foreground">
                   Receive payment via UPI, bank transfer, or cash
@@ -225,9 +241,9 @@ const CityLandingPage = () => {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="hover:shadow-lg transition-shadow border-blue-100">
               <CardContent className="pt-6 text-center">
-                <Shield className="w-12 h-12 mx-auto mb-4 text-primary" />
+                <Shield className="w-12 h-12 mx-auto mb-4 text-blue-600" />
                 <h3 className="font-semibold mb-2">Safe & Secure</h3>
                 <p className="text-sm text-muted-foreground">
                   Complete data wiping and secure transaction
@@ -249,18 +265,18 @@ const CityLandingPage = () => {
                 { num: "4", title: "Get Paid Instantly", desc: "Receive payment as soon as we verify your phone" }
               ]. map((step) => (
                 <div key={step.num} className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                  <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4">
                     {step.num}
                   </div>
                   <h3 className="font-semibold mb-2">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground">{step. desc}</p>
+                  <p className="text-sm text-muted-foreground">{step.desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Service Areas */}
-          <Card className="mb-16">
+          <Card className="mb-16 border-blue-100">
             <CardContent className="pt-6">
               <h2 className="text-2xl font-bold mb-4">
                 We Serve All Areas in {currentCity.name}
@@ -271,8 +287,8 @@ const CityLandingPage = () => {
               </p>
               <div className="flex flex-wrap gap-2">
                 {currentCity.areas.map((area) => (
-                  <span key={area} className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 rounded-full text-sm">
-                    <CheckCircle className="w-4 h-4 text-primary" />
+                  <span key={area} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 rounded-full text-sm text-blue-700 border border-blue-200">
+                    <CheckCircle className="w-4 h-4 text-blue-600" />
                     {area}
                   </span>
                 ))}
@@ -281,15 +297,15 @@ const CityLandingPage = () => {
           </Card>
 
           {/* CTA Section */}
-          <div className="text-center bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-12">
-            <h2 className="text-3xl font-bold mb-4">
+          <div className="text-center bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-12 border border-blue-200">
+            <h2 className="text-3xl font-bold mb-4 text-blue-900">
               Ready to Sell Your Phone in {currentCity.name}? 
             </h2>
-            <p className="text-xl text-muted-foreground mb-8">
+            <p className="text-xl text-gray-700 mb-8">
               Get an instant quote now and receive payment within 24 hours! 
             </p>
             <Link to="/sell/mobiles">
-              <Button size="lg" className="text-lg px-8 py-6">
+              <Button size="lg" className="text-lg px-8 py-6 bg-blue-600 hover:bg-blue-700 text-white">
                 Start Selling Now →
               </Button>
             </Link>
