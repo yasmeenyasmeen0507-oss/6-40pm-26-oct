@@ -2,7 +2,7 @@ import { useLocation, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { memo, useMemo } from "react";
-import { CheckCircle, Smartphone, Laptop, Tablet } from "lucide-react";
+import { CheckCircle, Smartphone, Laptop, Tablet, ChevronRight } from "lucide-react";
 
 interface CityData {
   name: string;
@@ -150,7 +150,7 @@ const cityData: Record<string, CityData> = {
       },
       {
         question: 'What if my phone has a cracked screen?',
-        answer: 'We buy phones with cracked screens or minor damages. The final price will be adjusted based on the condition of the device.'
+        answer: 'We buy phones with cracked screens or minor damages.  The final price will be adjusted based on the condition of the device.'
       },
       {
         question: 'How is the price calculated?',
@@ -219,7 +219,7 @@ const cityData: Record<string, CityData> = {
     name: 'Chennai',
     state: 'Tamil Nadu',
     title: 'Sell Old Phones in Chennai | Free Home Pickup & Instant Cash',
-    metaDescription: 'Sell old phones, laptops and gadgets in Chennai with free home pickup and instant cash.  Check your device price online and book a doorstep pickup with SellKar India.',
+    metaDescription: 'Sell old phones, laptops and gadgets in Chennai with free home pickup and instant cash. Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Chennai – Free Home Pickup',
     intro: 'Sell your old phone in Chennai with complete peace of mind. SellKar India provides professional doorstep pickup service with instant cash payment. Whether you have an iPhone, Samsung or any other brand, get the best value without stepping out of your home.',
     devices: [
@@ -252,11 +252,11 @@ const cityData: Record<string, CityData> = {
       },
       {
         question: 'How long does the pickup process take?',
-        answer: 'The pickup itself takes just 10-15 minutes.  Our executive will inspect the device and complete the payment on the spot.'
+        answer: 'The pickup itself takes just 10-15 minutes. Our executive will inspect the device and complete the payment on the spot.'
       },
       {
         question: 'Can I sell multiple devices at once?',
-        answer: 'Absolutely! You can sell multiple phones, laptops or gadgets in a single pickup.  Just let us know the details when booking.'
+        answer: 'Absolutely!  You can sell multiple phones, laptops or gadgets in a single pickup.  Just let us know the details when booking.'
       },
       {
         question: 'Is there any service charge?',
@@ -270,7 +270,7 @@ const cityData: Record<string, CityData> = {
     title: 'Sell Old Phones in Pune | Free Home Pickup & Instant Cash',
     metaDescription: 'Sell old phones, laptops and gadgets in Pune with free home pickup and instant cash.  Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Pune – Free Home Pickup',
-    intro: 'Want to sell your old phone in Pune? SellKar India offers the easiest way to get instant cash with free doorstep pickup. We serve all areas of Pune with professional service, fair pricing and complete transparency. No bargaining, no delays – just quick cash.',
+    intro: 'Want to sell your old phone in Pune? SellKar India offers the easiest way to get instant cash with free doorstep pickup. We serve all areas of Pune with professional service, fair pricing and complete transparency.  No bargaining, no delays – just quick cash.',
     devices: [
       'Smartphones (All Brands)',
       'Laptops & Ultrabooks',
@@ -292,7 +292,7 @@ const cityData: Record<string, CityData> = {
     serviceAreas: 'We offer free home pickup across Pune, including: Hinjewadi, Kothrud, Viman Nagar, Wakad, Baner, Hadapsar, Aundh, Pimpri-Chinchwad, Magarpatta, Kharadi, Kalyani Nagar and all other areas.',
     faqs: [
       {
-        question: 'Do you cover Pimpri-Chinchwad area?',
+        question: 'Do you cover Pimpri-Chinchwad area? ',
         answer: 'Yes, we provide free pickup across Pune including Pimpri-Chinchwad and all PCMC areas.'
       },
       {
@@ -399,7 +399,7 @@ const cityData: Record<string, CityData> = {
       },
       {
         question: 'Do you offer the same price that shows online?',
-        answer: 'The online price is an estimate.  The final price is determined after physical inspection based on the actual condition.'
+        answer: 'The online price is an estimate. The final price is determined after physical inspection based on the actual condition.'
       },
       {
         question: 'Is there a limit on how many devices I can sell?',
@@ -542,7 +542,7 @@ const cityData: Record<string, CityData> = {
       },
       {
         question: 'Is the online price guaranteed?',
-        answer: 'The online price is an estimate.  Final price depends on actual condition.'
+        answer: 'The online price is an estimate. Final price depends on actual condition.'
       },
       {
         question: 'Can I sell damaged phones?',
@@ -621,7 +621,7 @@ const cityData: Record<string, CityData> = {
     serviceAreas: 'We serve Chandigarh including: Sector 17, Sector 35, Sector 22, Mohali, Panchkula, Sector 43 and all sectors.',
     faqs: [
       { question: 'Do you serve Mohali and Panchkula?', answer: 'Yes, we cover entire Chandigarh Tricity.' },
-      { question: 'Can I sell damaged phones? ', answer: 'Yes, we buy damaged devices.' },
+      { question: 'Can I sell damaged phones?', answer: 'Yes, we buy damaged devices.' },
       { question: 'How fast is service?', answer: 'Same-day pickup available.' },
       { question: 'Payment methods?', answer: 'Cash, UPI or bank transfer.' },
       { question: 'Any charges?', answer: 'No, completely free service.' }
@@ -631,7 +631,7 @@ const cityData: Record<string, CityData> = {
     name: 'Amritsar',
     state: 'Punjab',
     title: 'Sell Old Phones in Amritsar | Free Home Pickup & Instant Cash',
-    metaDescription: 'Sell old phones, laptops and gadgets in Amritsar with free home pickup and instant cash. Check your device price online and book a doorstep pickup with SellKar India.',
+    metaDescription: 'Sell old phones, laptops and gadgets in Amritsar with free home pickup and instant cash.  Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Amritsar – Free Home Pickup',
     intro: 'Sell your old phone in Amritsar with SellKar India. Free pickup, instant cash and transparent process across the city.',
     devices: ['Smartphones', 'Laptops', 'Tablets', 'Gadgets'],
@@ -691,7 +691,7 @@ const cityData: Record<string, CityData> = {
     faqs: [
       { question: 'All areas covered?', answer: 'Yes, entire Patna.' },
       { question: 'Damaged phones? ', answer: 'Yes.' },
-      { question: 'Speed?', answer: 'Same-day.' },
+      { question: 'Speed? ', answer: 'Same-day.' },
       { question: 'Payment?', answer: 'Cash/UPI.' },
       { question: 'Free? ', answer: 'Yes.' }
     ]
@@ -756,6 +756,32 @@ const CityLandingPage = () => {
 
   const canonicalUrl = `https://www.sellkarindia.com/sell-phone-in-${citySlug}`;
 
+  // Breadcrumb structured data
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://www.sellkarindia. com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Cities",
+        "item": "https://www.sellkarindia. com/cities"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": currentCity.name,
+        "item": canonicalUrl
+      }
+    ]
+  };
+
   return (
     <>
       <Helmet>
@@ -767,6 +793,13 @@ const CityLandingPage = () => {
         <meta property="og:description" content={currentCity.metaDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="website" />
+        
+        {/* Breadcrumb Schema */}
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbSchema)}
+        </script>
+        
+        {/* LocalBusiness Schema */}
         <script type="application/ld+json">
           {`{"@context":"https://schema.org","@type":"LocalBusiness","name":"SellKar India - ${currentCity.name}","description":"${currentCity.metaDescription}","url":"${canonicalUrl}","areaServed":{"@type":"City","name":"${currentCity.name}","containedIn":"${currentCity.state}"},"priceRange":"₹₹","paymentAccepted":["Cash","UPI","Bank Transfer"],"currenciesAccepted":"INR"}`}
         </script>
@@ -775,6 +808,37 @@ const CityLandingPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
         <div className="container mx-auto px-4 py-16">
           
+          {/* Breadcrumb Navigation */}
+          <nav aria-label="breadcrumb" className="mb-8">
+            <ol className="flex items-center space-x-2 text-sm text-gray-600">
+              <li>
+                <Link 
+                  to="/" 
+                  className="hover:text-blue-600 transition-colors flex items-center"
+                >
+                  Home
+                </Link>
+              </li>
+              <li>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </li>
+              <li>
+                <Link 
+                  to="/cities" 
+                  className="hover:text-blue-600 transition-colors flex items-center"
+                >
+                  Cities
+                </Link>
+              </li>
+              <li>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </li>
+              <li className="text-blue-600 font-medium" aria-current="page">
+                {currentCity.name}
+              </li>
+            </ol>
+          </nav>
+
           {/* Hero Section */}
           <section className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
@@ -814,7 +878,7 @@ const CityLandingPage = () => {
               Why Choose SellKar India in {currentCity.name}
             </h2>
             <ul className="space-y-4 max-w-3xl mx-auto">
-              {currentCity.whyChoose. map((reason, idx) => (
+              {currentCity.whyChoose.map((reason, idx) => (
                 <li key={idx} className="flex items-start gap-3">
                   <CheckCircle className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
                   <span className="text-gray-700">{reason}</span>
@@ -829,7 +893,7 @@ const CityLandingPage = () => {
               How It Works
             </h2>
             <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              {currentCity.howItWorks. map((step, idx) => (
+              {currentCity.howItWorks.map((step, idx) => (
                 <div key={idx} className="text-center">
                   <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4">
                     {idx + 1}
@@ -878,6 +942,35 @@ const CityLandingPage = () => {
               </div>
             </section>
           )}
+
+          {/* Cross-link to Other Cities */}
+          <section className="mb-8">
+            <div className="max-w-4xl mx-auto text-center">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                Also Available in Other Cities:
+              </h3>
+              <div className="flex flex-wrap justify-center gap-4">
+                {citySlug === 'bangalore' && (
+                  <a 
+                    href="/sell-phone-in-hyderabad"
+                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline transition-colors text-base"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Sell Old Phones in Hyderabad
+                  </a>
+                )}
+                {citySlug === 'hyderabad' && (
+                  <a 
+                    href="/sell-phone-in-bangalore"
+                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline transition-colors text-base"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Sell Old Phones in Bangalore
+                  </a>
+                )}
+              </div>
+            </div>
+          </section>
 
           {/* Final CTA */}
           <section className="text-center bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-12 border border-blue-200">
