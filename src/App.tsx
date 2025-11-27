@@ -11,6 +11,7 @@ import SellLaptop from "./pages/SellLaptop";
 import SellIpad from "./pages/SellIpad";
 import DevicePage from "./pages/DevicePage";
 import CityPage from "./pages/CityPage";
+import CityLandingPage from "./pages/CityLandingPage"; // ✅ NEW IMPORT
 import VariantPage from "./pages/VariantPage";
 import ConditionPage from "./pages/ConditionPage";
 import VerifyPage from "./pages/VerifyPage";
@@ -93,6 +94,10 @@ const App = () => (
             <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success" element={<ValuationPage />} />
             <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup" element={<PickupPage />} />
             <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup/success" element={<PickupPage />} />
+
+            {/* ========== SEO CITY LANDING PAGES ========== */}
+            {/* ✅ NEW ROUTE - SEO landing pages for cities */}
+            <Route path="/sell-phone-in-:city" element={<CityLandingPage />} />
 
             {/* Info pages */}
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />

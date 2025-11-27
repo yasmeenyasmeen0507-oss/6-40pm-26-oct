@@ -1,39 +1,206 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <!-- Homepage -->
   <url>
     <loc>https://www.sellkarindia.com/</loc>
-    <lastmod>2025-11-10T19:57:34+00:00</lastmod>
+    <lastmod>2025-11-27</lastmod>
     <changefreq>daily</changefreq>
-    <priority>1.0</priority>
+    <priority>1. 0</priority>
   </url>
+  
+  <!-- Main Service Pages -->
   <url>
-    <loc>https://www.sellkarindia.com/sell/mobiles</loc>
-    <lastmod>2025-11-10T19:57:34+00:00</lastmod>
+    <loc>https://www. sellkarindia.com/sell/mobiles</loc>
+    <lastmod>2025-11-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+  
   <url>
-    <loc>https://www.sellkarindia.com/sell/laptop</loc>
-    <lastmod>2025-11-10T19:57:34+00:00</lastmod>
+    <loc>https://www.sellkarindia. com/sell/laptop</loc>
+    <lastmod>2025-11-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+  
   <url>
     <loc>https://www.sellkarindia.com/sell/ipad</loc>
-    <lastmod>2025-11-10T19:57:34+00:00</lastmod>
+    <lastmod>2025-11-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+  
+  <!-- Info Pages -->
   <url>
-    <loc>https://www.sellkarindia.com/about</loc>
-    <lastmod>2025-11-10T19:57:34+00:00</lastmod>
+    <loc>https://www.sellkarindia.com/how-it-works</loc>
+    <lastmod>2025-11-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  
   <url>
-    <loc>https://www.sellkarindia.com/#contact</loc>
-    <lastmod>2025-11-10T19:57:34+00:00</lastmod>
+    <loc>https://www.sellkarindia.com/pricing</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/about</loc>
+    <lastmod>2025-11-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  
+  <!-- Legal Pages -->
+  <url>
+    <loc>https://www. sellkarindia.com/terms-and-conditions</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/privacy-policy</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- ========== SEO CITY PAGES ========== -->
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-bangalore</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia. com/sell-phone-in-delhi</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www. sellkarindia.com/sell-phone-in-mumbai</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-chennai</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-hyderabad</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-thane</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0. 9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-jaipur</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0. 9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-pune</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-agra</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-kolkata</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-gorakhpur</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-mathura</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-varanasi</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-lucknow</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-kanpur</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0. 9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-chandigarh</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-amritsar</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-patna</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0. 9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.sellkarindia.com/sell-phone-in-ludhiana</loc>
+    <lastmod>2025-11-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0. 9</priority>
+  </url>
+
 </urlset>
