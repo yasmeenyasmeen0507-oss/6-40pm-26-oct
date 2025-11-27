@@ -23,9 +23,9 @@ const cityData: Record<string, CityData> = {
     name: 'Bangalore',
     state: 'Karnataka',
     title: 'Sell Old Phones in Bangalore | Free Home Pickup & Instant Cash',
-    metaDescription: 'Sell old phones, laptops and gadgets in Bangalore with free home pickup and instant cash.  Check your device price online and book a doorstep pickup with SellKar India.',
+    metaDescription: 'Sell old phones, laptops and gadgets in Bangalore with free home pickup and instant cash.   Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Bangalore – Free Home Pickup',
-    intro: 'Selling your old smartphone in Bangalore shouldn\'t be time-wasting. SellKar India gives you a quick, transparent and professional way to sell old phones at the best price with free home pickup anywhere in Bangalore.  No negotiation headaches, no marketplace fraud – just a smooth, verified process with instant cash.',
+    intro: 'Selling your old smartphone in Bangalore shouldn\'t be time-wasting. SellKar India gives you a quick, transparent and professional way to sell old phones at the best price with free home pickup anywhere in Bangalore.   No negotiation headaches, no marketplace fraud – just a smooth, verified process with instant cash.',
     devices: [
       'Smartphones (Apple, Samsung, OnePlus and more)',
       'Laptops',
@@ -48,7 +48,7 @@ const cityData: Record<string, CityData> = {
     faqs: [
       {
         question: 'Do you provide home pickup everywhere in Bangalore?',
-        answer: 'Yes, we cover almost all major areas in Bangalore.  Share your location and our team will confirm availability.'
+        answer: 'Yes, we cover almost all major areas in Bangalore.   Share your location and our team will confirm availability.'
       },
       {
         question: 'How do you decide the price of my phone?',
@@ -56,11 +56,11 @@ const cityData: Record<string, CityData> = {
       },
       {
         question: 'Do you buy damaged or slightly faulty phones?',
-        answer: 'Yes, we buy phones with minor issues as long as the device powers on.  The final price will depend on the exact condition.'
+        answer: 'Yes, we buy phones with minor issues as long as the device powers on.   The final price will depend on the exact condition.'
       },
       {
         question: 'Is my data safe when I sell my phone?',
-        answer: 'Yes, we perform a complete data wipe from the device as part of our process. We strongly recommend you also back up and reset your phone before selling.'
+        answer: 'Yes, we perform a complete data wipe from the device as part of our process.  We strongly recommend you also back up and reset your phone before selling.'
       },
       {
         question: 'How fast can you schedule a pickup in Bangalore?',
@@ -72,9 +72,9 @@ const cityData: Record<string, CityData> = {
     name: 'Hyderabad',
     state: 'Telangana',
     title: 'Sell Old Phones in Hyderabad | Free Home Pickup & Instant Cash',
-    metaDescription: 'Sell old phones, laptops and gadgets in Hyderabad with free home pickup and instant cash. Check your device price online and book a doorstep pickup with SellKar India.',
+    metaDescription: 'Sell old phones, laptops and gadgets in Hyderabad with free home pickup and instant cash.  Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Hyderabad – Free Home Pickup',
-    intro: 'Selling an old phone in Hyderabad is now simple.  SellKar India lets you check your device price online, book a free home pickup and get paid instantly. No time wasted dealing with random buyers, no scams and no lowball offers – our trained team handles everything professionally.',
+    intro: 'Selling an old phone in Hyderabad is now simple.   SellKar India lets you check your device price online, book a free home pickup and get paid instantly.  No time wasted dealing with random buyers, no scams and no lowball offers – our trained team handles everything professionally.',
     devices: [
       'Smartphones',
       'Laptops',
@@ -97,7 +97,7 @@ const cityData: Record<string, CityData> = {
     faqs: [
       {
         question: 'Do you pick up from all areas in Hyderabad?',
-        answer: 'We cover most major areas in and around Hyderabad. Share your location and we will confirm the pickup availability.'
+        answer: 'We cover most major areas in and around Hyderabad.  Share your location and we will confirm the pickup availability.'
       },
       {
         question: 'Will you buy a phone with minor issues?',
@@ -105,7 +105,7 @@ const cityData: Record<string, CityData> = {
       },
       {
         question: 'How long does it take for the pickup?',
-        answer: 'Usually we manage a same-day pickup.  In busy slots it may take a few extra hours but we try to complete it as fast as possible.'
+        answer: 'Usually we manage a same-day pickup.   In busy slots it may take a few extra hours but we try to complete it as fast as possible.'
       },
       {
         question: 'Is the price final or negotiable?',
@@ -123,7 +123,7 @@ const cityData: Record<string, CityData> = {
     title: 'Sell Old Phones in Mumbai | Free Home Pickup & Instant Cash',
     metaDescription: 'Sell old phones, laptops and gadgets in Mumbai with free home pickup and instant cash. Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Mumbai – Free Home Pickup',
-    intro: 'Looking to sell your old phone in Mumbai?  SellKar India makes it hassle-free with doorstep pickup service across the city. Get instant cash for your old smartphones, laptops and gadgets without any hidden charges.  Our verified executives ensure a smooth, safe and transparent transaction every time.',
+    intro: 'Looking to sell your old phone in Mumbai?   SellKar India makes it hassle-free with doorstep pickup service across the city. Get instant cash for your old smartphones, laptops and gadgets without any hidden charges.   Our verified executives ensure a smooth, safe and transparent transaction every time.',
     devices: [
       'Smartphones (iPhone, Samsung, OnePlus, Xiaomi)',
       'Laptops & MacBooks',
@@ -146,11 +146,11 @@ const cityData: Record<string, CityData> = {
     faqs: [
       {
         question: 'Do you cover all areas in Mumbai including suburbs?',
-        answer: 'Yes, we provide free pickup service across Mumbai, Navi Mumbai and extended suburbs. Just share your location and we will confirm the slot.'
+        answer: 'Yes, we provide free pickup service across Mumbai, Navi Mumbai and extended suburbs.  Just share your location and we will confirm the slot.'
       },
       {
-        question: 'What if my phone has a cracked screen?',
-        answer: 'We buy phones with cracked screens or minor damages.  The final price will be adjusted based on the condition of the device.'
+        question: 'What if my phone has a cracked screen? ',
+        answer: 'We buy phones with cracked screens or minor damages.   The final price will be adjusted based on the condition of the device.'
       },
       {
         question: 'How is the price calculated?',
@@ -158,11 +158,11 @@ const cityData: Record<string, CityData> = {
       },
       {
         question: 'Is it safe to sell my phone to SellKar India?',
-        answer: 'Absolutely.  We follow strict data wiping protocols and all our executives are verified.  Your privacy and security are our top priority.'
+        answer: 'Absolutely.   We follow strict data wiping protocols and all our executives are verified.   Your privacy and security are our top priority.'
       },
       {
         question: 'How quickly can I get my phone picked up in Mumbai?',
-        answer: 'Most pickups are completed the same day.  During peak hours, it may take a few extra hours but we ensure quick service.'
+        answer: 'Most pickups are completed the same day.   During peak hours, it may take a few extra hours but we ensure quick service.'
       }
     ]
   },
@@ -172,7 +172,7 @@ const cityData: Record<string, CityData> = {
     title: 'Sell Old Phones in Delhi | Free Home Pickup & Instant Cash',
     metaDescription: 'Sell old phones, laptops and gadgets in Delhi with free home pickup and instant cash. Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Delhi – Free Home Pickup',
-    intro: 'Selling your old phone in Delhi has never been easier. SellKar India offers instant cash with free doorstep pickup across all areas of Delhi NCR. Skip the hassle of finding buyers, negotiating prices or worrying about fraud.  We handle everything professionally and pay you on the spot.',
+    intro: 'Selling your old phone in Delhi has never been easier.  SellKar India offers instant cash with free doorstep pickup across all areas of Delhi NCR. Skip the hassle of finding buyers, negotiating prices or worrying about fraud.  We handle everything professionally and pay you on the spot.',
     devices: [
       'Smartphones (All Brands)',
       'Laptops & Notebooks',
@@ -221,7 +221,7 @@ const cityData: Record<string, CityData> = {
     title: 'Sell Old Phones in Chennai | Free Home Pickup & Instant Cash',
     metaDescription: 'Sell old phones, laptops and gadgets in Chennai with free home pickup and instant cash. Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Chennai – Free Home Pickup',
-    intro: 'Sell your old phone in Chennai with complete peace of mind. SellKar India provides professional doorstep pickup service with instant cash payment. Whether you have an iPhone, Samsung or any other brand, get the best value without stepping out of your home.',
+    intro: 'Sell your old phone in Chennai with complete peace of mind.  SellKar India provides professional doorstep pickup service with instant cash payment.  Whether you have an iPhone, Samsung or any other brand, get the best value without stepping out of your home.',
     devices: [
       'Smartphones (iPhone, Samsung, Vivo, Oppo)',
       'Laptops',
@@ -252,15 +252,15 @@ const cityData: Record<string, CityData> = {
       },
       {
         question: 'How long does the pickup process take?',
-        answer: 'The pickup itself takes just 10-15 minutes. Our executive will inspect the device and complete the payment on the spot.'
+        answer: 'The pickup itself takes just 10-15 minutes.  Our executive will inspect the device and complete the payment on the spot.'
       },
       {
         question: 'Can I sell multiple devices at once?',
-        answer: 'Absolutely!  You can sell multiple phones, laptops or gadgets in a single pickup.  Just let us know the details when booking.'
+        answer: 'Absolutely!   You can sell multiple phones, laptops or gadgets in a single pickup.   Just let us know the details when booking.'
       },
       {
         question: 'Is there any service charge?',
-        answer: 'No, our pickup service is completely free. The price you see is the price you get with no hidden deductions.'
+        answer: 'No, our pickup service is completely free.  The price you see is the price you get with no hidden deductions.'
       }
     ]
   },
@@ -268,9 +268,9 @@ const cityData: Record<string, CityData> = {
     name: 'Pune',
     state: 'Maharashtra',
     title: 'Sell Old Phones in Pune | Free Home Pickup & Instant Cash',
-    metaDescription: 'Sell old phones, laptops and gadgets in Pune with free home pickup and instant cash.  Check your device price online and book a doorstep pickup with SellKar India.',
+    metaDescription: 'Sell old phones, laptops and gadgets in Pune with free home pickup and instant cash.   Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Pune – Free Home Pickup',
-    intro: 'Want to sell your old phone in Pune? SellKar India offers the easiest way to get instant cash with free doorstep pickup. We serve all areas of Pune with professional service, fair pricing and complete transparency.  No bargaining, no delays – just quick cash.',
+    intro: 'Want to sell your old phone in Pune? SellKar India offers the easiest way to get instant cash with free doorstep pickup.  We serve all areas of Pune with professional service, fair pricing and complete transparency.   No bargaining, no delays – just quick cash.',
     devices: [
       'Smartphones (All Brands)',
       'Laptops & Ultrabooks',
@@ -292,7 +292,7 @@ const cityData: Record<string, CityData> = {
     serviceAreas: 'We offer free home pickup across Pune, including: Hinjewadi, Kothrud, Viman Nagar, Wakad, Baner, Hadapsar, Aundh, Pimpri-Chinchwad, Magarpatta, Kharadi, Kalyani Nagar and all other areas.',
     faqs: [
       {
-        question: 'Do you cover Pimpri-Chinchwad area? ',
+        question: 'Do you cover Pimpri-Chinchwad area?',
         answer: 'Yes, we provide free pickup across Pune including Pimpri-Chinchwad and all PCMC areas.'
       },
       {
@@ -319,7 +319,7 @@ const cityData: Record<string, CityData> = {
     title: 'Sell Old Phones in Kolkata | Free Home Pickup & Instant Cash',
     metaDescription: 'Sell old phones, laptops and gadgets in Kolkata with free home pickup and instant cash. Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Kolkata – Free Home Pickup',
-    intro: 'Sell your old smartphone in Kolkata with SellKar India and get instant cash without leaving your home. We offer transparent pricing, professional service and guaranteed data security.  Serving all areas of Kolkata with the fastest and most reliable phone selling experience.',
+    intro: 'Sell your old smartphone in Kolkata with SellKar India and get instant cash without leaving your home. We offer transparent pricing, professional service and guaranteed data security.   Serving all areas of Kolkata with the fastest and most reliable phone selling experience.',
     devices: [
       'Smartphones',
       'Laptops',
@@ -346,7 +346,7 @@ const cityData: Record<string, CityData> = {
       },
       {
         question: 'Can I sell a phone with a broken display?',
-        answer: 'Yes, we accept phones with broken displays.  The price will be adjusted based on the damage.'
+        answer: 'Yes, we accept phones with broken displays.   The price will be adjusted based on the damage.'
       },
       {
         question: 'Do I need to factory reset my phone before selling?',
@@ -354,7 +354,7 @@ const cityData: Record<string, CityData> = {
       },
       {
         question: 'What is the minimum value phone you accept?',
-        answer: 'We accept phones of all values.  Even older models have resale value and we will make you an offer.'
+        answer: 'We accept phones of all values.   Even older models have resale value and we will make you an offer.'
       },
       {
         question: 'How quickly can you arrange a pickup?',
@@ -366,7 +366,7 @@ const cityData: Record<string, CityData> = {
     name: 'Jaipur',
     state: 'Rajasthan',
     title: 'Sell Old Phones in Jaipur | Free Home Pickup & Instant Cash',
-    metaDescription: 'Sell old phones, laptops and gadgets in Jaipur with free home pickup and instant cash. Check your device price online and book a doorstep pickup with SellKar India.',
+    metaDescription: 'Sell old phones, laptops and gadgets in Jaipur with free home pickup and instant cash.  Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Jaipur – Free Home Pickup',
     intro: 'Selling your old phone in Jaipur is now simple and rewarding with SellKar India. Get the best price with free home pickup service across the Pink City. Our process is quick, transparent and completely secure, ensuring you get instant cash for your devices.',
     devices: [
@@ -395,11 +395,11 @@ const cityData: Record<string, CityData> = {
       },
       {
         question: 'Can I sell an old feature phone?',
-        answer: 'Yes, we buy feature phones as well.  The price will depend on the model and condition.'
+        answer: 'Yes, we buy feature phones as well.   The price will depend on the model and condition.'
       },
       {
         question: 'Do you offer the same price that shows online?',
-        answer: 'The online price is an estimate. The final price is determined after physical inspection based on the actual condition.'
+        answer: 'The online price is an estimate.  The final price is determined after physical inspection based on the actual condition.'
       },
       {
         question: 'Is there a limit on how many devices I can sell?',
@@ -448,15 +448,15 @@ const cityData: Record<string, CityData> = {
       },
       {
         question: 'Do you buy water-damaged phones?',
-        answer: 'We can evaluate water-damaged phones.  The price will depend on the extent of damage.'
+        answer: 'We can evaluate water-damaged phones.   The price will depend on the extent of damage.'
       },
       {
         question: 'How do I prepare my phone for sale?',
-        answer: 'Back up your data, sign out of accounts and factory reset if possible.  We will also do a secure wipe.'
+        answer: 'Back up your data, sign out of accounts and factory reset if possible.   We will also do a secure wipe.'
       },
       {
         question: 'Is pickup really free?',
-        answer: 'Yes, absolutely. There are no hidden charges or pickup fees.'
+        answer: 'Yes, absolutely.  There are no hidden charges or pickup fees.'
       }
     ]
   },
@@ -493,7 +493,7 @@ const cityData: Record<string, CityData> = {
       },
       {
         question: 'What if my phone is very old?',
-        answer: 'We buy phones of all ages.  Even older models have value.'
+        answer: 'We buy phones of all ages.   Even older models have value.'
       },
       {
         question: 'Can I reschedule my pickup?',
@@ -515,7 +515,7 @@ const cityData: Record<string, CityData> = {
     title: 'Sell Old Phones in Varanasi | Free Home Pickup & Instant Cash',
     metaDescription: 'Sell old phones, laptops and gadgets in Varanasi with free home pickup and instant cash. Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Varanasi – Free Home Pickup',
-    intro: 'Sell your old phone in Varanasi with ease.  SellKar India provides doorstep pickup with instant cash payment across the city. Professional service, best prices and complete security guaranteed.',
+    intro: 'Sell your old phone in Varanasi with ease.   SellKar India provides doorstep pickup with instant cash payment across the city.  Professional service, best prices and complete security guaranteed.',
     devices: [
       'Smartphones',
       'Laptops',
@@ -553,7 +553,7 @@ const cityData: Record<string, CityData> = {
         answer: 'Yes, we buy laptops, tablets and other gadgets.'
       },
       {
-        question: 'How fast is the pickup?',
+        question: 'How fast is the pickup? ',
         answer: 'Usually same-day or within 24 hours.'
       }
     ]
@@ -564,7 +564,7 @@ const cityData: Record<string, CityData> = {
     title: 'Sell Old Phones in Agra | Free Home Pickup & Instant Cash',
     metaDescription: 'Sell old phones, laptops and gadgets in Agra with free home pickup and instant cash. Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Agra – Free Home Pickup',
-    intro: 'Sell your old phone in Agra with SellKar India.  Get instant cash with free doorstep pickup.  Professional, secure and hassle-free service across all areas.',
+    intro: 'Sell your old phone in Agra with SellKar India.   Get instant cash with free doorstep pickup.   Professional, secure and hassle-free service across all areas.',
     devices: ['Smartphones', 'Laptops', 'Tablets', 'Accessories'],
     whyChoose: ['Instant payment', 'Free pickup', 'Best rates', 'Trusted team', 'Data security'],
     howItWorks: [
@@ -587,7 +587,7 @@ const cityData: Record<string, CityData> = {
     title: 'Sell Old Phones in Thane | Free Home Pickup & Instant Cash',
     metaDescription: 'Sell old phones, laptops and gadgets in Thane with free home pickup and instant cash. Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Thane – Free Home Pickup',
-    intro: 'Sell your old phone in Thane with SellKar India. Free doorstep pickup, instant cash and transparent pricing across all areas of Thane.',
+    intro: 'Sell your old phone in Thane with SellKar India.  Free doorstep pickup, instant cash and transparent pricing across all areas of Thane.',
     devices: ['Smartphones', 'Laptops', 'Tablets', 'MacBooks'],
     whyChoose: ['Instant cash', 'Free pickup', 'Best prices', 'Professional', 'Secure'],
     howItWorks: [
@@ -608,9 +608,9 @@ const cityData: Record<string, CityData> = {
     name: 'Chandigarh',
     state: 'Chandigarh',
     title: 'Sell Old Phones in Chandigarh | Free Home Pickup & Instant Cash',
-    metaDescription: 'Sell old phones, laptops and gadgets in Chandigarh with free home pickup and instant cash.  Check your device price online and book a doorstep pickup with SellKar India.',
+    metaDescription: 'Sell old phones, laptops and gadgets in Chandigarh with free home pickup and instant cash.   Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Chandigarh – Free Home Pickup',
-    intro: 'Sell old phones in Chandigarh with SellKar India. Get best prices with free home pickup across all sectors. Quick, professional and secure service.',
+    intro: 'Sell old phones in Chandigarh with SellKar India.  Get best prices with free home pickup across all sectors.  Quick, professional and secure service.',
     devices: ['Smartphones', 'Laptops', 'Tablets', 'MacBooks'],
     whyChoose: ['Instant payment', 'Free pickup', 'Best rates', 'Professional', 'Secure'],
     howItWorks: [
@@ -621,7 +621,7 @@ const cityData: Record<string, CityData> = {
     serviceAreas: 'We serve Chandigarh including: Sector 17, Sector 35, Sector 22, Mohali, Panchkula, Sector 43 and all sectors.',
     faqs: [
       { question: 'Do you serve Mohali and Panchkula?', answer: 'Yes, we cover entire Chandigarh Tricity.' },
-      { question: 'Can I sell damaged phones?', answer: 'Yes, we buy damaged devices.' },
+      { question: 'Can I sell damaged phones? ', answer: 'Yes, we buy damaged devices.' },
       { question: 'How fast is service?', answer: 'Same-day pickup available.' },
       { question: 'Payment methods?', answer: 'Cash, UPI or bank transfer.' },
       { question: 'Any charges?', answer: 'No, completely free service.' }
@@ -631,7 +631,7 @@ const cityData: Record<string, CityData> = {
     name: 'Amritsar',
     state: 'Punjab',
     title: 'Sell Old Phones in Amritsar | Free Home Pickup & Instant Cash',
-    metaDescription: 'Sell old phones, laptops and gadgets in Amritsar with free home pickup and instant cash.  Check your device price online and book a doorstep pickup with SellKar India.',
+    metaDescription: 'Sell old phones, laptops and gadgets in Amritsar with free home pickup and instant cash.   Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Amritsar – Free Home Pickup',
     intro: 'Sell your old phone in Amritsar with SellKar India. Free pickup, instant cash and transparent process across the city.',
     devices: ['Smartphones', 'Laptops', 'Tablets', 'Gadgets'],
@@ -654,7 +654,7 @@ const cityData: Record<string, CityData> = {
     name: 'Ludhiana',
     state: 'Punjab',
     title: 'Sell Old Phones in Ludhiana | Free Home Pickup & Instant Cash',
-    metaDescription: 'Sell old phones, laptops and gadgets in Ludhiana with free home pickup and instant cash.  Check your device price online and book a doorstep pickup with SellKar India.',
+    metaDescription: 'Sell old phones, laptops and gadgets in Ludhiana with free home pickup and instant cash.   Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Ludhiana – Free Home Pickup',
     intro: 'Sell old phones in Ludhiana with SellKar India. Best prices, free doorstep pickup and instant cash across the city.',
     devices: ['Smartphones', 'Laptops', 'Tablets', 'Accessories'],
@@ -677,7 +677,7 @@ const cityData: Record<string, CityData> = {
     name: 'Patna',
     state: 'Bihar',
     title: 'Sell Old Phones in Patna | Free Home Pickup & Instant Cash',
-    metaDescription: 'Sell old phones, laptops and gadgets in Patna with free home pickup and instant cash. Check your device price online and book a doorstep pickup with SellKar India.',
+    metaDescription: 'Sell old phones, laptops and gadgets in Patna with free home pickup and instant cash.  Check your device price online and book a doorstep pickup with SellKar India.',
     h1: 'Sell Old Phones in Patna – Free Home Pickup',
     intro: 'Sell your old phone in Patna with SellKar India. Get instant cash with free home pickup across all areas of Patna.',
     devices: ['Smartphones', 'Laptops', 'Tablets', 'Gadgets'],
@@ -691,7 +691,7 @@ const cityData: Record<string, CityData> = {
     faqs: [
       { question: 'All areas covered?', answer: 'Yes, entire Patna.' },
       { question: 'Damaged phones? ', answer: 'Yes.' },
-      { question: 'Speed? ', answer: 'Same-day.' },
+      { question: 'Speed?', answer: 'Same-day.' },
       { question: 'Payment?', answer: 'Cash/UPI.' },
       { question: 'Free? ', answer: 'Yes.' }
     ]
@@ -776,7 +776,7 @@ const CityLandingPage = () => {
       {
         "@type": "ListItem",
         "position": 3,
-        "name": currentCity.name,
+        "name": currentCity. name,
         "item": canonicalUrl
       }
     ]
@@ -854,21 +854,65 @@ const CityLandingPage = () => {
             </Link>
           </section>
 
-          {/* Devices We Buy */}
+          {/* Devices We Buy - CLICKABLE CARDS */}
           <section className="mb-16">
             <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">
               Devices We Buy in {currentCity.name}
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-              {currentCity.devices.map((device, idx) => (
-                <div key={idx} className="bg-white border border-blue-100 rounded-lg p-6 text-center hover:shadow-md transition-shadow">
-                  {idx === 0 && <Smartphone className="w-10 h-10 mx-auto mb-3 text-blue-600" />}
-                  {idx === 1 && <Laptop className="w-10 h-10 mx-auto mb-3 text-blue-600" />}
-                  {idx === 2 && <Tablet className="w-10 h-10 mx-auto mb-3 text-blue-600" />}
-                  {idx > 2 && <CheckCircle className="w-10 h-10 mx-auto mb-3 text-blue-600" />}
-                  <p className="text-sm font-medium text-gray-800">{device}</p>
-                </div>
-              ))}
+              
+              {/* Smartphones Card */}
+              <Link 
+                to="/sell/mobiles" 
+                className="bg-white border border-blue-100 rounded-lg p-6 text-center hover:shadow-xl hover:border-blue-600 transition-all duration-300 transform hover:-translate-y-1 group cursor-pointer"
+              >
+                <Smartphone className="w-10 h-10 mx-auto mb-3 text-blue-600 group-hover:scale-110 transition-transform" />
+                <p className="text-sm font-semibold text-gray-800 mb-2">Smartphones</p>
+                <p className="text-xs text-gray-500 mb-3">Apple, Samsung, OnePlus & more</p>
+                <span className="text-blue-600 text-sm font-medium inline-flex items-center gap-1">
+                  Sell Now →
+                </span>
+              </Link>
+              
+              {/* Laptops Card */}
+              <Link 
+                to="/sell/laptop" 
+                className="bg-white border border-blue-100 rounded-lg p-6 text-center hover:shadow-xl hover:border-blue-600 transition-all duration-300 transform hover:-translate-y-1 group cursor-pointer"
+              >
+                <Laptop className="w-10 h-10 mx-auto mb-3 text-blue-600 group-hover:scale-110 transition-transform" />
+                <p className="text-sm font-semibold text-gray-800 mb-2">Laptops</p>
+                <p className="text-xs text-gray-500 mb-3">Dell, HP, Lenovo & all brands</p>
+                <span className="text-blue-600 text-sm font-medium inline-flex items-center gap-1">
+                  Sell Now →
+                </span>
+              </Link>
+              
+              {/* Tablets & iPads Card */}
+              <Link 
+                to="/sell/ipad" 
+                className="bg-white border border-blue-100 rounded-lg p-6 text-center hover:shadow-xl hover:border-blue-600 transition-all duration-300 transform hover:-translate-y-1 group cursor-pointer"
+              >
+                <Tablet className="w-10 h-10 mx-auto mb-3 text-blue-600 group-hover:scale-110 transition-transform" />
+                <p className="text-sm font-semibold text-gray-800 mb-2">Tablets & iPads</p>
+                <p className="text-xs text-gray-500 mb-3">Apple iPad, Samsung Tab</p>
+                <span className="text-blue-600 text-sm font-medium inline-flex items-center gap-1">
+                  Sell Now →
+                </span>
+              </Link>
+              
+              {/* MacBooks & iMacs Card */}
+              <Link 
+                to="/sell/laptop" 
+                className="bg-white border border-blue-100 rounded-lg p-6 text-center hover:shadow-xl hover:border-blue-600 transition-all duration-300 transform hover:-translate-y-1 group cursor-pointer"
+              >
+                <CheckCircle className="w-10 h-10 mx-auto mb-3 text-blue-600 group-hover:scale-110 transition-transform" />
+                <p className="text-sm font-semibold text-gray-800 mb-2">MacBooks & iMacs</p>
+                <p className="text-xs text-gray-500 mb-3">MacBook Air, Pro, iMac</p>
+                <span className="text-blue-600 text-sm font-medium inline-flex items-center gap-1">
+                  Sell Now →
+                </span>
+              </Link>
+              
             </div>
           </section>
 
@@ -929,7 +973,7 @@ const CityLandingPage = () => {
                 Frequently Asked Questions
               </h2>
               <div className="space-y-6 max-w-4xl mx-auto">
-                {currentCity.faqs.map((faq, idx) => (
+                {currentCity.faqs. map((faq, idx) => (
                   <div key={idx} className="bg-white rounded-lg p-6 border border-blue-100">
                     <h3 className="text-lg font-semibold mb-3 text-gray-900">
                       {faq.question}
