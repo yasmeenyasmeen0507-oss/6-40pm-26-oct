@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { HelmetProvider } from 'react-helmet-async'; // ✅ ADD THIS
+import { HelmetProvider } from 'react-helmet-async';
 import ScrollToTop from "./ScrollToTop";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
@@ -13,6 +13,7 @@ import SellIpad from "./pages/SellIpad";
 import DevicePage from "./pages/DevicePage";
 import CityPage from "./pages/CityPage";
 import CityLandingPage from "./pages/CityLandingPage";
+import CitiesHub from "./pages/CitiesHub";
 import VariantPage from "./pages/VariantPage";
 import ConditionPage from "./pages/ConditionPage";
 import VerifyPage from "./pages/VerifyPage";
@@ -37,7 +38,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <HelmetProvider> {/* ✅ ADD THIS WRAPPER */}
+    <HelmetProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -51,6 +52,9 @@ const App = () => (
 
               {/* Redirect /sell to homepage */}
               <Route path="/sell" element={<Navigate to="/" replace />} />
+
+              {/* ========== CITIES HUB PAGE ========== */}
+              <Route path="/cities" element={<CitiesHub />} />
 
               {/* ========== SEO CITY LANDING PAGES ========== */}
               <Route path="/sell-phone-in-bangalore" element={<CityLandingPage />} />
@@ -138,7 +142,7 @@ const App = () => (
           </AdminAuthProvider>
         </BrowserRouter>
       </TooltipProvider>
-    </HelmetProvider> {/* ✅ CLOSE WRAPPER */}
+    </HelmetProvider>
   </QueryClientProvider>
 );
 
