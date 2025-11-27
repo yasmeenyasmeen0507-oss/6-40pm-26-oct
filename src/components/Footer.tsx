@@ -1,25 +1,25 @@
-import { Smartphone, ChevronDown, Instagram, Facebook, Twitter } from "lucide-react";
+import { Smartphone, ChevronDown, Instagram, Facebook, Twitter, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 
 const Footer = () => {
-  const currentYear = new Date().getFullYear();
+  const currentYear = new Date(). getFullYear();
   const [openSection, setOpenSection] = useState<string | null>(null);
 
   const toggleSection = (section: string) => {
-    setOpenSection(openSection === section ? null : section);
+    setOpenSection(openSection === section ?  null : section);
   };
 
   // WhatsApp link with pre-filled message
   const whatsappNumber = "917411329292";
   const whatsappMessage = "Hi, SellkarIndia. I am interested in partnership with you.";
-  const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+  const whatsappLink = `https://wa. me/${whatsappNumber}? text=${encodeURIComponent(whatsappMessage)}`;
 
   // Social media links
   const socialLinks = {
     instagram: "https://www.instagram.com/sellkarindia/",
     facebook: "https://www.facebook.com/profile.php?id=61583412548776",
-    twitter: "https://x.com/sellkarindia"
+    twitter: "https://x. com/sellkarindia"
   };
 
   return (
@@ -60,7 +60,7 @@ const Footer = () => {
                 <Facebook className="w-5 h-5 text-white" />
               </a>
               <a
-                href={socialLinks.twitter}
+                href={socialLinks. twitter}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-slate-800 hover:bg-sky-500 p-2 rounded-lg transition-all duration-300"
@@ -143,7 +143,32 @@ const Footer = () => {
               </ul>
             </div>
 
-            {/* Fourth Column: More Info */}
+            {/* Fourth Column: Cities We Serve (NEW) */}
+            <div>
+              <h3 className="text-white font-bold text-base sm:text-lg mb-3 sm:mb-4">Cities We Serve</h3>
+              <ul className="space-y-2">
+                <li>
+                  <a 
+                    href="/sell-phone-in-bangalore" 
+                    className="text-sm hover:text-white transition-colors inline-flex items-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Sell Old Phones in Bangalore
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="/sell-phone-in-hyderabad" 
+                    className="text-sm hover:text-white transition-colors inline-flex items-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Sell Old Phones in Hyderabad
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Fifth Column: More Info */}
             <div>
               <h3 className="text-white font-bold text-base sm:text-lg mb-3 sm:mb-4">More Info</h3>
               <ul className="space-y-2">
@@ -175,13 +200,6 @@ const Footer = () => {
                 </li>
               </ul>
             </div>
-
-            {/* Empty placeholder */}
-            <div className="hidden lg:flex items-center justify-center h-full">
-              <h3 className="text-white text-center font-bold text-lg">
-                {/* Empty placeholder */}
-              </h3>
-            </div>
           </div>
 
           {/* Mobile Accordion Layout */}
@@ -195,7 +213,7 @@ const Footer = () => {
                 <span>Quick Links</span>
                 <ChevronDown
                   className={`w-5 h-5 transition-transform ${
-                    openSection === "quick-links" ? "rotate-180" : ""
+                    openSection === "quick-links" ?  "rotate-180" : ""
                   }`}
                 />
               </button>
@@ -280,6 +298,43 @@ const Footer = () => {
               )}
             </div>
 
+            {/* Cities We Serve Dropdown (NEW - Mobile) */}
+            <div className="border-b border-slate-800 pb-3">
+              <button
+                onClick={() => toggleSection("cities")}
+                className="w-full flex items-center justify-between text-white font-bold text-base py-2"
+              >
+                <span>Cities We Serve</span>
+                <ChevronDown
+                  className={`w-5 h-5 transition-transform ${
+                    openSection === "cities" ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              {openSection === "cities" && (
+                <ul className="space-y-2 mt-3">
+                  <li>
+                    <a 
+                      href="/sell-phone-in-bangalore" 
+                      className="text-sm hover:text-white transition-colors inline-flex items-center gap-2"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      Sell Old Phones in Bangalore
+                    </a>
+                  </li>
+                  <li>
+                    <a 
+                      href="/sell-phone-in-hyderabad" 
+                      className="text-sm hover:text-white transition-colors inline-flex items-center gap-2"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      Sell Old Phones in Hyderabad
+                    </a>
+                  </li>
+                </ul>
+              )}
+            </div>
+
             {/* More Info Dropdown */}
             <div className="border-b border-slate-800 pb-3">
               <button
@@ -332,7 +387,7 @@ const Footer = () => {
           <div className="flex flex-col items-center gap-4">
             {/* Disclaimer Text */}
             <p className="text-xs sm:text-sm text-center text-slate-400 max-w-4xl px-4">
-              All product names, logos, and brands are property of their respective owners. All company, product and service names used in this website are for identification purposes only. Use of these names, logos, and brands does not imply endorsement.
+              All product names, logos, and brands are property of their respective owners. All company, product and service names used in this website are for identification purposes only. Use of these names, logos, and brands does not imply endorsement. 
             </p>
             
             {/* Border Line */}
@@ -340,7 +395,7 @@ const Footer = () => {
             
             {/* Copyright */}
             <p className="text-xs sm:text-sm text-center">
-              &copy; {currentYear} SellkarIndia. All rights reserved.
+              &copy; {currentYear} SellkarIndia.  All rights reserved.
             </p>
           </div>
         </div>
