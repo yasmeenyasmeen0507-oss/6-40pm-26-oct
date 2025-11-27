@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Truck, IndianRupee, Shield, Clock } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 
 interface CityData {
   name: string;
@@ -12,11 +12,12 @@ interface CityData {
   areas: string[];
 }
 
+// ✅ Move cityData outside component (loads once, not on every render)
 const cityData: Record<string, CityData> = {
   'bangalore': {
     name: 'Bangalore',
     state: 'Karnataka',
-    description: 'Sell your old phone in Bangalore and get instant cash. We offer the best prices for used mobiles with free doorstep pickup across Bangalore, including Koramangala, Whitefield, Indiranagar, and all areas.',
+    description: 'Sell your old phone in Bangalore and get instant cash.  We offer the best prices for used mobiles with free doorstep pickup across Bangalore, including Koramangala, Whitefield, Indiranagar, and all areas.',
     areas: ['Koramangala', 'Whitefield', 'Indiranagar', 'Electronic City', 'HSR Layout', 'Marathahalli']
   },
   'delhi': {
@@ -40,7 +41,7 @@ const cityData: Record<string, CityData> = {
   'hyderabad': {
     name: 'Hyderabad',
     state: 'Telangana',
-    description: 'Sell your old phone in Hyderabad and get instant cash. We offer the best prices for used mobiles with free doorstep pickup across Hyderabad, including Hitech City, Gachibowli, Secunderabad, and all areas.',
+    description: 'Sell your old phone in Hyderabad and get instant cash.  We offer the best prices for used mobiles with free doorstep pickup across Hyderabad, including Hitech City, Gachibowli, Secunderabad, and all areas.',
     areas: ['Hitech City', 'Gachibowli', 'Secunderabad', 'Madhapur', 'Banjara Hills', 'Kukatpally']
   },
   'thane': {
@@ -94,7 +95,7 @@ const cityData: Record<string, CityData> = {
   'lucknow': {
     name: 'Lucknow',
     state: 'Uttar Pradesh',
-    description: 'Sell your old phone in Lucknow and get instant cash. We offer the best prices for used mobiles with free doorstep pickup across Lucknow, including Gomti Nagar, Hazratganj, Alambagh, and all areas.',
+    description: 'Sell your old phone in Lucknow and get instant cash.  We offer the best prices for used mobiles with free doorstep pickup across Lucknow, including Gomti Nagar, Hazratganj, Alambagh, and all areas.',
     areas: ['Gomti Nagar', 'Hazratganj', 'Alambagh', 'Indira Nagar', 'Aliganj', 'Mahanagar']
   },
   'kanpur': {
@@ -129,71 +130,57 @@ const cityData: Record<string, CityData> = {
   }
 };
 
+// ✅ Memoize step data (doesn't change)
+const steps = [
+  { num: "1", title: "Select Your Phone", desc: "Choose your phone brand, model, and condition" },
+  { num: "2", title: "Get Instant Quote", desc: "See the exact price you'll get for your phone" },
+  { num: "3", title: "Schedule Free Pickup", desc: "Choose a convenient time for pickup" },
+  { num: "4", title: "Get Paid Instantly", desc: "Receive payment as soon as we verify your phone" }
+];
+
 const CityLandingPage = () => {
   const location = useLocation();
-  const [currentCity, setCurrentCity] = useState<CityData | null>(null);
-  const [citySlug, setCitySlug] = useState<string>('');
-
-  useEffect(() => {
+  
+  // ✅ Use useMemo instead of useState + useEffect (fewer re-renders)
+  const { currentCity, citySlug } = useMemo(() => {
     const path = location.pathname;
-    const cityFromPath = path.replace('/sell-phone-in-', '');
-    setCitySlug(cityFromPath);
-    const city = cityData[cityFromPath] || cityData['bangalore'];
-    setCurrentCity(city);
-  }, [location. pathname]);
+    const slug = path.replace('/sell-phone-in-', '');
+    const city = cityData[slug] || cityData['bangalore'];
+    return { currentCity: city, citySlug: slug };
+  }, [location.pathname]);
 
-  if (!currentCity) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Loading... </h1>
-        </div>
-      </div>
-    );
-  }
-
-  const pageTitle = `Sell Phone in ${currentCity.name} - Get Instant Cash | SellKar India`;
-  const pageDescription = currentCity.description;
-  const canonicalUrl = `https://www.sellkarindia.com/sell-phone-in-${citySlug}`;
+  // ✅ Memoize meta data
+  const metaData = useMemo(() => ({
+    title: `Sell Phone in ${currentCity.name} - Get Instant Cash | SellKar India`,
+    description: currentCity.description,
+    canonical: `https://www.sellkarindia.com/sell-phone-in-${citySlug}`
+  }), [currentCity, citySlug]);
 
   return (
     <>
       {/* SEO Meta Tags */}
       <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDescription} />
-        <link rel="canonical" href={canonicalUrl} />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDescription} />
-        <meta property="og:url" content={canonicalUrl} />
+        <title>{metaData.title}</title>
+        <meta name="description" content={metaData.description} />
+        <link rel="canonical" href={metaData.canonical} />
+        <meta property="og:title" content={metaData.title} />
+        <meta property="og:description" content={metaData.description} />
+        <meta property="og:url" content={metaData.canonical} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={pageTitle} />
-        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:title" content={metaData.title} />
+        <meta name="twitter:description" content={metaData.description} />
         
-        {/* Local Business Schema */}
+        {/* Local Business Schema - inline for performance */}
         <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "LocalBusiness",
-            "name": `SellKar India - ${currentCity.name}`,
-            "description": pageDescription,
-            "url": canonicalUrl,
-            "areaServed": {
-              "@type": "City",
-              "name": currentCity. name,
-              "containedIn": currentCity.state
-            },
-            "priceRange": "₹₹",
-            "paymentAccepted": ["Cash", "UPI", "Bank Transfer"],
-            "currenciesAccepted": "INR"
-          })}
+          {`{"@context":"https://schema.org","@type":"LocalBusiness","name":"SellKar India - ${currentCity.name}","description":"${currentCity.description}","url":"${metaData.canonical}","areaServed":{"@type":"City","name":"${currentCity.name}","containedIn":"${currentCity.state}"},"priceRange":"₹₹","paymentAccepted":["Cash","UPI","Bank Transfer"],"currenciesAccepted":"INR"}`}
         </script>
       </Helmet>
 
       {/* Page Content */}
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50">
         <div className="container mx-auto px-4 py-16">
+          
           {/* Hero Section */}
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
@@ -258,18 +245,15 @@ const CityLandingPage = () => {
               How It Works in {currentCity.name}
             </h2>
             <div className="grid md:grid-cols-4 gap-8">
-              {[
-                { num: "1", title: "Select Your Phone", desc: "Choose your phone brand, model, and condition" },
-                { num: "2", title: "Get Instant Quote", desc: "See the exact price you'll get for your phone" },
-                { num: "3", title: "Schedule Free Pickup", desc: `Choose a convenient time for pickup in ${currentCity.name}` },
-                { num: "4", title: "Get Paid Instantly", desc: "Receive payment as soon as we verify your phone" }
-              ]. map((step) => (
+              {steps.map((step) => (
                 <div key={step.num} className="text-center">
                   <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4">
                     {step.num}
                   </div>
                   <h3 className="font-semibold mb-2">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground">{step.desc}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {step.num === "3" ?  `Choose a convenient time for pickup in ${currentCity.name}` : step.desc}
+                  </p>
                 </div>
               ))}
             </div>
@@ -302,7 +286,7 @@ const CityLandingPage = () => {
               Ready to Sell Your Phone in {currentCity.name}? 
             </h2>
             <p className="text-xl text-gray-700 mb-8">
-              Get an instant quote now and receive payment within 24 hours! 
+              Get an instant quote now and receive payment within 24 hours!
             </p>
             <Link to="/sell/mobiles">
               <Button size="lg" className="text-lg px-8 py-6 bg-blue-600 hover:bg-blue-700 text-white">
