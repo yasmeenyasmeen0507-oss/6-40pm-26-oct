@@ -53,7 +53,7 @@ const Pricing = () => {
                       Real-Time Market Value
                     </h3>
                     <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-                      We analyze current demand and resale value across India to get you the best rate.
+                      We analyze current demand and resale value across India to get you the best rate. 
                     </p>
                   </div>
                 </div>
@@ -72,7 +72,7 @@ const Pricing = () => {
                       Device Condition
                     </h3>
                     <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-                      Based on physical condition, age, functional status, and accessories like box, charger, or bill.
+                      Based on physical condition, age, functional status, and accessories like box, charger, or bill. 
                     </p>
                   </div>
                 </div>
@@ -180,7 +180,7 @@ const Pricing = () => {
                     Price Protection Guarantee
                   </h3>
                   <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-                    If your described condition matches during pickup, the quote stays the same. No on-the-spot negotiations.
+                    If your described condition matches during pickup, the quote stays the same.  No on-the-spot negotiations.
                   </p>
                 </div>
               </div>
@@ -194,7 +194,7 @@ const Pricing = () => {
                     Zero Hidden Charges
                   </h3>
                   <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-                    Free pickup, no service fee, no platform charges. What we offer is what we pay.
+                    Free pickup, no service fee, no platform charges.  What we offer is what we pay.
                   </p>
                 </div>
               </div>
@@ -211,8 +211,39 @@ const Pricing = () => {
               Transparency at Every Step
             </h2>
             <p className="text-lg sm:text-xl text-gray-700 leading-relaxed">
-              We don't tempt you with inflated online prices just to slash them later. Our system is consistent: what you see is what you get.
+              We don't tempt you with inflated online prices just to slash them later. Our system is consistent: what you see is what you get. 
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* NEW SECTION: Available in Your City */}
+      <section className="bg-white py-12 sm:py-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-2xl sm:text-3xl font-bold text-blue-800 mb-4">
+              Get Best Prices in Your City
+            </h2>
+            <p className="text-base sm:text-lg text-gray-700 mb-6">
+              Enjoy transparent pricing with free doorstep pickup across major cities
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <a 
+                href="/sell-phone-in-bangalore"
+                className="inline-flex items-center gap-2 text-lg text-blue-600 hover:text-blue-800 hover:underline transition-colors font-medium"
+              >
+                <CheckCircle className="w-5 h-5" />
+                Sell Old Phones in Bangalore
+              </a>
+              <span className="text-gray-300 text-2xl">|</span>
+              <a 
+                href="/sell-phone-in-hyderabad"
+                className="inline-flex items-center gap-2 text-lg text-blue-600 hover:text-blue-800 hover:underline transition-colors font-medium"
+              >
+                <CheckCircle className="w-5 h-5" />
+                Sell Old Phones in Hyderabad
+              </a>
+            </div>
           </div>
         </div>
       </section>
