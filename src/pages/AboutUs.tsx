@@ -1,4 +1,4 @@
-import { Smartphone } from "lucide-react";
+import { Smartphone, CheckCircle } from "lucide-react";
 
 const aboutData = [
   {
@@ -8,9 +8,9 @@ const aboutData = [
     img: "/assets/about1.jpg",
   },
   {
-    title: "Why we’re different",
+    title: "Why we're different",
     description:
-      "No hidden cuts, no reselling drama, no waiting. Just a verified team, transparent pricing, and same-day payout.",
+      "No hidden cuts, no reselling drama, no waiting.  Just a verified team, transparent pricing, and same-day payout.",
     img: "/assets/about2.jpg",
   },
   {
@@ -45,7 +45,7 @@ const AboutUs = () => (
             About Us
           </h1>
           <p className="text-lg sm:text-xl text-black font-medium max-w-xl mx-auto">
-            SellKar India is a fast, transparent, and doorstep service for selling used phones, laptops, tablets, Macs, and other gadgets across India. We help individuals and businesses get fair value for their old devices without wasting time on negotiations, fake buyers, or marketplace hassle.
+            SellKar India is a fast, transparent, and doorstep service for selling used phones, laptops, tablets, Macs, and other gadgets across India.  We help individuals and businesses get fair value for their old devices without wasting time on negotiations, fake buyers, or marketplace hassle.
           </p>
         </div>
       </div>
@@ -59,7 +59,7 @@ const AboutUs = () => (
             <div
               key={point.title}
               className={`grid md:grid-cols-2 gap-8 items-center ${
-                i % 2 === 0 ? "" : "md:flex-row-reverse"
+                i % 2 === 0 ?  "" : "md:flex-row-reverse"
               }`}
             >
               <div
@@ -69,8 +69,8 @@ const AboutUs = () => (
                     : "order-2 md:order-2"
                 } flex items-center justify-center`}
               >
-                <div className={`rounded-2xl overflow-hidden shadow-lg w-full max-w-md bg-white flex items-center justify-center ${i === 3 ? "" : "h-64"}`}>
-                  {i === 3 ? (
+                <div className={`rounded-2xl overflow-hidden shadow-lg w-full max-w-md bg-white flex items-center justify-center ${i === 3 ?  "" : "h-64"}`}>
+                  {i === 3 ?  (
                     <img
                       src={point.img}
                       alt={point.title}
@@ -111,6 +111,37 @@ const AboutUs = () => (
               </div>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+
+    {/* NEW SECTION: Cities We Serve */}
+    <section className="bg-white py-12 sm:py-16">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-blue-800 mb-4">
+            We Serve Major Cities Across India
+          </h2>
+          <p className="text-base sm:text-lg text-gray-700 mb-6">
+            Trusted doorstep pickup service available in your city
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <a 
+              href="/sell-phone-in-bangalore"
+              className="inline-flex items-center gap-2 text-lg text-blue-600 hover:text-blue-800 hover:underline transition-colors font-medium"
+            >
+              <CheckCircle className="w-5 h-5" />
+              Sell Old Phones in Bangalore
+            </a>
+            <span className="text-gray-300 text-2xl">|</span>
+            <a 
+              href="/sell-phone-in-hyderabad"
+              className="inline-flex items-center gap-2 text-lg text-blue-600 hover:text-blue-800 hover:underline transition-colors font-medium"
+            >
+              <CheckCircle className="w-5 h-5" />
+              Sell Old Phones in Hyderabad
+            </a>
+          </div>
         </div>
       </div>
     </section>
