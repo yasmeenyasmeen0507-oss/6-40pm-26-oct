@@ -1,9 +1,8 @@
 import { useLocation, Link } from "react-router-dom";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async"; // ✅ CHANGED
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { memo, useMemo } from "react"; // ✅ ADD memo
 import { CheckCircle, Truck, IndianRupee, Shield, Clock } from "lucide-react";
-import { useMemo } from "react";
 
 interface CityData {
   name: string;
@@ -12,7 +11,6 @@ interface CityData {
   areas: string[];
 }
 
-// ✅ Move cityData outside component (loads once, not on every render)
 const cityData: Record<string, CityData> = {
   'bangalore': {
     name: 'Bangalore',
@@ -95,7 +93,7 @@ const cityData: Record<string, CityData> = {
   'lucknow': {
     name: 'Lucknow',
     state: 'Uttar Pradesh',
-    description: 'Sell your old phone in Lucknow and get instant cash.  We offer the best prices for used mobiles with free doorstep pickup across Lucknow, including Gomti Nagar, Hazratganj, Alambagh, and all areas.',
+    description: 'Sell your old phone in Lucknow and get instant cash. We offer the best prices for used mobiles with free doorstep pickup across Lucknow, including Gomti Nagar, Hazratganj, Alambagh, and all areas.',
     areas: ['Gomti Nagar', 'Hazratganj', 'Alambagh', 'Indira Nagar', 'Aliganj', 'Mahanagar']
   },
   'kanpur': {
@@ -130,18 +128,35 @@ const cityData: Record<string, CityData> = {
   }
 };
 
-// ✅ Memoize step data (doesn't change)
-const steps = [
-  { num: "1", title: "Select Your Phone", desc: "Choose your phone brand, model, and condition" },
-  { num: "2", title: "Get Instant Quote", desc: "See the exact price you'll get for your phone" },
-  { num: "3", title: "Schedule Free Pickup", desc: "Choose a convenient time for pickup" },
-  { num: "4", title: "Get Paid Instantly", desc: "Receive payment as soon as we verify your phone" }
-];
+// ✅ Memoized Feature Card Component
+const FeatureCard = memo(({ icon: Icon, title, description }: { icon: any; title: string; description: string }) => (
+  <div className="hover:shadow-lg transition-shadow border border-blue-100 rounded-lg p-6 bg-white">
+    <div className="text-center">
+      <Icon className="w-12 h-12 mx-auto mb-4 text-blue-600" />
+      <h3 className="font-semibold mb-2">{title}</h3>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </div>
+  </div>
+));
+
+FeatureCard.displayName = 'FeatureCard';
+
+// ✅ Memoized Step Component
+const StepCard = memo(({ num, title, desc }: { num: string; title: string; desc: string }) => (
+  <div className="text-center">
+    <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+      {num}
+    </div>
+    <h3 className="font-semibold mb-2">{title}</h3>
+    <p className="text-sm text-muted-foreground">{desc}</p>
+  </div>
+));
+
+StepCard.displayName = 'StepCard';
 
 const CityLandingPage = () => {
   const location = useLocation();
   
-  // ✅ Use useMemo instead of useState + useEffect (fewer re-renders)
   const { currentCity, citySlug } = useMemo(() => {
     const path = location.pathname;
     const slug = path.replace('/sell-phone-in-', '');
@@ -149,7 +164,6 @@ const CityLandingPage = () => {
     return { currentCity: city, citySlug: slug };
   }, [location.pathname]);
 
-  // ✅ Memoize meta data
   const metaData = useMemo(() => ({
     title: `Sell Phone in ${currentCity.name} - Get Instant Cash | SellKar India`,
     description: currentCity.description,
@@ -158,7 +172,6 @@ const CityLandingPage = () => {
 
   return (
     <>
-      {/* SEO Meta Tags */}
       <Helmet>
         <title>{metaData.title}</title>
         <meta name="description" content={metaData.description} />
@@ -167,26 +180,19 @@ const CityLandingPage = () => {
         <meta property="og:description" content={metaData.description} />
         <meta property="og:url" content={metaData.canonical} />
         <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={metaData.title} />
-        <meta name="twitter:description" content={metaData.description} />
-        
-        {/* Local Business Schema - inline for performance */}
         <script type="application/ld+json">
           {`{"@context":"https://schema.org","@type":"LocalBusiness","name":"SellKar India - ${currentCity.name}","description":"${currentCity.description}","url":"${metaData.canonical}","areaServed":{"@type":"City","name":"${currentCity.name}","containedIn":"${currentCity.state}"},"priceRange":"₹₹","paymentAccepted":["Cash","UPI","Bank Transfer"],"currenciesAccepted":"INR"}`}
         </script>
       </Helmet>
 
-      {/* Page Content */}
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
         <div className="container mx-auto px-4 py-16">
           
-          {/* Hero Section */}
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
               Sell Your Phone in {currentCity. name}
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               {currentCity.description}
             </p>
             <Link to="/sell/mobiles">
@@ -196,98 +202,41 @@ const CityLandingPage = () => {
             </Link>
           </div>
 
-          {/* Features Section */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            <Card className="hover:shadow-lg transition-shadow border-blue-100">
-              <CardContent className="pt-6 text-center">
-                <Truck className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-                <h3 className="font-semibold mb-2">Free Doorstep Pickup</h3>
-                <p className="text-sm text-muted-foreground">
-                  We pick up from anywhere in {currentCity.name} - absolutely free!
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow border-blue-100">
-              <CardContent className="pt-6 text-center">
-                <IndianRupee className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-                <h3 className="font-semibold mb-2">Best Price Guaranteed</h3>
-                <p className="text-sm text-muted-foreground">
-                  Get the highest cash value for your old phone
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow border-blue-100">
-              <CardContent className="pt-6 text-center">
-                <Clock className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-                <h3 className="font-semibold mb-2">Instant Payment</h3>
-                <p className="text-sm text-muted-foreground">
-                  Receive payment via UPI, bank transfer, or cash
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow border-blue-100">
-              <CardContent className="pt-6 text-center">
-                <Shield className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-                <h3 className="font-semibold mb-2">Safe & Secure</h3>
-                <p className="text-sm text-muted-foreground">
-                  Complete data wiping and secure transaction
-                </p>
-              </CardContent>
-            </Card>
+            <FeatureCard icon={Truck} title="Free Doorstep Pickup" description={`We pick up from anywhere in ${currentCity.name} - absolutely free!`} />
+            <FeatureCard icon={IndianRupee} title="Best Price Guaranteed" description="Get the highest cash value for your old phone" />
+            <FeatureCard icon={Clock} title="Instant Payment" description="Receive payment via UPI, bank transfer, or cash" />
+            <FeatureCard icon={Shield} title="Safe & Secure" description="Complete data wiping and secure transaction" />
           </div>
 
-          {/* How It Works Section */}
           <div className="mb-16">
-            <h2 className="text-3xl font-bold text-center mb-12">
-              How It Works in {currentCity.name}
-            </h2>
+            <h2 className="text-3xl font-bold text-center mb-12">How It Works in {currentCity.name}</h2>
             <div className="grid md:grid-cols-4 gap-8">
-              {steps.map((step) => (
-                <div key={step.num} className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                    {step.num}
-                  </div>
-                  <h3 className="font-semibold mb-2">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {step.num === "3" ?  `Choose a convenient time for pickup in ${currentCity.name}` : step.desc}
-                  </p>
-                </div>
+              <StepCard num="1" title="Select Your Phone" desc="Choose your phone brand, model, and condition" />
+              <StepCard num="2" title="Get Instant Quote" desc="See the exact price you'll get for your phone" />
+              <StepCard num="3" title="Schedule Free Pickup" desc={`Choose a convenient time for pickup in ${currentCity.name}`} />
+              <StepCard num="4" title="Get Paid Instantly" desc="Receive payment as soon as we verify your phone" />
+            </div>
+          </div>
+
+          <div className="mb-16 border border-blue-100 rounded-lg p-6 bg-white">
+            <h2 className="text-2xl font-bold mb-4">We Serve All Areas in {currentCity.name}</h2>
+            <p className="text-gray-600 mb-4">
+              Free doorstep pickup available across {currentCity.name}. No matter where you are in the city, we'll come to you to collect your old phone and pay you instantly.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {currentCity.areas.map((area) => (
+                <span key={area} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 rounded-full text-sm text-blue-700 border border-blue-200">
+                  <CheckCircle className="w-4 h-4 text-blue-600" />
+                  {area}
+                </span>
               ))}
             </div>
           </div>
 
-          {/* Service Areas */}
-          <Card className="mb-16 border-blue-100">
-            <CardContent className="pt-6">
-              <h2 className="text-2xl font-bold mb-4">
-                We Serve All Areas in {currentCity.name}
-              </h2>
-              <p className="text-muted-foreground mb-4">
-                Free doorstep pickup available across {currentCity.name}.  No matter where you are in the city, 
-                we'll come to you to collect your old phone and pay you instantly.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {currentCity.areas.map((area) => (
-                  <span key={area} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 rounded-full text-sm text-blue-700 border border-blue-200">
-                    <CheckCircle className="w-4 h-4 text-blue-600" />
-                    {area}
-                  </span>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* CTA Section */}
           <div className="text-center bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-12 border border-blue-200">
-            <h2 className="text-3xl font-bold mb-4 text-blue-900">
-              Ready to Sell Your Phone in {currentCity.name}? 
-            </h2>
-            <p className="text-xl text-gray-700 mb-8">
-              Get an instant quote now and receive payment within 24 hours!
-            </p>
+            <h2 className="text-3xl font-bold mb-4 text-blue-900">Ready to Sell Your Phone in {currentCity.name}?</h2>
+            <p className="text-xl text-gray-700 mb-8">Get an instant quote now and receive payment within 24 hours! </p>
             <Link to="/sell/mobiles">
               <Button size="lg" className="text-lg px-8 py-6 bg-blue-600 hover:bg-blue-700 text-white">
                 Start Selling Now →
@@ -300,4 +249,4 @@ const CityLandingPage = () => {
   );
 };
 
-export default CityLandingPage;
+export default memo(CityLandingPage);
