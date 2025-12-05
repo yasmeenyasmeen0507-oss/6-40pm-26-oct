@@ -57,7 +57,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 
 interface PickupRequest {
   id: string;
-  order_id?: string; // ✅ Added Order ID
+  order_id?: string;
   customer_name: string;
   user_phone: string;
   email?: string;
@@ -120,7 +120,7 @@ export default function AdminPickupRequests() {
     queryKey: ['admin-pickup-requests', statusFilter],
     queryFn: async () => {
       let query = supabase
-        .from('pickup_requests')
+        . from('pickup_requests')
         .select(
           `
           *,
@@ -150,7 +150,7 @@ export default function AdminPickupRequests() {
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status, oldStatus }: { id: string; status: string; oldStatus: string }) => {
       const updateData: any = { status };
-      if (session?.user?.username) {
+      if (session?.user?. username) {
         updateData.updated_by = session.user.username;
       }
       const { data, error } = await supabase
@@ -161,8 +161,8 @@ export default function AdminPickupRequests() {
       if (error) {
         throw new Error(error.message || 'Failed to update status');
       }
-      if (!data || data.length === 0) {
-        throw new Error('No rows were updated. Check permissions.');
+      if (! data || data.length === 0) {
+        throw new Error('No rows were updated.  Check permissions.');
       }
       if (session) {
         logAdminActivity({
@@ -172,7 +172,7 @@ export default function AdminPickupRequests() {
           record_id: id,
           before_data: { status: oldStatus },
           after_data: { status, updated_by: session.user.username },
-        }).catch((err) => console.warn('⚠️ Activity log failed:', err));
+        }). catch((err) => console.warn('⚠️ Activity log failed:', err));
       }
       return data[0];
     },
@@ -180,16 +180,16 @@ export default function AdminPickupRequests() {
       await queryClient.cancelQueries({ queryKey: ['admin-pickup-requests'] });
       const previousData = queryClient.getQueryData(['admin-pickup-requests', statusFilter]);
       queryClient.setQueryData(['admin-pickup-requests', statusFilter], (old: any) => {
-        if (!old) return old;
+        if (! old) return old;
         return old.map((request: any) =>
-          request.id === id ? { ...request, status } : request
+          request.id === id ?  { ...request, status } : request
         );
       });
       return { previousData };
     },
     onError: (error, variables, context) => {
-      if (context?.previousData) {
-        queryClient.setQueryData(['admin-pickup-requests', statusFilter], context.previousData);
+      if (context?. previousData) {
+        queryClient.setQueryData(['admin-pickup-requests', statusFilter], context. previousData);
       }
       toast.error(error instanceof Error ? error.message : 'Failed to update status');
     },
@@ -218,7 +218,7 @@ export default function AdminPickupRequests() {
           action_type: 'update',
           table_name: 'pickup_requests',
           record_id: id,
-          after_data: { notes, updated_by: session.user.username },
+          after_data: { notes, updated_by: session.user. username },
         }).catch((err) => console.warn('Failed to log notes update:', err));
       }
       return data[0];
@@ -245,19 +245,19 @@ export default function AdminPickupRequests() {
     setDetailsDialogOpen(true);
   };
   const handleSaveNotes = () => {
-    if (!selectedRequest) return;
+    if (! selectedRequest) return;
     updateNotesMutation.mutate({ id: selectedRequest.id, notes: noteText });
   };
 
   const filteredRequests = requests?.filter((request) => {
-    if (!searchQuery) return true;
+    if (! searchQuery) return true;
     const search = searchQuery.toLowerCase();
     return (
-      request.customer_name?.toLowerCase().includes(search) ||
+      request.customer_name?. toLowerCase().includes(search) ||
       request.user_phone?.includes(search) ||
-      request.order_id?.toLowerCase().includes(search) || // ✅ Search by Order ID
+      request. order_id?.toLowerCase().includes(search) ||
       request.device?.model_name?.toLowerCase().includes(search) ||
-      request.device?.brand?.name?.toLowerCase().includes(search)
+      request. device?.brand?.name?.toLowerCase().includes(search)
     );
   });
 
@@ -265,6 +265,7 @@ export default function AdminPickupRequests() {
     const colors: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
       confirmed: 'bg-blue-100 text-blue-800 border-blue-300',
+      rescheduled: 'bg-orange-100 text-orange-800 border-orange-300',
       'in-transit': 'bg-purple-100 text-purple-800 border-purple-300',
       completed: 'bg-green-100 text-green-800 border-green-300',
       cancelled: 'bg-red-100 text-red-800 border-red-300',
@@ -275,6 +276,7 @@ export default function AdminPickupRequests() {
     const labels: Record<string, string> = {
       pending: 'Pending',
       confirmed: 'Confirmed',
+      rescheduled: 'Rescheduled',
       'in-transit': 'In Transit',
       completed: 'Completed',
       cancelled: 'Cancelled',
@@ -296,15 +298,15 @@ export default function AdminPickupRequests() {
       ];
       const rows = filteredRequests.map((req, idx) => [
         idx + 1,
-        req.order_id || '', // ✅ Export Order ID
+        req.order_id || '',
         req.id,
         req.customer_name,
         req.user_phone,
         req.email || '',
-        `${req.device?.brand?.name || ''} ${req.device?.model_name || ''}`,
+        `${req.device?.brand?.name || ''} ${req. device?.model_name || ''}`,
         `${req.variant?.storage_gb || ''}GB`,
         req.city?.name || '',
-        req.address || '',
+        req. address || '',
         req.pincode || '',
         format(new Date(req.created_at), 'yyyy-MM-dd HH:mm:ss'),
         req.pickup_date || '',
@@ -314,18 +316,18 @@ export default function AdminPickupRequests() {
         req.condition || '',
         req.age_group || req.age_range || '',
         req.overall_condition || '',
-        req.can_make_calls ? 'Yes' : 'No',
+        req.can_make_calls ?  'Yes' : 'No',
         req.is_touch_working ? 'Yes' : 'No',
-        req.is_screen_original ? 'Yes' : 'No',
+        req. is_screen_original ? 'Yes' : 'No',
         req.is_battery_healthy ? 'Yes' : 'No',
         req.display_condition || '',
         req.body_condition || '',
-        req.has_charger ? 'Yes' : 'No',
+        req. has_charger ? 'Yes' : 'No',
         req.has_box ? 'Yes' : 'No',
         req.has_bill ? 'Yes' : 'No',
         req.notes || '',
         req.updated_by || '',
-        req.updated_at ? format(new Date(req.updated_at), 'yyyy-MM-dd HH:mm:ss') : '',
+        req.updated_at ?  format(new Date(req.updated_at), 'yyyy-MM-dd HH:mm:ss') : '',
         format(new Date(req.created_at), 'yyyy-MM-dd HH:mm:ss'),
       ]);
       const csvContent = [
@@ -333,7 +335,7 @@ export default function AdminPickupRequests() {
         ...rows.map((row) =>
           row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')
         ),
-      ].join('\n');
+      ]. join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -347,9 +349,9 @@ export default function AdminPickupRequests() {
           action_type: 'export',
           table_name: 'pickup_requests',
           after_data: { count: filteredRequests.length },
-        }).catch((err) => console.warn('Failed to log export:', err));
+        }). catch((err) => console.warn('Failed to log export:', err));
       }
-      toast.success(`Exported ${filteredRequests.length} requests`);
+      toast.success(`Exported ${filteredRequests. length} requests`);
     } catch (error) {
       toast.error('Failed to export data');
     }
@@ -421,6 +423,7 @@ export default function AdminPickupRequests() {
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="confirmed">Confirmed</SelectItem>
+                <SelectItem value="rescheduled">Rescheduled</SelectItem>
                 <SelectItem value="in-transit">In Transit</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -435,7 +438,7 @@ export default function AdminPickupRequests() {
                 <Skeleton key={i} className="h-16 w-full" />
               ))}
             </div>
-          ) : !filteredRequests || filteredRequests.length === 0 ? (
+          ) : ! filteredRequests || filteredRequests.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-slate-500">
                 {searchQuery ? 'No matching requests found' : 'No pickup requests found'}
@@ -447,7 +450,7 @@ export default function AdminPickupRequests() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[60px]">#</TableHead>
-                    <TableHead className="w-[120px]">Order ID</TableHead> {/* ✅ Added Order ID column */}
+                    <TableHead className="w-[120px]">Order ID</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Device</TableHead>
                     <TableHead>City</TableHead>
@@ -466,12 +469,11 @@ export default function AdminPickupRequests() {
                         {index + 1}
                       </TableCell>
                       
-                      {/* ✅ Display Order ID */}
                       <TableCell>
-                        {request.order_id ? (
+                        {request.order_id ?  (
                           <Badge variant="outline" className="font-mono text-xs bg-blue-50 text-blue-700 border-blue-300">
                             <Hash className="w-3 h-3 mr-1" />
-                            {request.order_id.replace('#', '')}
+                            {request.order_id. replace('#', '')}
                           </Badge>
                         ) : (
                           <span className="text-slate-400 text-xs">No ID</span>
@@ -492,7 +494,7 @@ export default function AdminPickupRequests() {
                       <TableCell>
                         <div>
                           <div className="font-medium">
-                            {request.device?.brand?.name} {request.device?.model_name}
+                            {request.device?. brand?.name} {request.device?.model_name}
                           </div>
                           <div className="text-sm text-slate-500">
                             {request.variant?.storage_gb}GB
@@ -532,7 +534,7 @@ export default function AdminPickupRequests() {
                         <Select
                           value={request.status}
                           onValueChange={(value) => {
-                            updateStatusMutation.mutate({
+                            updateStatusMutation. mutate({
                               id: request.id,
                               status: value,
                               oldStatus: request.status,
@@ -561,6 +563,12 @@ export default function AdminPickupRequests() {
                                 Confirmed
                               </div>
                             </SelectItem>
+                            <SelectItem value="rescheduled">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-orange-500" />
+                                Rescheduled
+                              </div>
+                            </SelectItem>
                             <SelectItem value="in-transit">
                               <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-purple-500" />
@@ -587,7 +595,7 @@ export default function AdminPickupRequests() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleOpenNotes(request)}
-                          title={request.notes ? 'View/Edit Notes' : 'Add Notes'}
+                          title={request.notes ?  'View/Edit Notes' : 'Add Notes'}
                         >
                           <FileText className={`h-4 w-4 ${request.notes ? 'text-blue-600' : 'text-slate-400'}`} />
                           {request.notes && (
@@ -625,7 +633,6 @@ export default function AdminPickupRequests() {
           </DialogHeader>
           {selectedRequest && (
             <div className="space-y-6">
-              {/* ✅ Show Order ID in Details Dialog */}
               {selectedRequest.order_id && (
                 <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
                   <div className="flex items-center justify-between">
@@ -735,7 +742,7 @@ export default function AdminPickupRequests() {
                     <div className="flex justify-between items-center">
                       <span className="text-slate-700">Device Age:</span>
                       <Badge variant="outline" className="capitalize">
-                        {selectedRequest.age_group === "0-3" && "0-3 Months"}
+                        {selectedRequest. age_group === "0-3" && "0-3 Months"}
                         {selectedRequest.age_group === "3-6" && "3-6 Months"}
                         {selectedRequest.age_group === "6-11" && "6-11 Months"}
                         {selectedRequest.age_group === "12+" && "12+ Months"}
@@ -749,14 +756,14 @@ export default function AdminPickupRequests() {
                       <Badge
                         variant="outline"
                         className={`capitalize ${
-                          selectedRequest.overall_condition === "good"
+                          selectedRequest. overall_condition === "good"
                             ? "bg-green-100 text-green-800"
                             : selectedRequest.overall_condition === "average"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {selectedRequest.overall_condition.replace("-", " ")}
+                        {selectedRequest.overall_condition. replace("-", " ")}
                       </Badge>
                     </div>
                   )}
@@ -780,7 +787,7 @@ export default function AdminPickupRequests() {
                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                     {typeof selectedRequest.can_make_calls !== "undefined" && (
                       <div className="flex items-center gap-2">
-                        {selectedRequest.can_make_calls ? (
+                        {selectedRequest.can_make_calls ?  (
                           <CheckCircle className="h-4 w-4 text-green-600" />
                         ) : (
                           <XCircle className="h-4 w-4 text-red-600" />
@@ -914,12 +921,12 @@ export default function AdminPickupRequests() {
               )}
               {/* Metadata */}
               <div className="text-xs text-slate-500 bg-slate-100 p-3 rounded space-y-1">
-                <p><strong>Request ID:</strong> {selectedRequest.id}</p>
+                <p><strong>Request ID:</strong> {selectedRequest. id}</p>
                 {selectedRequest.order_id && (
                   <p><strong>Order ID:</strong> {selectedRequest.order_id}</p>
                 )}
                 <p>
-                  <strong>Created:</strong> {selectedRequest.created_at ? format(new Date(selectedRequest.created_at), 'MMM dd, yyyy HH:mm:ss') : 'N/A'} UTC
+                  <strong>Created:</strong> {selectedRequest.created_at ?  format(new Date(selectedRequest. created_at), 'MMM dd, yyyy HH:mm:ss') : 'N/A'} UTC
                 </p>
                 {selectedRequest.updated_at && (
                   <>
@@ -974,7 +981,7 @@ export default function AdminPickupRequests() {
               </label>
               <Textarea
                 value={noteText}
-                onChange={(e) => setNoteText(e.target.value)}
+                onChange={(e) => setNoteText(e. target.value)}
                 placeholder="Add internal notes about this pickup request..."
                 className="min-h-[150px]"
                 rows={8}
@@ -983,10 +990,10 @@ export default function AdminPickupRequests() {
                 {noteText.length} characters
               </p>
             </div>
-            {selectedRequest?.updated_by && selectedRequest?.updated_at && (
+            {selectedRequest?. updated_by && selectedRequest?. updated_at && (
               <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded border">
                 <div><strong>Last updated:</strong> {selectedRequest.updated_at ? format(new Date(selectedRequest.updated_at), 'MMM dd, yyyy HH:mm:ss') : 'N/A'} UTC</div>
-                <div><strong>Updated by:</strong> {selectedRequest.updated_by}</div>
+                <div><strong>Updated by:</strong> {selectedRequest. updated_by}</div>
               </div>
             )}
           </div>
