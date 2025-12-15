@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -18,25 +18,85 @@ interface Review {
   location: string;
 }
 
-const TypingText = ({ text }: { text: string }) => {
-  const [displayText, setDisplayText] = useState("");
+// ==================== SNOWFALL COMPONENT ====================
+interface SnowflakeProps {
+  style:   React.CSSProperties;
+  size: "small" | "medium" | "large";
+}
+
+const Snowflake = ({ style, size }: SnowflakeProps) => {
+  const sizeClasses = {
+    small: "w-1 h-1",
+    medium: "w-1. 5 h-1.5",
+    large: "w-2 h-2",
+  };
+
+  return (
+    <div
+      className={`absolute rounded-full bg-white/80 ${sizeClasses[size]}`}
+      style={style}
+    />
+  );
+};
+
+const Snowfall = () => {
+  const snowflakes = useMemo(() => {
+    return Array.from({ length: 50 }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      animationDelay: `${Math.random() * 8}s`,
+      animationDuration: `${8 + Math.random() * 6}s`,
+      size: (["small", "medium", "large"] as const)[Math.floor(Math.random() * 3)],
+      opacity: 0.3 + Math.random() * 0.5,
+    }));
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
+      {snowflakes. map((flake) => (
+        <Snowflake
+          key={flake.id}
+          size={flake.size}
+          style={{
+            left: flake.left,
+            animationDelay: flake.animationDelay,
+            animationDuration: flake.animationDuration,
+            opacity: flake.opacity,
+            animation: `snowfall ${flake.animationDuration} linear ${flake.animationDelay} infinite`,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// ==================== TYPING TEXT COMPONENT ====================
+interface TypingTextProps {
+  text: string;
+  speed?:  number;
+  className?: string;
+}
+
+const TypingText = ({ text, speed = 40, className = "" }: TypingTextProps) => {
+  const [displayedText, setDisplayedText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     if (currentIndex < text.length) {
       const timeout = setTimeout(() => {
-        setDisplayText(prev => prev + text[currentIndex]);
-        setCurrentIndex(prev => prev + 1);
-      }, 50);
+        setDisplayedText((prev) => prev + text[currentIndex]);
+        setCurrentIndex((prev) => prev + 1);
+      }, speed);
+
       return () => clearTimeout(timeout);
     }
-  }, [currentIndex, text]);
+  }, [currentIndex, text, speed]);
 
   return (
-    <span className="font-bold">
-      {displayText}
+    <span className={className}>
+      {displayedText}
       {currentIndex < text.length && (
-        <span className="animate-pulse">|</span>
+        <span className="animate-pulse" style={{ color: '#B8860B' }}>|</span>
       )}
     </span>
   );
@@ -44,7 +104,7 @@ const TypingText = ({ text }: { text: string }) => {
 
 const PHONE_NUMBER = "7411329292";
 const WHATSAPP_NUMBER = "7411329292";
-const WHATSAPP_MESSAGE = "Hi!  I'm interested in selling my gadget and would like to know more. ";
+const WHATSAPP_MESSAGE = "Hi!  I'm interested in selling my gadget and would like to know more.  ";
 const LOCATION_ADDRESS = "22, 2nd floor, Kothanur, Behind MCS Convention Hall, K Narayanapura Main Rd, Bengaluru, Nagareshwara - Nagenahalli, Karnataka 560077";
 
 const Home = () => {
@@ -70,7 +130,7 @@ const Home = () => {
       .order("created_at", { ascending: false })
       .limit(6);
 
-    if (! error && data) {
+    if (!error && data) {
       setReviews(data);
     }
   };
@@ -93,13 +153,13 @@ const Home = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+    setFormData({ name:  "", email: "", phone: "", subject: "", message: "" });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React. ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target. name]: e.target.value
     });
   };
 
@@ -138,78 +198,128 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-[#f5f0e8]">
-      <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-hero">
+      {/* ==================== CHRISTMAS HERO SECTION ==================== */}
+      <main className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img
             src="/assets/hero-gadgets.jpg"
-            alt="Premium modern gadgets and electronics"
+            alt="Premium modern gadgets with festive Christmas decorations"
             className="w-full h-full object-cover opacity-60"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#f5f0e8]/70 to-[#f5f0e8]/40"></div>
         </div>
 
-        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-600/20 rounded-full blur-3xl float-animation"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl float-animation" style={{ animationDelay: '2s' }}></div>
+        {/* Snowfall Effect */}
+        <Snowfall />
 
-        <div className="relative z-10 text-center max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Main Content */}
+        <div className="relative z-20 text-center max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-10">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
+            animate={{ opacity:  1, scale: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <h1 className="font-extrabold mb-8">
-              <span className="block text-5xl sm:text-6xl lg:text-7xl text-blue-600 leading-tight">
+            {/* Main Heading - Deep Red */}
+            <h1 className="font-serif font-bold mb-6">
+              <span 
+                className="block text-5xl sm:text-6xl lg:text-7xl leading-tight tracking-wide drop-shadow-lg"
+                style={{ color: '#9B1B30' }}
+              >
                 SELLKAR
               </span>
-              <span className="flex items-center justify-center mt-4">
-                <span className="block flex-1 h-0.5 bg-gradient-to-r from-transparent via-blue-600 to-blue-600"></span>
-                <span className="text-2xl sm:text-3xl lg:text-4xl text-blue-600 leading-none px-6">
+              
+              {/* Decorative Line with Text - Gold */}
+              <span className="flex items-center justify-center mt-4 gap-4">
+                <span className="block flex-1 h-[2px] max-w-[100px] sm:max-w-[120px] bg-gradient-to-r from-transparent via-[#B8860B] to-[#B8860B]" />
+                <span 
+                  className="text-xl sm:text-2xl lg:text-3xl leading-none font-medium tracking-widest drop-shadow-md"
+                  style={{ color:  '#B8860B' }}
+                >
                   INDIA
                 </span>
-                <span className="block flex-1 h-0.5 bg-gradient-to-l from-transparent via-blue-600 to-blue-600"></span>
+                <span className="block flex-1 h-[2px] max-w-[100px] sm:max-w-[120px] bg-gradient-to-l from-transparent via-[#B8860B] to-[#B8860B]" />
               </span>
             </h1>
 
-            <p className="text-xl sm:text-2xl lg:text-3xl text-black mb-4 font-light min-h-[2. 5rem]">
-              <TypingText text="Your Trusted Marketplace for Quality Electronics" />
+            {/* Subtitle with Typing Effect - Dark Black */}
+            <p 
+              className="text-xl sm:text-2xl lg: text-3xl mb-4 font-sans font-bold min-h-[2. 5rem]"
+              style={{ color: '#000000' }}
+            >
+              <TypingText 
+                text="Your Trusted Marketplace for Quality Electronics" 
+                speed={40}
+              />
             </p>
 
-            <p className="text-lg text-black mb-12 max-w-2xl mx-auto">
+            {/* Description - Dark Black */}
+            <motion.p 
+              className="text-lg mb-12 max-w-2xl mx-auto font-sans font-semibold leading-relaxed"
+              style={{ color: '#000000' }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y:  0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
               Get instant quotes, schedule convenient pickups, and receive immediate payment for your premium gadgets. Professional, secure, and hassle-free. 
-            </p>
+            </motion.p>
 
-            <div className="flex justify-center">
+            {/* CTA Button - Deep Red */}
+            <motion.div 
+              className="flex justify-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y:  0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
               <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-12 py-6 rounded-lg font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
+                className="text-white text-lg px-12 py-6 rounded-lg font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
+                style={{ backgroundColor: '#9B1B30' }}
                 onClick={scrollToCategories}
               >
                 SELL NOW
               </Button>
-            </div>
+            </motion.div>
 
+            {/* Holiday Badge - Dark Black text */}
+            <motion.div
+              className="mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm"
+              style={{ borderColor: '#B8860B', borderWidth: '1px' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+            >
+              <span className="text-lg" style={{ color: '#B8860B' }}>✦</span>
+              <span className="text-sm font-sans font-semibold" style={{ color: '#000000' }}>
+                Holiday Season Special Offers
+              </span>
+              <span className="text-lg" style={{ color: '#B8860B' }}>✦</span>
+            </motion.div>
+
+            {/* Stats - Dark Black labels */}
             <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.6 }}>
-                <div className="text-3xl font-bold text-blue-600">10,000+</div>
-                <div className="text-black">Devices Purchased</div>
-              </motion. div>
+              <motion.div initial={{ opacity: 0, y:  20 }} animate={{ opacity:  1, y: 0 }} transition={{ delay: 0.2, duration: 0.6 }}>
+                <div className="text-3xl font-bold" style={{ color: '#B8860B' }}>10,000+</div>
+                <div className="font-semibold" style={{ color: '#000000' }}>Devices Purchased</div>
+              </motion.div>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.6 }}>
-                <div className="text-3xl font-bold text-blue-600">4. 9★</div>
-                <div className="text-black">Customer Rating</div>
+                <div className="text-3xl font-bold" style={{ color: '#B8860B' }}>4. 9★</div>
+                <div className="font-semibold" style={{ color: '#000000' }}>Customer Rating</div>
               </motion.div>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 0.6 }}>
-                <div className="text-3xl font-bold text-blue-600">24/7</div>
-                <div className="text-black">Support Available</div>
-              </motion. div>
+                <div className="text-3xl font-bold" style={{ color: '#B8860B' }}>24/7</div>
+                <div className="font-semibold" style={{ color: '#000000' }}>Support Available</div>
+              </motion.div>
             </div>
           </motion.div>
         </div>
 
+        {/* Scroll Indicator - Gold */}
         <div
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce cursor-pointer"
           onClick={scrollToCategories}
         >
-          <div className="w-6 h-10 border-2 border-blue-600/50 rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-blue-600 rounded-full mt-2 animate-pulse"></div>
+          <div className="w-6 h-10 border-2 rounded-full flex justify-center" style={{ borderColor: '#B8860B' }}>
+            <div className="w-1 h-3 rounded-full mt-2 animate-pulse" style={{ backgroundColor: '#B8860B' }}></div>
           </div>
         </div>
       </main>
@@ -233,7 +343,7 @@ const Home = () => {
               </h3>
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}>
+                <motion.div initial={{ opacity: 0, y:  20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}>
                   <Card className="cursor-pointer group hover:scale-105 transition-all duration-300 hover:ring-2 hover:ring-blue-700" onClick={() => handleCategoryClick("phone")}>
                     <CardContent className="p-6">
                       <div className="relative overflow-hidden rounded-xl mb-4">
@@ -249,7 +359,7 @@ const Home = () => {
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.2 }}>
-                  <Card className="cursor-pointer group hover:scale-105 transition-all duration-300 hover:ring-2 hover:ring-blue-700" onClick={() => handleCategoryClick("laptop")}>
+                  <Card className="cursor-pointer group hover:scale-105 transition-all duration-300 hover:ring-2 hover: ring-blue-700" onClick={() => handleCategoryClick("laptop")}>
                     <CardContent className="p-6">
                       <div className="relative overflow-hidden rounded-xl mb-4">
                         <img src="/assets/laptopppp.jpg" alt="Sell Laptop" className="w-full h-40 object-contain object-center rounded-lg transition-transform duration-300 group-hover:scale-110" loading="lazy" />
@@ -310,7 +420,7 @@ const Home = () => {
               <span className="text-gray-300 text-2xl">|</span>
               <a 
                 href="/sell-phone-in-hyderabad" 
-                className="inline-flex items-center gap-2 text-lg text-blue-600 hover:text-blue-800 hover:underline transition-colors font-medium"
+                className="inline-flex items-center gap-2 text-lg text-blue-600 hover: text-blue-800 hover: underline transition-colors font-medium"
               >
                 <CheckCircle className="w-5 h-5" />
                 Sell Old Phones in Hyderabad
@@ -359,7 +469,7 @@ const Home = () => {
           </div>
 
           <div className="text-center mt-16 animate-fade-in-scale">
-            <p className="text-lg text-black mb-6">Ready to sell your device? Start the process now! </p>
+            <p className="text-lg text-black mb-6">Ready to sell your device? Start the process now!</p>
             <Button onClick={scrollToCategories} className="bg-blue-700 hover:bg-blue-800 text-white px-10 py-4 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-xl">
               Get Started Today
             </Button>
@@ -374,7 +484,7 @@ const Home = () => {
               What Our <span className="text-blue-700">Customers Say</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Join thousands of satisfied customers who have trusted SellkarIndia for their device selling needs.  Real reviews from real customers across India.
+              Join thousands of satisfied customers who have trusted SellkarIndia for their device selling needs. Real reviews from real customers across India.
             </p>
           </div>
 
@@ -382,8 +492,8 @@ const Home = () => {
             <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
               <div className="text-4xl font-bold text-blue-700 mb-2">4.9/5</div>
               <div className="text-black">Average Rating</div>
-            </motion. div>
-            <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}>
+            </motion.div>
+            <motion. div className="text-center" initial={{ opacity: 0, y:  20 }} whileInView={{ opacity: 1, y:  0 }} viewport={{ once:  true }} transition={{ duration: 0.6, delay: 0.1 }}>
               <div className="text-4xl font-bold text-blue-700 mb-2">10,000+</div>
               <div className="text-black">Happy Customers</div>
             </motion.div>
@@ -397,7 +507,7 @@ const Home = () => {
             </motion. div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md: grid-cols-2 lg:grid-cols-3 gap-8">
             {reviews.map((review, index) => (
               <motion.div key={review.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.1 }} className="relative p-6 bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300">
                 <div className="flex mb-4">
@@ -411,7 +521,7 @@ const Home = () => {
                     {review.customer_name. charAt(0)}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">{review. customer_name}</div>
+                    <div className="font-semibold text-gray-900">{review.customer_name}</div>
                     <div className="text-sm text-gray-500">Sold {review.device_name}</div>
                     <div className="text-xs text-blue-700">{review.location}</div>
                   </div>
@@ -423,7 +533,7 @@ const Home = () => {
 
           <div className="text-center mt-16 animate-fade-in-scale">
             <p className="text-lg text-black mb-6">Ready to join our community of satisfied customers? </p>
-            <Button onClick={scrollToCategories} className="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-8 rounded-full transition duration-300">
+            <Button onClick={scrollToCategories} className="bg-blue-700 hover: bg-blue-800 text-white font-semibold py-3 px-8 rounded-full transition duration-300">
               Start Selling Today
             </Button>
           </div>
@@ -437,7 +547,7 @@ const Home = () => {
               Contact <span className="text-blue-700">& Support</span>
             </h2>
             <p className="text-xl text-black max-w-3xl mx-auto">
-              Have questions?  Need assistance? Our dedicated support team is here to help you 24/7.  Get in touch through your preferred channel.
+              Have questions?  Need assistance? Our dedicated support team is here to help you 24/7. Get in touch through your preferred channel. 
             </p>
           </div>
 
@@ -487,7 +597,7 @@ const Home = () => {
 
               <Card className="bg-white border-2">
                 <CardContent className="p-8">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Why Choose Our Support?</h4>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Why Choose Our Support? </h4>
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center text-gray-700">
                       <div className="w-2 h-2 bg-blue-700 rounded-full mr-3"></div>
@@ -499,7 +609,7 @@ const Home = () => {
                     </div>
                     <div className="flex items-center text-gray-700">
                       <div className="w-2 h-2 bg-blue-700 rounded-full mr-3"></div>
-                      Multilingual Support (Hindi, English, Kannada, Malayalum)
+                      Multilingual Support (Hindi, English, Kannada, Malayalam)
                     </div>
                     <div className="flex items-center text-gray-700">
                       <div className="w-2 h-2 bg-gold rounded-full mr-3"></div>
@@ -514,6 +624,18 @@ const Home = () => {
       </section>
 
       <Footer />
+
+      {/* Add snowfall animation to global styles */}
+      <style>{`
+        @keyframes snowfall {
+          0% {
+            transform: translateY(-10vh) translateX(0);
+          }
+          100% {
+            transform: translateY(100vh) translateX(100px);
+          }
+        }
+      `}</style>
     </div>
   );
 };
