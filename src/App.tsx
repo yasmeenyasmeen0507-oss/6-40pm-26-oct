@@ -54,113 +54,114 @@ const App = () => (
           <AdminAuthProvider>
             <PickupPartnerAuthProvider>
               <Routes>
-              {/* Routes WITHOUT MainLayout */}
-              <Route path="/" element={<Home />} />
-              <Route path="/home" element={<Home />} />
+                {/* Routes WITHOUT MainLayout */}
+                <Route path="/" element={<Home />} />
+                <Route path="/home" element={<Home />} />
 
-              {/* Redirect /sell to homepage */}
-              <Route path="/sell" element={<Navigate to="/" replace />} />
+                {/* Redirect /sell to homepage */}
+                <Route path="/sell" element={<Navigate to="/" replace />} />
 
-              {/* ========== CITIES HUB PAGE ========== */}
-              <Route path="/cities" element={<CitiesHub />} />
+                {/* ========== CITIES HUB PAGE ========== */}
+                <Route path="/cities" element={<CitiesHub />} />
 
-              {/* ========== SEO CITY LANDING PAGES ========== */}
-              <Route path="/sell-phone-in-bangalore" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-delhi" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-mumbai" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-chennai" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-hyderabad" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-pune" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-jaipur" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-kolkata" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-lucknow" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-kanpur" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-varanasi" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-agra" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-thane" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-chandigarh" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-amritsar" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-ludhiana" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-patna" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-gorakhpur" element={<CityLandingPage />} />
-              <Route path="/sell-phone-in-mathura" element={<CityLandingPage />} />
+                {/* ========== SEO CITY LANDING PAGES ========== */}
+                <Route path="/sell-phone-in-bangalore" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-delhi" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-mumbai" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-chennai" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-hyderabad" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-pune" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-jaipur" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-kolkata" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-lucknow" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-kanpur" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-varanasi" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-agra" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-thane" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-chandigarh" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-amritsar" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-ludhiana" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-patna" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-gorakhpur" element={<CityLandingPage />} />
+                <Route path="/sell-phone-in-mathura" element={<CityLandingPage />} />
 
-              {/* ========== MOBILES FLOW ========== */}
-              <Route path="/sell/mobiles" element={<SellMobiles />} />
-              <Route path="/sell/mobiles/:brandSlug" element={<DevicePage category="phone" />} />
-              <Route path="/sell/mobiles/:brandSlug/:deviceSlug" element={<CityPage category="phone" />} />
-              <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug" element={<VariantPage category="phone" />} />
-              <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug" element={<ConditionPage category="phone" />} />
-              <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification" element={<VerifyPage />} />
-              <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success" element={<ValuationPage />} />
-              <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup" element={<PickupPage />} />
-              <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup/success" element={<PickupPage />} />
+                {/* ========== MOBILES FLOW ========== */}
+                <Route path="/sell/mobiles" element={<SellMobiles />} />
+                <Route path="/sell/mobiles/:brandSlug" element={<DevicePage category="phone" />} />
+                <Route path="/sell/mobiles/:brandSlug/:deviceSlug" element={<CityPage category="phone" />} />
+                <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug" element={<VariantPage category="phone" />} />
+                <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug" element={<ConditionPage category="phone" />} />
+                <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification" element={<VerifyPage />} />
+                <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success" element={<ValuationPage />} />
+                <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup" element={<PickupPage />} />
+                <Route path="/sell/mobiles/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup/success" element={<PickupPage />} />
 
-              {/* ========== LAPTOP FLOW ========== */}
-              <Route path="/sell/laptop" element={<SellLaptop />} />
-              <Route path="/sell/laptop/:brandSlug" element={<SellLaptop />} />
-              <Route path="/sell/laptop/:brandSlug/:citySlug/verify" element={<SellLaptop />} />
-              <Route path="/sell/laptop/:brandSlug/:citySlug/success" element={<SellLaptop />} />
-              <Route path="/sell/laptop/:brandSlug/:deviceSlug" element={<CityPage category="laptop" />} />
-              <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug" element={<VariantPage category="laptop" />} />
-              <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug" element={<ConditionPage category="laptop" />} />
-              <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification" element={<VerifyPage />} />
-              <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success" element={<ValuationPage />} />
-              <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup" element={<PickupPage />} />
-              <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup/success" element={<PickupPage />} />
+                {/* ========== LAPTOP FLOW ========== */}
+                <Route path="/sell/laptop" element={<SellLaptop />} />
+                <Route path="/sell/laptop/:brandSlug" element={<SellLaptop />} />
+                <Route path="/sell/laptop/:brandSlug/:citySlug/verify" element={<SellLaptop />} />
+                <Route path="/sell/laptop/:brandSlug/:citySlug/success" element={<SellLaptop />} />
+                <Route path="/sell/laptop/:brandSlug/:deviceSlug" element={<CityPage category="laptop" />} />
+                <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug" element={<VariantPage category="laptop" />} />
+                <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug" element={<ConditionPage category="laptop" />} />
+                <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification" element={<VerifyPage />} />
+                <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success" element={<ValuationPage />} />
+                <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup" element={<PickupPage />} />
+                <Route path="/sell/laptop/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup/success" element={<PickupPage />} />
 
-              {/* ========== IPAD FLOW ========== */}
-              <Route path="/sell/ipad" element={<SellIpad />} />
-              <Route path="/sell/ipad/:brandSlug" element={<DevicePage category="ipad" />} />
-              <Route path="/sell/ipad/:brandSlug/:deviceSlug" element={<CityPage category="ipad" />} />
-              <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug" element={<VariantPage category="ipad" />} />
-              <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug" element={<ConditionPage category="ipad" />} />
-              <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification" element={<VerifyPage />} />
-              <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success" element={<ValuationPage />} />
-              <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup" element={<PickupPage />} />
-              <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup/success" element={<PickupPage />} />
+                {/* ========== IPAD FLOW ========== */}
+                <Route path="/sell/ipad" element={<SellIpad />} />
+                <Route path="/sell/ipad/:brandSlug" element={<DevicePage category="ipad" />} />
+                <Route path="/sell/ipad/:brandSlug/:deviceSlug" element={<CityPage category="ipad" />} />
+                <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug" element={<VariantPage category="ipad" />} />
+                <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug" element={<ConditionPage category="ipad" />} />
+                <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification" element={<VerifyPage />} />
+                <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success" element={<ValuationPage />} />
+                <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup" element={<PickupPage />} />
+                <Route path="/sell/ipad/:brandSlug/:deviceSlug/:citySlug/:variantSlug/verification/success/pickup/success" element={<PickupPage />} />
 
-              {/* Info pages */}
-              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/how-it-works" element={<HowItWorks />} />
-              <Route path="/about" element={<AboutUs />} />
+                {/* Info pages */}
+                <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/how-it-works" element={<HowItWorks />} />
+                <Route path="/about" element={<AboutUs />} />
 
-              {/* Pickup Partner Routes */}
-              <Route path="/pickup-partner/login" element={<PickupPartnerLogin />} />
-              <Route
-                path="/pickup-partner/dashboard"
-                element={
-                  <ProtectedPickupPartnerRoute>
-                    <PickupPartnerDashboard />
-                  </ProtectedPickupPartnerRoute>
-                }
-              />
+                {/* Pickup Partner Routes */}
+                <Route path="/pickup-partner/login" element={<PickupPartnerLogin />} />
+                <Route
+                  path="/pickup-partner/dashboard"
+                  element={
+                    <ProtectedPickupPartnerRoute>
+                      <PickupPartnerDashboard />
+                    </ProtectedPickupPartnerRoute>
+                  }
+                />
 
-              <Route path="*" element={<NotFound />} />
+                <Route path="*" element={<NotFound />} />
 
-              {/* Admin Routes */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route
-                path="/admin/*"
-                element={
-                  <ProtectedAdminRoute>
-                    <AdminLayout />
-                  </ProtectedAdminRoute>
-                }
-              >
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="pickup-requests" element={<AdminPickupRequests />} />
-                <Route path="pickup-agents" element={<AdminPickupAgents />} />
-                <Route path="leads" element={<AdminLeads />} />
-                <Route path="devices" element={<div>Devices</div>} />
-                <Route path="analytics" element={<AdminAnalytics />} />
-                <Route path="pricing" element={<AdminPricing />} />
-                <Route path="warranty-prices" element={<AdminWarrantyPrices />} />
-                <Route path="variants" element={<AdminVariants />} />
-              </Route>
-            </Routes>
+                {/* Admin Routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route
+                  path="/admin/*"
+                  element={
+                    <ProtectedAdminRoute>
+                      <AdminLayout />
+                    </ProtectedAdminRoute>
+                  }
+                >
+                  <Route index element={<Navigate to="dashboard" replace />} />
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="pickup-requests" element={<AdminPickupRequests />} />
+                  <Route path="pickup-agents" element={<AdminPickupAgents />} />
+                  <Route path="leads" element={<AdminLeads />} />
+                  <Route path="devices" element={<div>Devices</div>} />
+                  <Route path="analytics" element={<AdminAnalytics />} />
+                  <Route path="pricing" element={<AdminPricing />} />
+                  <Route path="warranty-prices" element={<AdminWarrantyPrices />} />
+                  <Route path="variants" element={<AdminVariants />} />
+                </Route>
+              </Routes>
             </PickupPartnerAuthProvider>
           </AdminAuthProvider>
         </BrowserRouter>
