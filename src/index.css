@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@300;400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 20% 95%;
+    /* Warm Champagne (Original) */
+    --foreground: 222 47% 11%;
+    /* Dark Blue-Gray (Original) */
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary Royal Blue (Original) */
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 40% 98%;
+
+    /* Secondary Blue (Original) */
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.75rem;
+
+    /* Custom Colors for Dashboard (Original) */
+    --color-blue: 217 91% 60%;
+    --color-purple: 262 83% 58%;
+    --color-yellow: 43 96% 56%;
+    --color-green: 142 76% 36%;
+    --color-red: 0 84% 60%;
+
+    /* Golden Haze Additions (For Hero Section) */
+    --gold: 38 70% 50%;
+    --gold-light: 40 60% 70%;
+    --gold-dark: 36 80% 35%;
+    --gold-shimmer: 42 85% 65%;
+
+    --gradient-gold: linear-gradient(135deg, hsl(38 70% 50%), hsl(42 85% 65%));
+    --gradient-hero: linear-gradient(180deg, hsl(40 35% 94%) 0%, hsl(38 28% 88%) 50%, hsl(40 30% 92%) 100%);
+    --gradient-gold-btn: linear-gradient(135deg, hsl(36 80% 35%), hsl(38 70% 50%), hsl(42 85% 65%));
+
+    --shadow-gold: 0 4px 20px -4px hsl(38 70% 50% / 0.3);
+    --shadow-gold-lg: 0 10px 40px -8px hsl(38 70% 50% / 0.4);
+
+    /* Hero Text Colors */
+    --hero-sellkar: 36 50% 28%;
+    --hero-subtext: 30 20% 20%;
+    --hero-body: 30 10% 40%;
+    --hero-btn-text: 36 50% 18%;
+    --hero-btn-border: 43 60% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-[#F5F3EE] text-foreground font-sans;
+    /* use the imported display face for larger headings by default; small text remains sans */
+    font-family: theme('fontFamily.sans');
+  }
+}
+
+@layer utilities {
+
+  /* Original Dashboard Utilities */
+  .card-shadow {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  }
+
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  }
+
+  .sidebar-gradient {
+    @apply bg-gradient-to-r from-violet-600 to-purple-600;
+  }
+
+  /* Golden Haze Utilities */
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(36 80% 35%), hsl(38 70% 50%), hsl(42 85% 65%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-gold {
+    background: var(--gradient-gold-btn);
+  }
+
+  .bg-gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .shadow-gold {
+    box-shadow: var(--shadow-gold);
+  }
+
+  .shadow-gold-lg {
+    box-shadow: var(--shadow-gold-lg);
+  }
+
+  .glow-gold {
+    filter: drop-shadow(0 0 8px hsl(38 70% 50% / 0.4));
+  }
+}
+
+/* Particle animation keyframes (Golden Haze) */
+@keyframes float-down {
+  0% {
+    transform: translateY(-5vh) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: var(--particle-opacity, 0.15);
+  }
+
+  90% {
+    opacity: var(--particle-opacity, 0.15);
+  }
+
+  100% {
+    transform: translateY(105vh) translateX(var(--drift-x, 30px)) rotate(var(--rotation, 45deg));
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
